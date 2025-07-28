@@ -6,9 +6,12 @@ use App\Filament\Resources\Main\UserResource\Pages;
 use App\Models\User;
 use Coolsam\Flatpickr\Forms\Components\Flatpickr;
 use Exception;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
@@ -43,28 +46,68 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->minLength(3)
-                    ->string()
-                    ->required(),
+                Fieldset::make('user')
+                    ->label('User Information')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Name')
+                            ->minLength(3)
+                            ->required()
+                            ->maxLength(255),
 
-                TextInput::make('email')
-                    ->email()
-                    ->unique(ignoreRecord: true)
-                    ->required(),
+                        TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->unique(ignoreRecord: true)
+                            ->required()
+                            ->maxLength(255),
 
-                TextInput::make('userProfile.phone')
-                    ->label('Phone')
-                    ->tel()
-                    ->required()
-                    ->maxLength(15)
-                    ->rules([
-                        Rule::unique('user_profiles', 'phone')
-                            ->ignore(fn(?User $record) => $record?->userProfile?->id, 'id')
-                            ->whereNull('deleted_at'),
-                    ])
-                    ->dehydrated(fn($state) => filled($state))
-                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+                        Select::make('roles')
+                            ->label('Role')
+                            ->relationship('roles', 'name')
+                            ->preload()
+                            ->required()
+                            ->rules([
+                                Rule::exists('roles', 'id')
+                                    ->where('guard_name', 'web'),
+                            ])
+                            ->searchable()
+                            ->columnSpanFull(),
+                    ]),
+
+                Fieldset::make('address')
+                    ->label('Address')
+                    ->relationship('userProfile')
+                    ->schema([
+                        TextInput::make('phone')
+                            ->label('Phone')
+                            ->numeric()
+                            ->required()
+                            ->maxLength(15)
+                            ->rules([
+                                function (Get $get, $livewire) {
+                                    $userProfile = $livewire->record?->userProfile;
+                                    $currentPhone = $userProfile?->phone;
+                                    $inputPhone = preg_replace('/[^0-9]/', '', $get('phone'));
+
+                                    // Only apply unique rule if phone is changed or new
+                                    if ($inputPhone !== $currentPhone) {
+                                        $rule = Rule::unique('user_profiles', 'phone');
+                                        if ($userProfile?->id) {
+                                            $rule->ignore($userProfile->id, 'id');
+                                        }
+                                        return $rule;
+                                    }
+                                    return null;
+                                },
+                            ])
+                            ->dehydrated(fn($state) => filled($state))
+                            ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+                        TextInput::make('province'),
+                        TextInput::make('city'),
+                        TextInput::make('district'),
+                        TextInput::make('village'),
+                    ]),
 
                 Flatpickr::make('email_verified_at')
                     ->label('Email Verified Date')
@@ -179,6 +222,6 @@ class UserResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'email'];
+        return ['name', 'email', 'userProfile.phone'];
     }
 }
