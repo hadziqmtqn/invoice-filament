@@ -4,11 +4,13 @@ namespace App\Filament\Resources\Main;
 
 use App\Filament\Resources\Main\UserResource\Pages;
 use App\Models\User;
+use Coolsam\Flatpickr\Forms\Components\Flatpickr;
 use Exception;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -19,10 +21,14 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
@@ -38,16 +44,50 @@ class UserResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->minLength(3)
+                    ->string()
                     ->required(),
 
                 TextInput::make('email')
+                    ->email()
+                    ->unique(ignoreRecord: true)
                     ->required(),
 
-                DatePicker::make('email_verified_at')
-                    ->label('Email Verified Date'),
+                TextInput::make('userProfile.phone')
+                    ->label('Phone')
+                    ->tel()
+                    ->required()
+                    ->maxLength(15)
+                    ->rules([
+                        Rule::unique('user_profiles', 'phone')
+                            ->ignore(fn(?User $record) => $record?->userProfile?->id, 'id')
+                            ->whereNull('deleted_at'),
+                    ])
+                    ->dehydrated(fn($state) => filled($state))
+                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+
+                Flatpickr::make('email_verified_at')
+                    ->label('Email Verified Date')
+                    ->placeholder('Select date')
+                    ->maxDate(fn() => now())
+                    ->default(fn() => now()),
 
                 TextInput::make('password')
-                    ->required(),
+                    ->label('Password')
+                    ->password()
+                    ->minLength(8)
+                    // use number, uppercase, lowercase, and special characters
+                    ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
+                    ->hint('Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.')
+                    ->maxLength(255)
+                    ->autocomplete('new-password')
+                    ->columnSpanFull()
+                    ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
+                    ->dehydrated(fn($state) => filled($state))
+                    ->required(fn($livewire) => $livewire instanceof CreateRecord)
+                    ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                    ->dehydrated(fn($state) => filled($state))
+                    ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
 
                 Placeholder::make('created_at')
                     ->label('Created Date')
@@ -91,6 +131,16 @@ class UserResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make(),
+                SelectFilter::make('role')
+                    ->label('Role')
+                    ->options(fn () => Role::all()->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if ($data['value']) {
+                            $query->whereHas('roles', function ($q) use ($data) {
+                                $q->where('id', $data['value']);
+                            });
+                        }
+                    }),
             ])
             ->actions([
                 EditAction::make(),
@@ -121,6 +171,7 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with('userProfile', 'roles')
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
