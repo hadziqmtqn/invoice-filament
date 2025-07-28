@@ -7,8 +7,10 @@ use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
@@ -61,46 +63,63 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                Fieldset::make('user')
-                    ->label('User Information')
-                    ->schema([
-                        TextInput::make('name')
-                            ->label('Name')
-                            ->minLength(3)
-                            ->required()
-                            ->maxLength(255),
+                Tabs::make('Tabs')
+                    ->columnSpan('full')
+                    ->tabs([
+                        Tabs\Tab::make('Data User')
+                            ->icon('heroicon-o-user')
+                            ->schema([
+                                Grid::make()
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Name')
+                                            ->minLength(3)
+                                            ->required()
+                                            ->maxLength(255),
 
-                        TextInput::make('email')
-                            ->label('Email')
-                            ->email()
-                            ->unique(ignoreRecord: true)
-                            ->required()
-                            ->maxLength(255),
+                                        TextInput::make('email')
+                                            ->label('Email')
+                                            ->email()
+                                            ->unique(ignoreRecord: true)
+                                            ->required()
+                                            ->maxLength(255),
+                                    ]),
+                                Grid::make()
+                                    ->schema([
+                                        Select::make('roles')
+                                            ->label('Role')
+                                            ->relationship('roles', 'name')
+                                            ->preload()
+                                            ->required()
+                                            ->rules([
+                                                Rule::exists('roles', 'id')
+                                                    ->where('guard_name', 'web'),
+                                            ])
+                                            ->searchable(),
 
-                        Select::make('roles')
-                            ->label('Role')
-                            ->relationship('roles', 'name')
-                            ->preload()
-                            ->required()
-                            ->rules([
-                                Rule::exists('roles', 'id')
-                                    ->where('guard_name', 'web'),
-                            ])
-                            ->searchable(),
+                                        TextInput::make('password')
+                                            ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
+                                            ->password()
+                                            ->minLength(8)
+                                            ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
+                                            ->maxLength(255)
+                                            ->autocomplete('new-password')
+                                            ->dehydrated(fn($state) => filled($state))
+                                            ->required(fn($livewire) => $livewire instanceof CreateRecord)
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
+                                        ]),
+                                ]),
 
-                        TextInput::make('password')
-                            ->label('Password')
-                            ->password()
-                            ->minLength(8)
-                            ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
-                            ->maxLength(255)
-                            ->autocomplete('new-password')
-                            ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
-                            ->dehydrated(fn($state) => filled($state))
-                            ->required(fn($livewire) => $livewire instanceof CreateRecord)
-                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
-                            ->dehydrated(fn($state) => filled($state))
-                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
+                        Tabs\Tab::make('Address')
+                            ->icon('heroicon-o-map')
+                            ->schema([
+                                TextInput::make('phone')
+                                    ->label('Phone')
+                                    ->numeric()
+                                    ->required()
+                                    ->maxLength(15)
+                                ])
                     ]),
 
                 /*Fieldset::make('address')
