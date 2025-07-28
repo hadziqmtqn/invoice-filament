@@ -13,18 +13,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
-//use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-//use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
-//use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -124,29 +120,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->numeric()
                                             ->required()
                                             ->maxLength(15)
-                                            ->rules([
-                                                function (Get $get, $livewire) {
-                                                    // Handle jika dipanggil di context yang tidak punya $record (misal List)
-                                                    if (!property_exists($livewire, 'record')) {
-                                                        // fallback, selalu unique
-                                                        return Rule::unique('user_profiles', 'phone');
-                                                    }
-                                                    // Mode CREATE (belum ada record user)
-                                                    if (!$livewire->record) {
-                                                        return Rule::unique('user_profiles', 'phone');
-                                                    }
-                                                    // Mode EDIT
-                                                    $userProfile = $livewire->record->userProfile;
-                                                    $ignoreId = $userProfile?->id;
-
-                                                    // unique, tapi ignore profile sendiri jika ada
-                                                    $rule = Rule::unique('user_profiles', 'phone');
-                                                    if ($ignoreId) {
-                                                        $rule->ignore($ignoreId);
-                                                    }
-                                                    return $rule;
-                                                }
-                                            ])
+                                            ->unique(ignoreRecord: true)
                                             ->dehydrated(fn($state) => filled($state))
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
 
