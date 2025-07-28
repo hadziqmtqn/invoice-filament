@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\UserProfile;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
 use Illuminate\Database\Seeder;
@@ -18,5 +19,11 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             PermissionSeeder::class,
         ]);
+
+        UserProfile::factory(300)
+            ->create()
+            ->each(function (UserProfile $profile) {
+                $profile->user->assignRole('user');
+            });
     }
 }

@@ -3,6 +3,7 @@
 namespace Database\Seeders\Auth;
 
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -27,5 +28,11 @@ class AdminSeeder extends Seeder
         $mainSuperAdmin->save();
 
         $mainSuperAdmin->assignRole($superAdmin);
+
+        $userProfile = new UserProfile();
+        $userProfile->user_id = $mainSuperAdmin->id;
+        $userProfile->phone = '085157088717';
+        $userProfile->street = 'Jl. Raya No. 1, Jakarta';
+        $userProfile->save();
     }
 }
