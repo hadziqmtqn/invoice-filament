@@ -20,4 +20,21 @@ class EditUser extends EditRecord
             RestoreAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $profileData = $this->data['userProfile'] ?? [];
+
+        // Pastikan semua key ada (agar field bisa diupdate ke null jika kosong)
+        $fields = ['phone', 'province', 'city', 'district', 'village', 'street'];
+        foreach ($fields as $field) {
+            if (!array_key_exists($field, $profileData)) {
+                $profileData[$field] = null;
+            }
+        }
+        $this->record->userProfile()->updateOrCreate([], $profileData);
+
+        $this->record->refresh();
+        $this->fillForm();
+    }
 }

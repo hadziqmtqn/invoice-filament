@@ -30,6 +30,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -75,7 +76,7 @@ class UserResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Fieldset::make('address')
+                /*Fieldset::make('address')
                     ->label('Address')
                     ->relationship('userProfile')
                     ->schema([
@@ -103,11 +104,78 @@ class UserResource extends Resource
                             ])
                             ->dehydrated(fn($state) => filled($state))
                             ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
-                        TextInput::make('province'),
-                        TextInput::make('city'),
-                        TextInput::make('district'),
-                        TextInput::make('village'),
-                    ]),
+
+                        Select::make('province')
+                            ->label('Province')
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
+                                    'q' => $search,
+                                ]);
+                                return collect($response->json())->pluck('name', 'name')->toArray();
+                            })
+                            ->getOptionLabelUsing(fn ($value) => $value)
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                            ->reactive(),
+
+                        Select::make('city')
+                            ->label('City')
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search, $get) {
+                                $province = $get('province');
+                                if (!$province) return [];
+                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/cities', [
+                                    'province' => $province,
+                                    'q' => $search,
+                                ]);
+                                return collect($response->json())->pluck('name', 'name')->toArray();
+                            })
+                            ->getOptionLabelUsing(fn ($value) => $value)
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                            ->reactive(),
+
+                        Select::make('district')
+                        ->label('District')
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search, $get) {
+                                $city = $get('city');
+                                if (!$city) return [];
+                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/districts', [
+                                    'city' => $city,
+                                    'q' => $search,
+                                ]);
+                                return collect($response->json())->pluck('name', 'name')->toArray();
+                            })
+                            ->getOptionLabelUsing(fn ($value) => $value)
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                            ->reactive(),
+
+                        Select::make('village')
+                            ->label('Village')
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search, $get) {
+                                $district = $get('district');
+                                if (!$district) return [];
+                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/villages', [
+                                    'district' => $district,
+                                    'q' => $search,
+                                ]);
+                                return collect($response->json())->pluck('name', 'name')->toArray();
+                            })
+                            ->getOptionLabelUsing(fn ($value) => $value)
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                            ->reactive(),
+
+                        TextInput::make('street')
+                            ->label('Street')
+                            ->maxLength(255)
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                    ]),*/
 
                 Flatpickr::make('email_verified_at')
                     ->label('Email Verified Date')

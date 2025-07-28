@@ -19,10 +19,12 @@ class CreateUser extends CreateRecord
 
     protected function afterCreate(): void
     {
-        // $this->record adalah User yang baru saja dibuat
         if (!empty($this->userProfileData)) {
             $this->record->userProfile()->create($this->userProfileData);
         }
+
+        // Tambahkan baris berikut agar form langsung update dengan data userProfile
+        $this->redirect($this->getResource()::getUrl('edit', ['record' => $this->record]));
     }
 
     protected function getHeaderActions(): array
