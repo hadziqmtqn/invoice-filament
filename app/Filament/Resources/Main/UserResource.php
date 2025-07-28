@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
@@ -31,6 +32,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -92,8 +94,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->preload()
                                             ->required()
                                             ->rules([
-                                                Rule::exists('roles', 'id')
-                                                    ->where('guard_name', 'web'),
+                                                Rule::exists('roles', 'id')->where('guard_name', 'web'),
                                             ])
                                             ->searchable(),
 
@@ -108,120 +109,120 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->required(fn($livewire) => $livewire instanceof CreateRecord)
                                             ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
-                                        ]),
-                                ]),
+                                    ]),
+                            ]),
 
                         Tabs\Tab::make('Address')
                             ->icon('heroicon-o-map')
                             ->schema([
-                                TextInput::make('phone')
-                                    ->label('Phone')
-                                    ->numeric()
-                                    ->required()
-                                    ->maxLength(15)
-                                ])
+                                Fieldset::make('address')
+                                    ->label('Address')
+                                    ->relationship('userProfile')
+                                    ->schema([
+                                        TextInput::make('phone')
+                                            ->label('Phone')
+                                            ->numeric()
+                                            ->required()
+                                            ->maxLength(15)
+                                            ->rules([
+                                                function (Get $get, $livewire) {
+                                                    // Handle jika dipanggil di context yang tidak punya $record (misal List)
+                                                    if (!property_exists($livewire, 'record')) {
+                                                        // fallback, selalu unique
+                                                        return Rule::unique('user_profiles', 'phone');
+                                                    }
+                                                    // Mode CREATE (belum ada record user)
+                                                    if (!$livewire->record) {
+                                                        return Rule::unique('user_profiles', 'phone');
+                                                    }
+                                                    // Mode EDIT
+                                                    $userProfile = $livewire->record->userProfile;
+                                                    $ignoreId = $userProfile?->id;
+
+                                                    // unique, tapi ignore profile sendiri jika ada
+                                                    $rule = Rule::unique('user_profiles', 'phone');
+                                                    if ($ignoreId) {
+                                                        $rule->ignore($ignoreId);
+                                                    }
+                                                    return $rule;
+                                                }
+                                            ])
+                                            ->dehydrated(fn($state) => filled($state))
+                                            ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+
+                                        Select::make('province')
+                                            ->label('Province')
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search) {
+                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
+                                                    'q' => $search,
+                                                ]);
+                                                return collect($response->json())->pluck('name', 'name')->toArray();
+                                            })
+                                            ->getOptionLabelUsing(fn ($value) => $value)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                            ->reactive(),
+
+                                        Select::make('city')
+                                            ->label('City')
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search, $get) {
+                                                $province = $get('province');
+                                                if (!$province) return [];
+                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/cities', [
+                                                    'province' => $province,
+                                                    'q' => $search,
+                                                ]);
+                                                return collect($response->json())->pluck('name', 'name')->toArray();
+                                            })
+                                            ->getOptionLabelUsing(fn ($value) => $value)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                            ->reactive(),
+
+                                        Select::make('district')
+                                            ->label('District')
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search, $get) {
+                                                $city = $get('city');
+                                                if (!$city) return [];
+                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/districts', [
+                                                    'city' => $city,
+                                                    'q' => $search,
+                                                ]);
+                                                return collect($response->json())->pluck('name', 'name')->toArray();
+                                            })
+                                            ->getOptionLabelUsing(fn ($value) => $value)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                            ->reactive(),
+
+                                        Select::make('village')
+                                            ->label('Village')
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search, $get) {
+                                                $district = $get('district');
+                                                if (!$district) return [];
+                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/villages', [
+                                                    'district' => $district,
+                                                    'q' => $search,
+                                                ]);
+                                                return collect($response->json())->pluck('name', 'name')->toArray();
+                                            })
+                                            ->getOptionLabelUsing(fn ($value) => $value)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                            ->reactive(),
+
+                                        TextInput::make('street')
+                                            ->label('Street')
+                                            ->maxLength(255)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                    ])
+                            ]),
                     ]),
-
-                /*Fieldset::make('address')
-                    ->label('Address')
-                    ->relationship('userProfile')
-                    ->schema([
-                        TextInput::make('phone')
-                            ->label('Phone')
-                            ->numeric()
-                            ->required()
-                            ->maxLength(15)
-                            ->rules([
-                                function (Get $get, $livewire) {
-                                    $userProfile = $livewire->record?->userProfile;
-                                    $currentPhone = $userProfile?->phone;
-                                    $inputPhone = preg_replace('/[^0-9]/', '', $get('phone'));
-
-                                    // Only apply unique rule if phone is changed or new
-                                    if ($inputPhone !== $currentPhone) {
-                                        $rule = Rule::unique('user_profiles', 'phone');
-                                        if ($userProfile?->id) {
-                                            $rule->ignore($userProfile->id, 'id');
-                                        }
-                                        return $rule;
-                                    }
-                                    return null;
-                                },
-                            ])
-                            ->dehydrated(fn($state) => filled($state))
-                            ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
-
-                        Select::make('province')
-                            ->label('Province')
-                            ->searchable()
-                            ->getSearchResultsUsing(function (string $search) {
-                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
-                                    'q' => $search,
-                                ]);
-                                return collect($response->json())->pluck('name', 'name')->toArray();
-                            })
-                            ->getOptionLabelUsing(fn ($value) => $value)
-                            ->dehydrated()
-                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                            ->reactive(),
-
-                        Select::make('city')
-                            ->label('City')
-                            ->searchable()
-                            ->getSearchResultsUsing(function (string $search, $get) {
-                                $province = $get('province');
-                                if (!$province) return [];
-                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/cities', [
-                                    'province' => $province,
-                                    'q' => $search,
-                                ]);
-                                return collect($response->json())->pluck('name', 'name')->toArray();
-                            })
-                            ->getOptionLabelUsing(fn ($value) => $value)
-                            ->dehydrated()
-                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                            ->reactive(),
-
-                        Select::make('district')
-                        ->label('District')
-                            ->searchable()
-                            ->getSearchResultsUsing(function (string $search, $get) {
-                                $city = $get('city');
-                                if (!$city) return [];
-                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/districts', [
-                                    'city' => $city,
-                                    'q' => $search,
-                                ]);
-                                return collect($response->json())->pluck('name', 'name')->toArray();
-                            })
-                            ->getOptionLabelUsing(fn ($value) => $value)
-                            ->dehydrated()
-                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                            ->reactive(),
-
-                        Select::make('village')
-                            ->label('Village')
-                            ->searchable()
-                            ->getSearchResultsUsing(function (string $search, $get) {
-                                $district = $get('district');
-                                if (!$district) return [];
-                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/villages', [
-                                    'district' => $district,
-                                    'q' => $search,
-                                ]);
-                                return collect($response->json())->pluck('name', 'name')->toArray();
-                            })
-                            ->getOptionLabelUsing(fn ($value) => $value)
-                            ->dehydrated()
-                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                            ->reactive(),
-
-                        TextInput::make('street')
-                            ->label('Street')
-                            ->maxLength(255)
-                            ->dehydrated()
-                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
-                    ]),*/
 
                 Placeholder::make('created_at')
                     ->label('Created Date')
