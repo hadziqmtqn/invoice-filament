@@ -5,3 +5,13 @@ create_role;YES;NO
 update_role;YES;NO
 delete_role;YES;NO
 delete_any_role;YES;NO
+view_any_main::user;YES;NO
+view_main::user;YES;NO
+create_main::user;YES;NO
+update_main::user;YES;NO
+delete_main::user;YES;NO
+delete_any_main::user;YES;NO
+restore_main::user;YES;NO
+restore_any_main::user;YES;NO
+force_delete_main::user;YES;NO
+force_delete_any_main::user;YES;NO

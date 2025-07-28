@@ -43,8 +43,18 @@ class UserPolicy
         return $user->can('restore_main::user', $model);
     }
 
+    public function restoreAny(User $user): bool
+    {
+        return $user->can('restore_any_main::user');
+    }
+
     public function forceDelete(User $user, User $model): bool
     {
         return $user->can('force_delete_main::user', $model);
+    }
+
+    public function forceDeleteAny(User $user): bool
+    {
+        return $user->can('force_delete_any_main::user');
     }
 }

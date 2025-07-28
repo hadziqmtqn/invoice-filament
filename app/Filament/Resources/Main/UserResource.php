@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Main;
 use App\Filament\Resources\Main\UserResource\Pages;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-use Coolsam\Flatpickr\Forms\Components\Flatpickr;
 use Exception;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Placeholder;
@@ -17,12 +16,12 @@ use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
+//use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
+//use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
+//use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -52,7 +51,9 @@ class UserResource extends Resource implements HasShieldPermissions
             'update',
             'delete',
             'restore',
+            'restore_any',
             'force_delete',
+            'force_delete_any',
         ];
     }
 
@@ -85,8 +86,21 @@ class UserResource extends Resource implements HasShieldPermissions
                                 Rule::exists('roles', 'id')
                                     ->where('guard_name', 'web'),
                             ])
-                            ->searchable()
-                            ->columnSpanFull(),
+                            ->searchable(),
+
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->minLength(8)
+                            ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
+                            ->maxLength(255)
+                            ->autocomplete('new-password')
+                            ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
+                            ->dehydrated(fn($state) => filled($state))
+                            ->required(fn($livewire) => $livewire instanceof CreateRecord)
+                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                            ->dehydrated(fn($state) => filled($state))
+                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
                     ]),
 
                 /*Fieldset::make('address')
@@ -190,36 +204,15 @@ class UserResource extends Resource implements HasShieldPermissions
                             ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
                     ]),*/
 
-                Flatpickr::make('email_verified_at')
-                    ->label('Email Verified Date')
-                    ->placeholder('Select date')
-                    ->maxDate(fn() => now())
-                    ->default(fn() => now()),
-
-                TextInput::make('password')
-                    ->label('Password')
-                    ->password()
-                    ->minLength(8)
-                    // use number, uppercase, lowercase, and special characters
-                    ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
-                    ->hint('Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.')
-                    ->maxLength(255)
-                    ->autocomplete('new-password')
-                    ->columnSpanFull()
-                    ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
-                    ->dehydrated(fn($state) => filled($state))
-                    ->required(fn($livewire) => $livewire instanceof CreateRecord)
-                    ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
-                    ->dehydrated(fn($state) => filled($state))
-                    ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
-
                 Placeholder::make('created_at')
                     ->label('Created Date')
-                    ->content(fn(?User $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+                    ->content(fn(?User $record): string => $record?->created_at?->diffForHumans() ?? '-')
+                    ->visible(fn(?User $record): bool => $record?->created_at !== null),
 
                 Placeholder::make('updated_at')
                     ->label('Last Modified Date')
-                    ->content(fn(?User $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                    ->content(fn(?User $record): string => $record?->updated_at?->diffForHumans() ?? '-')
+                    ->visible(fn(?User $record): bool => $record?->updated_at !== null),
             ]);
     }
 
@@ -276,9 +269,12 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    /*DeleteBulkAction::make()
+                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),
+                    RestoreBulkAction::make()
+                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),
+                    ForceDeleteBulkAction::make()
+                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),*/
                 ]),
             ]);
     }
@@ -287,8 +283,8 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return [
             'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            //'create' => Pages\CreateUser::route('/create'),
+            //'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 
