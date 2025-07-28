@@ -1,0 +1,7 @@
+name;super_admin;user
+view_role;YES;NO
+view_any_role;YES;NO
+create_role;YES;NO
+update_role;YES;NO
+delete_role;YES;NO
+delete_any_role;YES;NO
