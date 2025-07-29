@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Resources\Main;
+namespace App\Filament\Resources;
 
-use App\Filament\Resources\Main\UserResource\Pages;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
@@ -37,9 +36,6 @@ use Spatie\Permission\Models\Role;
 class UserResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = User::class;
-
-    protected static ?string $slug = 'main/users';
-    protected static ?string $navigationGroup = 'Main';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
@@ -305,7 +301,7 @@ class UserResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
+            'index' => UserResource\Pages\ListUsers::route('/'),
             //'create' => Pages\CreateUser::route('/create'),
             //'edit' => Pages\EditUser::route('/{record}/edit'),
         ];

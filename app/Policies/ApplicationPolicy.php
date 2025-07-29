@@ -12,11 +12,11 @@ class ApplicationPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('view_main::application');
+        return $user->can('view_application');
     }
 
     public function update(User $user, Application $application): bool
     {
-        return $user->can('edit_main::application');
+        return $user->can('edit_application');
     }
 }

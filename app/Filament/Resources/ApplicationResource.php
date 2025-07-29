@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Resources\Main;
+namespace App\Filament\Resources;
 
-use App\Filament\Resources\Main\ApplicationResource\Pages;
 use App\Models\Application;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\Grid;
@@ -19,8 +18,6 @@ use Filament\Tables\Table;
 class ApplicationResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Application::class;
-
-    protected static ?string $slug = 'main/applications';
     protected static ?string $navigationGroup = 'Settings';
     protected static ?string $navigationIcon = 'heroicon-o-cog';
 
@@ -122,7 +119,7 @@ class ApplicationResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListApplications::route('/'),
+            'index' => ApplicationResource\Pages\ListApplications::route('/'),
         ];
     }
 
