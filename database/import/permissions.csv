@@ -28,3 +28,8 @@ restore_item;YES;NO
 restore_any_item;YES;NO
 force_delete_item;YES;NO
 force_delete_any_item;YES;NO
+view_any_bank;YES;NO
+view_bank;YES;NO
+create_bank;YES;NO
+update_bank;YES;NO
+delete_bank;YES;NO

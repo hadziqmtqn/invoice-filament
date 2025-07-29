@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use App\Models\UserProfile;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
+use Database\Seeders\Reference\BankSeeder;
 use Database\Seeders\Reference\ItemSeeder;
 use Database\Seeders\Setting\ApplicationSeeder;
 use Illuminate\Database\Seeder;
@@ -21,7 +22,8 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             PermissionSeeder::class,
             ApplicationSeeder::class,
-            ItemSeeder::class
+            ItemSeeder::class,
+            BankSeeder::class
         ]);
 
         UserProfile::factory(100)
