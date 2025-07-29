@@ -8,6 +8,7 @@ use Exception;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -72,6 +73,17 @@ class ItemResource extends Resource
                     ->helperText('Optional, can be used to provide additional information about the item.'),
 
                 // hanya muncul di halaman edit
+                SpatieMediaLibraryFileUpload::make('image')
+                    ->collection('items')
+                    ->image()
+                    ->disk('s3')
+                    ->maxSize(1024) // 1 MB
+                    ->label('Image')
+                    ->visibleOn('edit')
+                    ->visibility('private')
+                    ->columnSpanFull()
+                    ->helperText('Optional, can be used to upload an image of the item.'),
+
                 Placeholder::make('created_at')
                     ->label('Created Date')
                     ->visible(fn(?Item $record): bool => $record?->exists ?? false)
