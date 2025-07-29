@@ -5,15 +5,14 @@ namespace App\Filament\Resources;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
-use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -71,12 +70,14 @@ class UserResource extends Resource implements HasShieldPermissions
                                     ->schema([
                                         TextInput::make('name')
                                             ->label('Name')
+                                            ->prefixIcon('heroicon-o-user-circle')
                                             ->minLength(3)
                                             ->required()
                                             ->maxLength(255),
 
                                         TextInput::make('email')
                                             ->label('Email')
+                                            ->prefixIcon('heroicon-o-envelope')
                                             ->email()
                                             ->unique(ignoreRecord: true)
                                             ->required()
@@ -86,6 +87,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                     ->schema([
                                         Select::make('roles')
                                             ->label('Role')
+                                            ->prefixIcon('heroicon-o-shield-check')
                                             ->relationship('roles', 'name')
                                             ->preload()
                                             ->required()
@@ -96,16 +98,33 @@ class UserResource extends Resource implements HasShieldPermissions
 
                                         TextInput::make('password')
                                             ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
+                                            ->prefixIcon('heroicon-o-lock-closed')
                                             ->password()
+                                            ->confirmed()
                                             ->minLength(8)
                                             ->regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
                                             ->maxLength(255)
                                             ->autocomplete('new-password')
-                                            ->dehydrated(fn($state) => filled($state))
-                                            ->required(fn($livewire) => $livewire instanceof CreateRecord)
+                                            ->dehydrated(fn (?string $state): bool => filled($state))
+                                            ->required(fn (string $operation): bool => $operation === 'create')
                                             ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
-                                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
+                                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
+                                            ->revealable(),
+
+                                        TextInput::make('password_confirmation')
+                                            ->label('Confirm Password')
+                                            ->prefixIcon('heroicon-o-lock-closed')
+                                            ->password()
+                                            ->minLength(8)
+                                            ->maxLength(255)
+                                            ->autocomplete('new-password')
+                                            ->dehydrated(fn (?string $state): bool => filled($state))
+                                            ->required(fn (string $operation): bool => $operation === 'create')
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                                            ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
+                                            ->revealable(),
                                     ]),
+
                                 Grid::make()
                                     ->schema([
                                         SpatieMediaLibraryFileUpload::make('avatar')
@@ -123,95 +142,99 @@ class UserResource extends Resource implements HasShieldPermissions
                         Tabs\Tab::make('User Profile')
                             ->icon('heroicon-o-user-circle')
                             ->schema([
-                                Fieldset::make('address')
+                                Group::make()
                                     ->label('User Profile')
                                     ->relationship('userProfile')
                                     ->schema([
-                                        TextInput::make('company_name')
-                                            ->label('Company Name')
-                                            ->maxLength(50)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                        Grid::make()
+                                            ->columns()
+                                            ->schema([
+                                                TextInput::make('company_name')
+                                                    ->label('Company Name')
+                                                    ->maxLength(50)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
 
-                                        TextInput::make('phone')
-                                            ->label('Phone')
-                                            ->numeric()
-                                            ->required()
-                                            ->maxLength(15)
-                                            ->unique(ignoreRecord: true)
-                                            ->dehydrated(fn($state) => filled($state))
-                                            ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+                                                TextInput::make('phone')
+                                                    ->label('Phone')
+                                                    ->numeric()
+                                                    ->required()
+                                                    ->maxLength(15)
+                                                    ->unique(ignoreRecord: true)
+                                                    ->dehydrated(fn($state) => filled($state))
+                                                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
 
-                                        Select::make('province')
-                                            ->label('Province')
-                                            ->searchable()
-                                            ->getSearchResultsUsing(function (string $search) {
-                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
-                                                    'q' => $search,
-                                                ]);
-                                                return collect($response->json())->pluck('name', 'name')->toArray();
-                                            })
-                                            ->getOptionLabelUsing(fn ($value) => $value)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                            ->reactive(),
+                                                Select::make('province')
+                                                    ->label('Province')
+                                                    ->searchable()
+                                                    ->getSearchResultsUsing(function (string $search) {
+                                                        $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
+                                                            'q' => $search,
+                                                        ]);
+                                                        return collect($response->json())->pluck('name', 'name')->toArray();
+                                                    })
+                                                    ->getOptionLabelUsing(fn ($value) => $value)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                                    ->reactive(),
 
-                                        Select::make('city')
-                                            ->label('City')
-                                            ->searchable()
-                                            ->getSearchResultsUsing(function (string $search, $get) {
-                                                $province = $get('province');
-                                                if (!$province) return [];
-                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/cities', [
-                                                    'province' => $province,
-                                                    'q' => $search,
-                                                ]);
-                                                return collect($response->json())->pluck('name', 'name')->toArray();
-                                            })
-                                            ->getOptionLabelUsing(fn ($value) => $value)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                            ->reactive(),
+                                                Select::make('city')
+                                                    ->label('City')
+                                                    ->searchable()
+                                                    ->getSearchResultsUsing(function (string $search, $get) {
+                                                        $province = $get('province');
+                                                        if (!$province) return [];
+                                                        $response = Http::get('https://idn-location.bkn.my.id/api/v1/cities', [
+                                                            'province' => $province,
+                                                            'q' => $search,
+                                                        ]);
+                                                        return collect($response->json())->pluck('name', 'name')->toArray();
+                                                    })
+                                                    ->getOptionLabelUsing(fn ($value) => $value)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                                    ->reactive(),
 
-                                        Select::make('district')
-                                            ->label('District')
-                                            ->searchable()
-                                            ->getSearchResultsUsing(function (string $search, $get) {
-                                                $city = $get('city');
-                                                if (!$city) return [];
-                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/districts', [
-                                                    'city' => $city,
-                                                    'q' => $search,
-                                                ]);
-                                                return collect($response->json())->pluck('name', 'name')->toArray();
-                                            })
-                                            ->getOptionLabelUsing(fn ($value) => $value)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                            ->reactive(),
+                                                Select::make('district')
+                                                    ->label('District')
+                                                    ->searchable()
+                                                    ->getSearchResultsUsing(function (string $search, $get) {
+                                                        $city = $get('city');
+                                                        if (!$city) return [];
+                                                        $response = Http::get('https://idn-location.bkn.my.id/api/v1/districts', [
+                                                            'city' => $city,
+                                                            'q' => $search,
+                                                        ]);
+                                                        return collect($response->json())->pluck('name', 'name')->toArray();
+                                                    })
+                                                    ->getOptionLabelUsing(fn ($value) => $value)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                                    ->reactive(),
 
-                                        Select::make('village')
-                                            ->label('Village')
-                                            ->searchable()
-                                            ->getSearchResultsUsing(function (string $search, $get) {
-                                                $district = $get('district');
-                                                if (!$district) return [];
-                                                $response = Http::get('https://idn-location.bkn.my.id/api/v1/villages', [
-                                                    'district' => $district,
-                                                    'q' => $search,
-                                                ]);
-                                                return collect($response->json())->pluck('name', 'name')->toArray();
-                                            })
-                                            ->getOptionLabelUsing(fn ($value) => $value)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                            ->reactive(),
+                                                Select::make('village')
+                                                    ->label('Village')
+                                                    ->searchable()
+                                                    ->getSearchResultsUsing(function (string $search, $get) {
+                                                        $district = $get('district');
+                                                        if (!$district) return [];
+                                                        $response = Http::get('https://idn-location.bkn.my.id/api/v1/villages', [
+                                                            'district' => $district,
+                                                            'q' => $search,
+                                                        ]);
+                                                        return collect($response->json())->pluck('name', 'name')->toArray();
+                                                    })
+                                                    ->getOptionLabelUsing(fn ($value) => $value)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                                    ->reactive(),
 
-                                        TextInput::make('street')
-                                            ->label('Street')
-                                            ->maxLength(255)
-                                            ->dehydrated()
-                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                                TextInput::make('street')
+                                                    ->label('Street')
+                                                    ->maxLength(255)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                            ]),
                                     ])
                             ]),
                     ]),
