@@ -290,12 +290,7 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    /*DeleteBulkAction::make()
-                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),
-                    RestoreBulkAction::make()
-                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),
-                    ForceDeleteBulkAction::make()
-                        ->before(fn($records) => $records->filter(fn($record) => ! $record->hasRole('super_admin'))),*/
+                    //
                 ]),
             ]);
     }
@@ -313,6 +308,9 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return parent::getEloquentQuery()
             ->with('userProfile', 'roles')
+            ->whereHas('roles', function (Builder $query) {
+                $query->where('name', 'user');
+            })
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

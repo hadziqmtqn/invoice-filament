@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b825d0d8121f5dec16d144436364f29b",
+    "content-hash": "eb20956a1b77ecb4b0c6d173dace9fd6",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -10648,6 +10648,64 @@
                 "source": "https://github.com/hamcrest/hamcrest-php/tree/v2.1.1"
             },
             "time": "2025-04-30T06:54:44+00:00"
+        },
+        {
+            "name": "hardikkhorasiya09/change-password",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HardikKhorasiya09/change-password.git",
+                "reference": "b0a89acd7844cf962296150694795a9b248b40c1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HardikKhorasiya09/change-password/zipball/b0a89acd7844cf962296150694795a9b248b40c1",
+                "reference": "b0a89acd7844cf962296150694795a9b248b40c1",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^3.3",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Hardikkhorasiya09\\ChangePassword\\ChangePasswordServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hardikkhorasiya09\\ChangePassword\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hardikkhorasiya09",
+                    "email": "hardik@trileotech.com"
+                }
+            ],
+            "description": "Filament change password plugin.",
+            "keywords": [
+                "filament",
+                "filament-change-password",
+                "filament-change-password-package",
+                "filament-change-password-plugin",
+                "filament-packages",
+                "filament-plugins",
+                "hardikkhorasiya09",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/HardikKhorasiya09/change-password/issues",
+                "source": "https://github.com/HardikKhorasiya09/change-password/tree/v1.0.0"
+            },
+            "time": "2025-04-22T05:14:32+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",

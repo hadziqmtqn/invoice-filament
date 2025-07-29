@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             ItemSeeder::class
         ]);
 
-        UserProfile::factory(300)
+        UserProfile::factory(100)
             ->create()
             ->each(function (UserProfile $profile) {
                 $profile->user->assignRole('user');
