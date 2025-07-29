@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Models\Application;
 use Exception;
 use Filament\Http\Middleware\Authenticate;
@@ -35,9 +36,9 @@ class PanelPanelProvider extends PanelProvider
             ->default()
             ->id('panel')
             ->path('panel')
-            ->login()
+            ->login(Login::class)
             ->topNavigation()
-            ->brandLogo($application?->logo)
+            ->brandName($application?->name)
             ->favicon($application?->favicon)
             ->colors([
                 'primary' => Color::Amber,
