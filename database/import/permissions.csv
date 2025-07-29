@@ -1,4 +1,5 @@
 name;super_admin;user
+access panel;YES;YES
 view_role;YES;NO
 view_any_role;YES;NO
 create_role;YES;NO
@@ -15,3 +16,5 @@ restore_main::user;YES;NO
 restore_any_main::user;YES;NO
 force_delete_main::user;YES;NO
 force_delete_any_main::user;YES;NO
+view_main::application;YES;NO
+edit_main::application;YES;NO

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Main;
 
 use App\Filament\Resources\Main\ApplicationResource\Pages;
 use App\Models\Application;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -11,16 +12,26 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ApplicationResource extends Resource
+class ApplicationResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Application::class;
 
     protected static ?string $slug = 'main/applications';
     protected static ?string $navigationGroup = 'Settings';
     protected static ?string $navigationIcon = 'heroicon-o-cog';
+
+    public static function getPermissionPrefixes(): array
+    {
+        // TODO: Implement getPermissionPrefixes() method.
+        return [
+            'view',
+            'edit',
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -84,6 +95,18 @@ class ApplicationResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('whatsapp_number'),
+
+                SpatieMediaLibraryImageColumn::make('logo')
+                    ->collection('logo')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->label('Logo'),
+
+                SpatieMediaLibraryImageColumn::make('favicon')
+                    ->collection('favicon')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->label('Favicon'),
             ])
             ->filters([
                 //

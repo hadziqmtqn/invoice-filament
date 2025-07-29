@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\Application;
 use Exception;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -27,12 +28,16 @@ class PanelPanelProvider extends PanelProvider
      */
     public function panel(Panel $panel): Panel
     {
+        $application = Application::first();
+
         return $panel
             ->default()
             ->id('panel')
             ->path('panel')
             ->login()
             ->topNavigation()
+            ->brandLogo($application?->logo)
+            ->favicon($application?->favicon)
             ->colors([
                 'primary' => Color::Amber,
             ])
