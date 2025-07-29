@@ -18,3 +18,13 @@ force_delete_user;YES;NO
 force_delete_any_user;YES;NO
 view_application;YES;NO
 edit_application;YES;NO
+view_any_item;YES;NO
+view_item;YES;NO
+create_item;YES;NO
+update_item;YES;NO
+delete_item;YES;NO
+delete_any_item;YES;NO
+restore_item;YES;NO
+restore_any_item;YES;NO
+force_delete_item;YES;NO
+force_delete_any_item;YES;NO

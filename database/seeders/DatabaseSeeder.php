@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use App\Models\UserProfile;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
+use Database\Seeders\Reference\ItemSeeder;
 use Database\Seeders\Setting\ApplicationSeeder;
 use Illuminate\Database\Seeder;
 
@@ -19,7 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             PermissionSeeder::class,
-            ApplicationSeeder::class
+            ApplicationSeeder::class,
+            ItemSeeder::class
         ]);
 
         UserProfile::factory(300)

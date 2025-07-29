@@ -18,7 +18,8 @@ use Filament\Tables\Table;
 class ApplicationResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Application::class;
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $slug = 'application';
+    protected static ?string $navigationGroup = 'Pengaturan';
     protected static ?string $navigationIcon = 'heroicon-o-cog';
 
     public static function getPermissionPrefixes(): array

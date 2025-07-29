@@ -52,9 +52,8 @@ class PanelPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
             ])
             ->navigationGroups([
-                'Main',
                 'Pelindung',
-                'Settings',
+                'Pengaturan',
             ])
             ->middleware([
                 EncryptCookies::class,
