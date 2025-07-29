@@ -100,6 +100,8 @@ class BankResource extends Resource implements HasShieldPermissions
     {
         return [
             'index' => Pages\ListBanks::route('/'),
+            /*'create' => Pages\CreateBank::route('/create'),
+            'edit' => Pages\EditBank::route('/{record}/edit'),*/
         ];
     }
 

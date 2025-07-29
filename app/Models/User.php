@@ -79,11 +79,6 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
         return Attribute::make(fn() => url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
     }
 
-    public function getRouteKeyName(): string
-    {
-        return 'username';
-    }
-
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->default_avatar ?: 'https://ui-avatars.com/api/?name=' . urlencode($this->name);
