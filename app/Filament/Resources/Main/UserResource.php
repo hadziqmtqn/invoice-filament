@@ -66,7 +66,7 @@ class UserResource extends Resource implements HasShieldPermissions
                 Tabs::make('Tabs')
                     ->columnSpan('full')
                     ->tabs([
-                        Tabs\Tab::make('Data User')
+                        Tabs\Tab::make('Personal Information')
                             ->icon('heroicon-o-user')
                             ->schema([
                                 Grid::make()
@@ -122,13 +122,19 @@ class UserResource extends Resource implements HasShieldPermissions
                                     ]),
                             ]),
 
-                        Tabs\Tab::make('Address')
-                            ->icon('heroicon-o-map')
+                        Tabs\Tab::make('User Profile')
+                            ->icon('heroicon-o-user-circle')
                             ->schema([
                                 Fieldset::make('address')
-                                    ->label('Address')
+                                    ->label('User Profile')
                                     ->relationship('userProfile')
                                     ->schema([
+                                        TextInput::make('company_name')
+                                            ->label('Company Name')
+                                            ->maxLength(50)
+                                            ->dehydrated()
+                                            ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+
                                         TextInput::make('phone')
                                             ->label('Phone')
                                             ->numeric()
@@ -231,8 +237,7 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                SpatieMediaLibraryImageColumn::make('#')
-                    ->label('Avatar')
+                SpatieMediaLibraryImageColumn::make('avatar')
                     ->collection('avatars')
                     ->disk('s3')
                     ->visibility('private')
@@ -241,6 +246,7 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->size(40),
 
                 TextColumn::make('name')
+                    ->description(fn(User $record): ?string => $record->userProfile?->company_name)
                     ->searchable()
                     ->sortable(),
 
