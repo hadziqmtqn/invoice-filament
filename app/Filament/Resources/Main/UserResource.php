@@ -10,6 +10,7 @@ use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -21,6 +22,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -105,6 +107,18 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->required(fn($livewire) => $livewire instanceof CreateRecord)
                                             ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null),
+                                    ]),
+                                Grid::make()
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('avatar')
+                                            ->label('Avatar')
+                                            ->collection('avatars')
+                                            ->image()
+                                            ->disk('s3')
+                                            ->visibility('private')
+                                            ->maxSize(300)
+                                            ->dehydrated(fn($state) => filled($state))
+                                            ->columnSpanFull(),
                                     ]),
                             ]),
 
@@ -217,6 +231,15 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
+                SpatieMediaLibraryImageColumn::make('#')
+                    ->label('Avatar')
+                    ->collection('avatars')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->defaultImageUrl(fn ($record) => $record->default_avatar)
+                    ->circular()
+                    ->size(40),
+
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),

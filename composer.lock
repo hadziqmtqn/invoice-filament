@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f27ce4d257b95cba65709c1a0614df8d",
+    "content-hash": "b825d0d8121f5dec16d144436364f29b",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -181,16 +181,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.351.7",
+            "version": "3.351.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "9506d7fdb3cb84f8d7b175c594db9993264814be"
+                "reference": "61bab063c6e3567942dcc4a2aac56155af22b6d5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/9506d7fdb3cb84f8d7b175c594db9993264814be",
-                "reference": "9506d7fdb3cb84f8d7b175c594db9993264814be",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/61bab063c6e3567942dcc4a2aac56155af22b6d5",
+                "reference": "61bab063c6e3567942dcc4a2aac56155af22b6d5",
                 "shasum": ""
             },
             "require": {
@@ -272,9 +272,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.351.7"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.351.8"
             },
-            "time": "2025-07-25T18:06:34+00:00"
+            "time": "2025-07-28T18:40:29+00:00"
         },
         {
             "name": "bezhansalleh/filament-shield",

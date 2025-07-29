@@ -4,11 +4,13 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
@@ -67,6 +69,12 @@ class User extends Authenticatable implements HasMedia
     public function userProfile(): HasOne
     {
         return $this->hasOne(UserProfile::class, 'user_id');
+    }
+
+    // more
+    protected function defaultAvatar(): Attribute
+    {
+        return Attribute::make(fn() => url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
     }
 
     public function getRouteKeyName(): string
