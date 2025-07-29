@@ -82,9 +82,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->unique(ignoreRecord: true)
                                             ->required()
                                             ->maxLength(255),
-                                    ]),
-                                Grid::make()
-                                    ->schema([
+
                                         Select::make('roles')
                                             ->label('Role')
                                             ->prefixIcon('heroicon-o-shield-check')
@@ -95,6 +93,35 @@ class UserResource extends Resource implements HasShieldPermissions
                                                 Rule::exists('roles', 'id')->where('guard_name', 'web'),
                                             ])
                                             ->searchable(),
+
+                                        Group::make()
+                                            ->relationship('userProfile')
+                                            ->schema([
+                                                TextInput::make('company_name')
+                                                    ->label('Company Name')
+                                                    ->prefixIcon('heroicon-o-building-office')
+                                                    ->maxLength(50)
+                                                    ->dehydrated()
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                            ]),
+
+                                        Group::make()
+                                            ->relationship('userProfile')
+                                            ->schema([
+                                                TextInput::make('phone')
+                                                    ->label('Phone')
+                                                    ->prefixIcon('heroicon-o-phone')
+                                                    ->numeric()
+                                                    ->required()
+                                                    ->maxLength(15)
+                                                    ->unique(ignoreRecord: true)
+                                                    ->dehydrated(fn($state) => filled($state))
+                                                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+                                            ])
+                                    ]),
+
+                                Grid::make()
+                                    ->schema([
 
                                         TextInput::make('password')
                                             ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
@@ -124,46 +151,17 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
                                             ->revealable(),
                                     ]),
-
-                                Grid::make()
-                                    ->schema([
-                                        SpatieMediaLibraryFileUpload::make('avatar')
-                                            ->label('Avatar')
-                                            ->collection('avatars')
-                                            ->image()
-                                            ->disk('s3')
-                                            ->visibility('private')
-                                            ->maxSize(300)
-                                            ->dehydrated(fn($state) => filled($state))
-                                            ->columnSpanFull(),
-                                    ]),
                             ]),
 
-                        Tabs\Tab::make('User Profile')
-                            ->icon('heroicon-o-user-circle')
+                        Tabs\Tab::make('Address')
+                            ->icon('heroicon-o-map-pin')
                             ->schema([
                                 Group::make()
-                                    ->label('User Profile')
                                     ->relationship('userProfile')
                                     ->schema([
                                         Grid::make()
                                             ->columns()
                                             ->schema([
-                                                TextInput::make('company_name')
-                                                    ->label('Company Name')
-                                                    ->maxLength(50)
-                                                    ->dehydrated()
-                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
-
-                                                TextInput::make('phone')
-                                                    ->label('Phone')
-                                                    ->numeric()
-                                                    ->required()
-                                                    ->maxLength(15)
-                                                    ->unique(ignoreRecord: true)
-                                                    ->dehydrated(fn($state) => filled($state))
-                                                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
-
                                                 Select::make('province')
                                                     ->label('Province')
                                                     ->searchable()
@@ -237,6 +235,20 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ]),
                                     ])
                             ]),
+
+                        Tabs\Tab::make('Avatar')
+                            ->icon('heroicon-o-photo')
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('avatar')
+                                    ->label('Avatar')
+                                    ->collection('avatars')
+                                    ->image()
+                                    ->disk('s3')
+                                    ->visibility('private')
+                                    ->maxSize(300)
+                                    ->dehydrated(fn($state) => filled($state))
+                                    ->columnSpanFull(),
+                            ])
                     ]),
 
                 Placeholder::make('created_at')
@@ -290,6 +302,7 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->label('Phone')
                     ->searchable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 TrashedFilter::make(),
                 SelectFilter::make('role')
