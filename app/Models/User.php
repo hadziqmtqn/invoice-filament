@@ -89,4 +89,9 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
         // TODO: Implement canAccessPanel() method.
         return $this->hasPermissionTo('access panel');
     }
+
+    public function getRouteKeyName(): string
+    {
+        return 'username';
+    }
 }
