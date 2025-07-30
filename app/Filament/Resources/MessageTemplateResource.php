@@ -52,7 +52,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 Select::make('category')
                     ->required()
                     ->options([
-                        'change-password-email' => 'Change Password & Email',
+                        'change-authentication' => 'Change Authentication',
                         'unpaid-bill' => 'Unpaid Bill',
                     ])
                     ->searchable(),
