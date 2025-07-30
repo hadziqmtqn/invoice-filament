@@ -51,7 +51,10 @@ trait SendMessageTrait
                     ->wait();
 
                 // Log the response for debugging purposes
-                Log::info('Whatsapp message sent successfully. Response: ' . $res->getBody());
+                Log::info('Whatsapp message sent successfully', [
+                    'status_code' => $res->getStatusCode(),
+                    'body' => $res->getBody()->getContents()
+                ]);
             }
         } catch (GuzzleException $guzzleException) {
             Log::error($guzzleException->getMessage());

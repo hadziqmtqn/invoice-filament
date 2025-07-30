@@ -34,11 +34,11 @@ class ChangeAuthenticationMessageJob implements ShouldQueue
             '[name_app]' => $this->application()?->name,
             '[date]' => now()->isoFormat('DD MMM Y'),
             '[time]' => now()->isoFormat('HH:mm'),
-            '[password]' => $this->data['password'] ?? '',
+            '[password_changed]' => $this->data['password_changed'] ? '*TELAH DIUBAH*' : '_TIDAK DIUBAH_',
             '[email]' => $this->data['email']
         ];
 
-        $messageTemplate = $this->messageTemplate('change_authentication');
+        $messageTemplate = $this->messageTemplate('change-authentication');
 
         if ($messageTemplate) {
             $this->sendMessage(

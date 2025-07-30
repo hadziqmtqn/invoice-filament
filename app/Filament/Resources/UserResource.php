@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Jobs\ChangeAuthenticationMessageJob;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
@@ -330,7 +331,20 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make(),
+                    //EditAction::make(),
+                    EditAction::make()
+                        ->before(function ($record, $data) {
+                            $emailChanged = $data['email'] !== $record->email;
+                            $passwordChanged = !empty($data['password'] ?? '');
+
+                            if ($emailChanged || $passwordChanged) {
+                                ChangeAuthenticationMessageJob::dispatch([
+                                    'user_name' => $record->name,
+                                    'email' => $data['email'],
+                                    'password_changed' => $passwordChanged,
+                                ], $record->userProfile?->phone);
+                            }
+                        }),
                     DeleteAction::make()
                         ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
                     RestoreAction::make(),
@@ -350,7 +364,7 @@ class UserResource extends Resource implements HasShieldPermissions
         return [
             'index' => UserResource\Pages\ListUsers::route('/'),
             //'create' => UserResource\Pages\CreateUser::route('/create'),
-            'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
+            //'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
         ];
     }
 

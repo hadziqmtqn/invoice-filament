@@ -2,6 +2,6 @@
   {
     "category": "change-authentication",
     "title": "Perubahan Kata Sandi dan Email",
-    "message": "Halo [user_name],\n\nBaru-baru ini Anda telah mengubah kata sandi/email akun [name_app] Anda. Berikut adalah detail perubahan tersebut:\n\nTanggal: [date]\nWaktu: [time]\nKata Sandi: [password]\nEmail: [email]\n\nJika Anda tidak melakukan perubahan ini, harap segera laporkan kepada kami untuk membantu melindungi akun Anda.\n\nKeamanan akun Anda adalah prioritas kami.\n\nSalam hangat,\nTim [name_app]"
+    "message": "Halo [user_name],\n\nBaru-baru ini Anda telah mengubah kata sandi/email akun [name_app] Anda. Berikut adalah detail perubahan tersebut:\n\nTanggal: [date]\nWaktu: [time]\nKata Sandi Baru: [password_changed]\nEmail: [email]\n\nJika Anda tidak melakukan perubahan ini, harap segera laporkan kepada kami untuk membantu melindungi akun Anda.\n\nKeamanan akun Anda adalah prioritas kami.\n\nSalam hangat,\nTim [name_app]"
   }
 ]
