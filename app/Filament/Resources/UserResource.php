@@ -123,7 +123,6 @@ class UserResource extends Resource implements HasShieldPermissions
 
                                 Grid::make()
                                     ->schema([
-
                                         TextInput::make('password')
                                             ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
                                             ->prefixIcon('heroicon-o-lock-closed')
@@ -175,7 +174,12 @@ class UserResource extends Resource implements HasShieldPermissions
                                                     ->getOptionLabelUsing(fn ($value) => $value)
                                                     ->dehydrated()
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                                    ->reactive(),
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function ($state, callable $set) {
+                                                        $set('city', null);
+                                                        $set('district', null);
+                                                        $set('village', null);
+                                                    }),
 
                                                 Select::make('city')
                                                     ->label('City')
@@ -192,7 +196,11 @@ class UserResource extends Resource implements HasShieldPermissions
                                                     ->getOptionLabelUsing(fn ($value) => $value)
                                                     ->dehydrated()
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                                    ->reactive(),
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function ($state, callable $set) {
+                                                        $set('district', null);
+                                                        $set('village', null);
+                                                    }),
 
                                                 Select::make('district')
                                                     ->label('District')
@@ -209,7 +217,10 @@ class UserResource extends Resource implements HasShieldPermissions
                                                     ->getOptionLabelUsing(fn ($value) => $value)
                                                     ->dehydrated()
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                                    ->reactive(),
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function ($state, callable $set) {
+                                                        $set('village', null);
+                                                    }),
 
                                                 Select::make('village')
                                                     ->label('Village')

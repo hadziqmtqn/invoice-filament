@@ -52,14 +52,13 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 Select::make('category')
                     ->required()
                     ->options([
-                        'change-password' => 'Change Password',
+                        'change-password-email' => 'Change Password & Email',
                         'unpaid-bill' => 'Unpaid Bill',
                     ])
                     ->searchable(),
 
                 TextInput::make('title')
                     ->required()
-                    ->reactive()
                     ->afterStateUpdated(fn($state, callable $set) => $set('slug', Str::slug($state))),
 
                 Textarea::make('message')

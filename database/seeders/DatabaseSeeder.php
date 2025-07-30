@@ -10,6 +10,7 @@ use Database\Seeders\Reference\BankAccountSeeder;
 use Database\Seeders\Reference\BankSeeder;
 use Database\Seeders\Reference\ItemSeeder;
 use Database\Seeders\Setting\ApplicationSeeder;
+use Database\Seeders\Setting\MessageTemplateSeeder;
 use Database\Seeders\Setting\WhatsappConfigSeeder;
 use Illuminate\Database\Seeder;
 
@@ -27,7 +28,8 @@ class DatabaseSeeder extends Seeder
             ItemSeeder::class,
             BankSeeder::class,
             BankAccountSeeder::class,
-            WhatsappConfigSeeder::class
+            WhatsappConfigSeeder::class,
+            MessageTemplateSeeder::class
         ]);
 
         UserProfile::factory(100)
