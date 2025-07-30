@@ -24,7 +24,7 @@ class BankResource extends Resource implements HasShieldPermissions
     protected static ?string $slug = 'banks';
     protected static ?string $navigationGroup = 'Konfigurasi';
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     public static function getPermissionPrefixes(): array
     {
@@ -78,9 +78,11 @@ class BankResource extends Resource implements HasShieldPermissions
                     ->disk('s3')
                     ->visibility('private'),
 
-                TextColumn::make('short_name'),
+                TextColumn::make('short_name')
+                    ->searchable(),
 
-                TextColumn::make('full_name'),
+                TextColumn::make('full_name')
+                    ->searchable(),
             ])
             ->filters([
                 //

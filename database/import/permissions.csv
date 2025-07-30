@@ -33,3 +33,8 @@ view_bank;YES;NO
 create_bank;YES;NO
 update_bank;YES;NO
 delete_bank;YES;NO
+view_any_bank::account;YES;NO
+view_bank::account;YES;NO
+create_bank::account;YES;NO
+update_bank::account;YES;NO
+delete_bank::account;YES;NO
