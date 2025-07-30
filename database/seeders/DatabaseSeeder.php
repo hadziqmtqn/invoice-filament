@@ -6,9 +6,11 @@ namespace Database\Seeders;
 use App\Models\UserProfile;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
+use Database\Seeders\Reference\BankAccountSeeder;
 use Database\Seeders\Reference\BankSeeder;
 use Database\Seeders\Reference\ItemSeeder;
 use Database\Seeders\Setting\ApplicationSeeder;
+use Database\Seeders\Setting\WhatsappConfigSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -23,7 +25,9 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             ApplicationSeeder::class,
             ItemSeeder::class,
-            BankSeeder::class
+            BankSeeder::class,
+            BankAccountSeeder::class,
+            WhatsappConfigSeeder::class
         ]);
 
         UserProfile::factory(100)
