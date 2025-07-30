@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -317,12 +318,14 @@ class UserResource extends Resource implements HasShieldPermissions
                     }),
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make()
-                    ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
-                RestoreAction::make(),
-                ForceDeleteAction::make()
-                    ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make()
+                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                ]),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

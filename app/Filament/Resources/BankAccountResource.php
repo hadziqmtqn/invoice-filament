@@ -18,6 +18,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\CheckboxColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -84,8 +85,11 @@ class BankAccountResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('bank.short_name')
+                SelectColumn::make('bank_id')
+                    ->label('Bank')
+                    ->options(Bank::pluck('short_name', 'id')->toArray())
                     ->searchable()
+                    ->selectablePlaceholder(false)
                     ->sortable(),
 
                 TextColumn::make('account_name')

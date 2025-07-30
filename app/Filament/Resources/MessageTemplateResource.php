@@ -13,10 +13,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -62,6 +64,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
 
                 Textarea::make('message')
                     ->required()
+                    ->autosize()
                     ->columnSpanFull(),
 
                 Checkbox::make('is_active')
@@ -88,7 +91,6 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
         return $table
             ->columns([
                 TextColumn::make('category')
-                    // str_replace _ with space and capitalize each word
                     ->formatStateUsing(fn($state) => Str::of($state)->replace('-', ' ')->title())
                     ->searchable()
                     ->sortable(),
@@ -98,9 +100,6 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('message')
-                    ->wrap(),
-
                 CheckboxColumn::make('is_active')
                     ->sortable(),
             ])
@@ -108,8 +107,17 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 //
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->modalHeading('Detail Message Template')
+                        ->modalContent(fn($record) => view('filament.resources.message-template.view', [
+                            'record' => $record
+                        ])),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->link()
+                    ->label('Actions'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
