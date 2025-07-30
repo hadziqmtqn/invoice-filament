@@ -38,6 +38,7 @@ class BankAccountResource extends Resource implements HasShieldPermissions
             'create',
             'update',
             'delete',
+            'delete_any',
         ];
     }
 

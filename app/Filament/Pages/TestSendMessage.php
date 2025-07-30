@@ -13,6 +13,9 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
+/**
+ * @property mixed $form
+ */
 class TestSendMessage extends Page implements HasForms
 {
     use InteractsWithForms;
@@ -38,7 +41,8 @@ class TestSendMessage extends Page implements HasForms
 
                 Actions::make([
                     Action::make('send')
-                        ->label('Send WhatsApp Message')
+                        ->label('Send Message')
+                        ->icon('heroicon-o-paper-airplane')
                         ->action('send')
                 ])
             ])

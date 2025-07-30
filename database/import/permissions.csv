@@ -38,8 +38,16 @@ view_bank::account;YES;NO
 create_bank::account;YES;NO
 update_bank::account;YES;NO
 delete_bank::account;YES;NO
+delete_any_bank::account;YES;NO
 view_any_whatsapp::config;YES;NO
 view_whatsapp::config;YES;NO
 create_whatsapp::config;YES;NO
 update_whatsapp::config;YES;NO
 delete_whatsapp::config;YES;NO
+view_any_whatsapp::message;YES;NO
+view_any_message::template;YES;NO
+view_message::template;YES;NO
+create_message::template;YES;NO
+update_message::template;YES;NO
+delete_message::template;YES;NO
+delete_any_message::template;YES;NO
