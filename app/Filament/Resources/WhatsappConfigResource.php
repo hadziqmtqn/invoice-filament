@@ -48,6 +48,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
                     ->options([
                         'wablas' => 'Wablas',
                         'wanesia' => 'Wanesia',
+                        'fontee' => 'Fontee',
                     ])
                     ->searchable()
                     ->required(),
@@ -62,8 +63,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 
                 Checkbox::make('is_active')
                     ->label('Aktifkan Konfigurasi')
-                    ->default(true)
-                    ->required(),
+                    ->default(true),
 
                 Grid::make()
                     ->columns()

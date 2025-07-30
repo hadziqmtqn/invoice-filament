@@ -10,9 +10,9 @@ class WhatsappConfigSeeder extends Seeder
     public function run(): void
     {
         $whatsappConfig = new WhatsappConfig();
-        $whatsappConfig->provider = 'wanesia';
-        $whatsappConfig->api_domain = 'https://wanesia.com/api/send_message';
-        $whatsappConfig->api_key = 'meHmDb9zd7hcmukcz3jHNydADKqd2Wq6kbGFMjhPYDLBACKArn';
+        $whatsappConfig->provider = 'fonnte';
+        $whatsappConfig->api_domain = 'https://api.fonnte.com/send';
+        $whatsappConfig->api_key = 'BrzQLTdyASTUiWa1xv9eKhDjdEYUAFYzDZ7iA';
         $whatsappConfig->save();
     }
 }

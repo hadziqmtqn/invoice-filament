@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('whatsapp_configs', function (Blueprint $table) {
             $table->id();
             $table->uuid('slug');
-            $table->enum('provider', ['wablas', 'wanesia']);
+            $table->enum('provider', ['wablas', 'wanesia', 'fonnte']);
             $table->string('api_domain');
             $table->string('secret_key')->nullable();
             $table->string('api_key');
