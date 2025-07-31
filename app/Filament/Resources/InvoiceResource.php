@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
+use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Item;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -147,39 +148,66 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->reactive()
                             ->suffix('%'),
 
-                        Placeholder::make('total_price')
-                            ->label('Total Harga')
-                            ->content(function (Get $get) {
-                                $items = $get('invoiceItems') ?? [];
-                                $total = 0;
-                                foreach ($items as $item) {
-                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
-                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                    $total += $qty * $rate;
-                                }
-                                return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
-                            })
-                            ->columnSpanFull(),
+                        Grid::make()
+                            ->columns()
+                            ->schema([
+                                Placeholder::make('total_price')
+                                    ->label('Total Harga')
+                                    ->content(function (Get $get) {
+                                        $items = $get('invoiceItems') ?? [];
+                                        $total = 0;
+                                        foreach ($items as $item) {
+                                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                            $total += $qty * $rate;
+                                        }
+                                        return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
+                                    }),
 
-                        Placeholder::make('final_price')
-                            ->label('Total Akhir Setelah Diskon')
-                            ->content(function (Get $get) {
-                                $items = $get('invoiceItems') ?? [];
-                                $total = 0;
-                                foreach ($items as $item) {
-                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
-                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                    $total += $qty * $rate;
-                                }
-                                $discount = (float) ($get('discount') ?? 0);
-                                $final = $total - ($discount / 100 * $total);
+                                Placeholder::make('final_price')
+                                    ->label('Total Akhir Setelah Diskon')
+                                    ->content(function (Get $get) {
+                                        $items = $get('invoiceItems') ?? [];
+                                        $total = 0;
+                                        foreach ($items as $item) {
+                                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                            $total += $qty * $rate;
+                                        }
+                                        $discount = (float) ($get('discount') ?? 0);
+                                        $final = $total - ($discount / 100 * $total);
 
-                                return (new HtmlString('<div style="font-size: 17pt"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
-                            })
-                            ->columnSpanFull(),
+                                        return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
+                                    }),
+                            ])
                     ])
                     ->columnSpanFull(),
 
+                Section::make('Rekening Bank')
+                    ->description('Transfer pembayaran ke salah satu rekening berikut:')
+                    ->aside()
+                    ->schema([
+                        Placeholder::make('bank_accounts')
+                            ->content(function () {
+                                $accounts = BankAccount::with('bank:id,short_name,full_name')
+                                    ->orderBy('bank_id')
+                                    ->get();
+
+                                if ($accounts->isEmpty()) {
+                                    return 'Belum ada data rekening bank.';
+                                }
+
+                                $html = '<div><ul>';
+                                foreach ($accounts as $account) {
+                                    $html .= '<li><b>' . e($account->bank?->short_name) . '</b> - '
+                                        . e($account->account_number) . ' a.n. '
+                                        . e($account->account_name) . '</li>';
+                                }
+                                $html .= '</ul></div>';
+                                return new HtmlString($html);
+                            })
+                    ])
+                    ->columnSpanFull(),
 
                 Grid::make()
                     ->columns()
