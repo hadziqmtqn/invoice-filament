@@ -101,7 +101,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->columnSpanFull(),
 
                         Grid::make()
-                            ->columns()
+                            ->columns(4)
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
