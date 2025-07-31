@@ -6,7 +6,10 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Invoice;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -37,30 +40,44 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                TextInput::make('user_id')
+                Select::make('user_id')
+                    ->label('User')
+                    ->relationship('user', 'name')
+                    ->searchable()
                     ->required()
-                    ->integer(),
+                    ->columnSpanFull(),
 
-                DatePicker::make('date'),
+                DatePicker::make('date')
+                    ->required()
+                    ->native(false)
+                    ->default(now()),
 
-                DatePicker::make('due_date'),
+                DatePicker::make('due_date')
+                    ->required()
+                    ->native(false),
 
                 TextInput::make('discount')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->default(0),
 
-                TextInput::make('note'),
+                Textarea::make('note')
+                    ->rows(3)
+                    ->columnSpanFull(),
 
-                TextInput::make('status')
-                    ->required(),
+                Grid::make()
+                    ->columns()
+                    ->schema([
+                        Placeholder::make('created_at')
+                            ->label('Created Date')
+                            ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
+                            ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                        Placeholder::make('updated_at')
+                            ->label('Last Modified Date')
+                            ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
+                            ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                    ])
             ]);
     }
 
