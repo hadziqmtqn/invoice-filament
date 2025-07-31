@@ -10,6 +10,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,6 +21,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class InvoiceResource extends Resource implements HasShieldPermissions
 {
@@ -108,7 +110,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                                 TextInput::make('unit')
                                     ->reactive(),
-                                
+
                                 TextInput::make('rate')
                                     ->numeric()
                                     ->required()
@@ -122,28 +124,56 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->addActionLabel('Add Item')
                     ->columns(),
 
-                TextInput::make('discount')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-
                 Textarea::make('note')
                     ->rows(3)
                     ->columnSpanFull(),
 
-                Placeholder::make('total_price')
-                    ->label('Total Harga')
-                    ->content(function (Get $get) {
-                        $items = $get('invoiceItems') ?? [];
-                        $total = 0;
-                        foreach ($items as $item) {
-                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
-                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                            $total += $qty * $rate;
-                        }
-                        return 'Rp ' . number_format($total, 0, ',', '.');
-                    })
+                Section::make('Total')
+                    ->description('Total harga akan dihitung berdasarkan item yang ditambahkan.')
+                    ->aside()
+                    ->schema([
+                        TextInput::make('discount')
+                            ->label('Discount (%)')
+                            ->helperText('Masukkan diskon dalam persen, misal: 10 untuk 10%')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->reactive()
+                            ->suffix('%'),
+
+                        Placeholder::make('total_price')
+                            ->label('Total Harga')
+                            ->content(function (Get $get) {
+                                $items = $get('invoiceItems') ?? [];
+                                $total = 0;
+                                foreach ($items as $item) {
+                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                    $total += $qty * $rate;
+                                }
+                                return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
+                            })
+                            ->columnSpanFull(),
+
+                        Placeholder::make('final_price')
+                            ->label('Total Akhir Setelah Diskon')
+                            ->content(function (Get $get) {
+                                $items = $get('invoiceItems') ?? [];
+                                $total = 0;
+                                foreach ($items as $item) {
+                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                    $total += $qty * $rate;
+                                }
+                                $discount = (float) ($get('discount') ?? 0);
+                                $final = $total - ($discount / 100 * $total);
+
+                                return (new HtmlString('<div style="font-size: 17pt"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
+                            })
+                            ->columnSpanFull(),
+                    ])
                     ->columnSpanFull(),
+
 
                 Grid::make()
                     ->columns()
