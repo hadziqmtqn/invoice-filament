@@ -327,7 +327,8 @@ class UserResource extends Resource implements HasShieldPermissions
                                 $q->where('id', $data['value']);
                             });
                         }
-                    }),
+                    })
+                    ->native(false),
             ])
             ->actions([
                 ActionGroup::make([

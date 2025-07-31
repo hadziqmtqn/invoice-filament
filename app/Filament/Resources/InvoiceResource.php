@@ -6,6 +6,7 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Invoice;
 use App\Models\Item;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
@@ -20,7 +21,9 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 
@@ -56,11 +59,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 DatePicker::make('date')
                     ->required()
+                    ->format('d M Y')
                     ->native(false)
                     ->default(now()),
 
                 DatePicker::make('due_date')
                     ->required()
+                    ->format('d M Y')
                     ->native(false)
                     ->minDate(fn(Get $get) => $get('date')),
 
@@ -192,6 +197,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
             ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public static function table(Table $table): Table
     {
         return $table
@@ -231,13 +239,32 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'sent' => 'Sent',
+                        'paid' => 'Paid',
+                        'unpaid' => 'Unpaid',
+                        'overdue' => 'Overdue',
+                        'partially_paid' => 'Partially Paid',
+                    ])
+                        ->selectablePlaceholder(false)
+                        ->native(false),
             ])
             ->defaultSort('serial_number', 'desc')
             ->actions([
                 ActionGroup::make([
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    ViewAction::make()
+                        ->icon('heroicon-o-eye')
+                        ->tooltip('View Invoice Details')
+                        ->modalContent(fn($record) => view('filament.resources.invoice-resource.actions.view-invoice', ['invoice' => $record])),
+                    EditAction::make()
+                        ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
+                        ->icon('heroicon-o-pencil-square'),
+                    DeleteAction::make()
+                        ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
+                        ->icon('heroicon-o-trash'),
                 ])
                     ->link()
                     ->label('Actions'),
