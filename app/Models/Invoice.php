@@ -52,4 +52,10 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceItem::class, 'invoice_id');
     }
+
+    // More
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 }

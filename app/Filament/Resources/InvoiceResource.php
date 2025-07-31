@@ -60,7 +60,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 DatePicker::make('due_date')
                     ->required()
-                    ->native(false),
+                    ->native(false)
+                    ->minDate(fn(Get $get) => $get('date')),
 
                 Repeater::make('invoiceItems')
                     ->relationship('invoiceItems')
@@ -93,12 +94,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->columnSpanFull(),
 
                         Grid::make()
-                            ->columns(3)
+                            ->columns()
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
                                     ->readOnly()
-                                    ->hidden()
                                     ->reactive(),
 
                                 TextInput::make('qty')
