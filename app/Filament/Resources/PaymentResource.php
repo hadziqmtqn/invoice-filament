@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Models\BankAccount;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -11,10 +12,14 @@ use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -59,21 +64,154 @@ class PaymentResource extends Resource implements HasShieldPermissions
             ->schema([
                 Select::make('user_id')
                     ->label('User')
-                    ->options(fn (): array => User::whereHas('roles', fn($q) => $q->where('name', 'user'))->pluck('name', 'id')->toArray())
+                    ->options(function () {
+                        return User::whereHas('roles', function ($query) {
+                            $query->where('name', 'user');
+                        })
+                            ->whereHas('invoices', function ($query) {
+                                $query->where('status', '!=', 'paid');
+                            })
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    })
                     ->searchable()
                     ->native(false)
                     ->columnSpanFull()
+                    ->reactive()
+                    ->prefixIcon('heroicon-o-user')
                     ->required(),
 
                 DatePicker::make('date')
                     ->required()
                     ->native(false)
+                    ->prefixIcon('heroicon-o-calendar')
                     ->maxDate(now()),
 
                 TextInput::make('amount')
                     ->required()
                     ->numeric()
+                    ->prefix('Rp')
                     ->minValue(0),
+
+                /*Repeater::make('invoices')
+                    ->label('Invoices')
+                    ->columnSpanFull()
+                    ->schema([
+                        TextInput::make('invoice_id')
+                            ->hidden(), // hidden, untuk kebutuhan penyimpanan ke invoice_payments
+
+                        TextInput::make('invoice_number')
+                            ->label('Invoice Number')
+                            ->disabled(),
+
+                        TextInput::make('outstanding')
+                            ->label('Outstanding')
+                            ->prefix('Rp')
+                            ->disabled(),
+
+                        TextInput::make('amount')
+                            ->label('Amount')
+                            ->prefix('Rp')
+                            ->numeric()
+                            ->minValue(0)
+                            ->required(fn ($context) => $context === 'create'), // wajib diisi saat create
+                    ])
+                    ->columns(3)
+                    ->reactive()
+                    ->default(function (Get $get) {
+                        $userId = $get('user_id');
+                        if (!$userId) return [];
+                        return Invoice::where('user_id', $userId)
+                            ->where('status', '!=', 'paid')
+                            ->get()
+                            ->map(function(Invoice $invoice) {
+                                $totalInvoice = $invoice->invoiceItems->sum('rate');
+                                $alreadyPaidAmount = $invoice->invoicePayments()->sum('amount_applied');
+                                return [
+                                    'invoice_id' => $invoice->id,
+                                    'invoice_number' => $invoice->code,
+                                    'outstanding' => $totalInvoice - $alreadyPaidAmount,
+                                    'amount' => null,
+                                ];
+                            })->toArray();
+                    })
+                    ->visible(fn(Get $get) => !empty($get('user_id')))
+                    ->required()
+                    ->minItems(1)
+                    ->deletable(fn($state, $get) => count($get('invoices')) > 1),*/
+
+                Section::make('Invoices')
+                    ->schema([
+                        ViewField::make('invoices')
+                            ->view('filament.payment.custom-invoice-table')
+                            ->viewData(fn($get) => [
+                                'invoices' => Invoice::where('user_id', $get('user_id'))
+                                    ->where('status', '!=', 'paid')
+                                    ->get()
+                            ]),
+
+                        Repeater::make('invoice_payments')
+                            ->label('Invoice Payments')
+                            ->relationship('invoicePayments')
+                            ->columnSpanFull()
+                            ->schema([
+                                /*TextInput::make('invoice_id')
+                                    ->hidden(), // hidden, untuk kebutuhan penyimpanan ke invoice_payments*/
+                                Select::make('invoice_id')
+                                    ->label('Invoice')
+                                    ->options(function (Get $get) {
+                                        $userId = $get('user_id');
+                                        if (!$userId) return [];
+                                        return Invoice::where('user_id', $userId)
+                                            ->where('status', '!=', 'paid')
+                                            ->pluck('code', 'id')
+                                            ->toArray();
+                                    })
+                                    ->searchable()
+                                    ->native(false)
+                                    ->reactive()
+                                    ->required(),
+
+                                TextInput::make('invoice_number')
+                                    ->label('Invoice Number')
+                                    ->disabled(),
+
+                                TextInput::make('outstanding')
+                                    ->label('Outstanding')
+                                    ->prefix('Rp')
+                                    ->disabled(),
+
+                                TextInput::make('amount_applied')
+                                    ->label('Amount Applied')
+                                    ->prefix('Rp')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->required(fn ($context) => $context === 'create'), // wajib diisi saat create
+                            ])
+                            ->columns(3)
+                            ->reactive()
+                            ->default(function (Get $get) {
+                                $userId = $get('user_id');
+                                if (!$userId) return [];
+                                return Invoice::where('user_id', $userId)
+                                    ->where('status', '!=', 'paid')
+                                    ->get()
+                                    ->map(function(Invoice $invoice) {
+                                        $totalInvoice = $invoice->invoiceItems->sum('rate');
+                                        $alreadyPaidAmount = $invoice->invoicePayments()->sum('amount_applied');
+                                        return [
+                                            'invoice_id' => $invoice->id,
+                                            'invoice_number' => $invoice->code,
+                                            'outstanding' => $totalInvoice - $alreadyPaidAmount,
+                                            'amount_applied' => null,
+                                        ];
+                                    })->toArray();
+                            })
+                            ->visible(fn(Get $get) => !empty($get('user_id')))
+                            ->required()
+                            ->minItems(1)
+                            ->deletable(fn($state, $get) => count($get('invoice_payments')) > 1),
+                    ]),
 
                 Select::make('payment_method')
                     ->options([
@@ -92,7 +230,10 @@ class PaymentResource extends Resource implements HasShieldPermissions
 
                 Textarea::make('note')
                     ->rows(3)
-                    ->maxLength(500),
+                    ->maxLength(500)
+                    ->autosize()
+                    ->helperText('Hanya untuk catatan internal, tidak akan ditampilkan pada laporan atau invoice.')
+                    ->columnSpanFull(),
 
                 Grid::make()
                     ->columns()
