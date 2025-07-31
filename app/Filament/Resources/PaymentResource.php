@@ -3,10 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
+use App\Models\BankAccount;
 use App\Models\Payment;
+use App\Models\User;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -24,48 +30,83 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class PaymentResource extends Resource
+class PaymentResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Payment::class;
     protected static ?string $slug = 'payments';
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
+    public static function getPermissionPrefixes(): array
+    {
+        // TODO: Implement getPermissionPrefixes() method.
+        return [
+            'view_any',
+            'view',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+            'restore',
+            'restore_any',
+            'force_delete',
+            'force_delete_any',
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('user_id')
-                    ->required()
-                    ->integer(),
-
-                TextInput::make('serial_number')
-                    ->required()
-                    ->integer(),
-
-                TextInput::make('reference_number')
+                Select::make('user_id')
+                    ->label('User')
+                    ->options(fn (): array => User::whereHas('roles', fn($q) => $q->where('name', 'user'))->pluck('name', 'id')->toArray())
+                    ->searchable()
+                    ->native(false)
+                    ->columnSpanFull()
                     ->required(),
 
-                DatePicker::make('date'),
+                DatePicker::make('date')
+                    ->required()
+                    ->native(false)
+                    ->maxDate(now()),
 
                 TextInput::make('amount')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
 
-                TextInput::make('payment_method')
+                Select::make('payment_method')
+                    ->options([
+                        'cash' => 'Cash',
+                        'bank_transfer' => 'Bank Transfer',
+                    ])
+                    ->native(false)
                     ->required(),
 
-                TextInput::make('bank_account_id')
-                    ->integer(),
+                Select::make('bank_account_id')
+                    ->options(fn() => BankAccount::with('bank')->where('is_active', true)->get()->mapWithKeys(
+                        fn(BankAccount $ba) => [$ba->id => $ba->bank?->short_name ?? '-']
+                    )->toArray())
+                    ->native(false)
+                    ->requiredIf('payment_method', 'bank_transfer'),
 
-                TextInput::make('note'),
+                Textarea::make('note')
+                    ->rows(3)
+                    ->maxLength(500),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?Payment $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+                Grid::make()
+                    ->columns()
+                    ->schema([
+                        Placeholder::make('created_at')
+                            ->label('Created Date')
+                            ->visible(fn(?Payment $record): bool => $record?->exists ?? false)
+                            ->content(fn(?Payment $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?Payment $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                        Placeholder::make('updated_at')
+                            ->label('Last Modified Date')
+                            ->visible(fn(?Payment $record): bool => $record?->exists ?? false)
+                            ->content(fn(?Payment $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                    ])
             ]);
     }
 
