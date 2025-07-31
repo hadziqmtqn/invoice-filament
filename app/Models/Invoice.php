@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -57,5 +58,17 @@ class Invoice extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    protected function totalPrice(): Attribute
+    {
+        $discount = $this->discount ?? 0;
+        $total = $this->invoiceItems->sum(function ($item) {
+            return $item->rate * $item->qty;
+        });
+
+        $totalAfterDiscount = $total - ($total * ($discount / 100));
+
+        return Attribute::make(fn() => $totalAfterDiscount);
     }
 }

@@ -17,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -195,39 +196,54 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('slug')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('code')
+                    ->tooltip(fn($record): string => $record->invoice_number)
+                    ->searchable(),
 
-                TextColumn::make('serial_number'),
-
-                TextColumn::make('code'),
-
-                TextColumn::make('user_id'),
+                TextColumn::make('user.name')
+                    ->description(fn(Invoice $record): string => $record->user?->userProfile?->phone)
+                    ->searchable(),
 
                 TextColumn::make('date')
-                    ->date(),
+                    ->date(fn() => 'd M Y')
+                    ->description(fn(Invoice $record): string => $record->due_date ? 'Due: ' . $record->due_date->format('d M Y') : 'No Due Date'),
 
-                TextColumn::make('due_date')
-                    ->date(),
+                TextColumn::make('discount')
+                    ->label('Discount (%)')
+                    ->numeric()
+                    ->suffix('%'),
 
-                TextColumn::make('discount'),
+                TextColumn::make('total_price')
+                    ->label('Total Price')
+                    ->money('idr')
+                    ->sortable(),
 
-                TextColumn::make('note'),
-
-                TextColumn::make('status'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'draft' => 'gray',
+                        'sent' => 'primary',
+                        'paid' => 'success',
+                        'unpaid', 'overdue' => 'danger',
+                        'partially_paid' => 'warning',
+                        default => 'secondary',
+                    })
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
+            ->defaultSort('serial_number', 'desc')
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->link()
+                    ->label('Actions'),
             ])
             ->bulkActions([
-                /*BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),*/
+                //
             ]);
     }
 
