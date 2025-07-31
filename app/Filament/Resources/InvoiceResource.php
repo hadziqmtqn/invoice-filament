@@ -4,10 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Invoice;
+use App\Models\Item;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -55,6 +57,44 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                 DatePicker::make('due_date')
                     ->required()
                     ->native(false),
+
+                Repeater::make('invoiceItems')
+                    ->relationship('invoiceItems')
+                    ->schema([
+                        Select::make('item_id')
+                            ->label('Item')
+                            ->relationship('item', 'name')
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if (!$state) {
+                                    // kosongkan jika tidak ada item
+                                    $set('name', null);
+                                    $set('rate', null);
+                                    $set('description', null);
+                                    $set('unit', null);
+                                    return;
+                                }
+
+                                $item = Item::find($state);
+                                if ($item) {
+                                    $set('name', $item->name);
+                                    $set('rate', $item->rate);
+                                    $set('description', $item->description);
+                                    $set('unit', $item->unit);
+                                }
+                            })
+                            ->columnSpanFull(),
+
+                        TextInput::make('name')->required()->readOnly()->hidden()->reactive(),
+                        TextInput::make('qty')->numeric()->default(1)->required(),
+                        TextInput::make('unit')->reactive(),
+                        TextInput::make('rate')->numeric()->required()->reactive(),
+                        Textarea::make('description')->rows(2)->reactive(),
+                    ])
+                    ->columnSpanFull()
+                    ->columns(),
 
                 TextInput::make('discount')
                     ->required()
