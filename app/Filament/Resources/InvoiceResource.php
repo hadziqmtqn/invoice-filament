@@ -47,6 +47,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->relationship('user', 'name')
                     ->searchable()
                     ->required()
+                    ->native(false)
                     ->columnSpanFull(),
 
                 DatePicker::make('date')
@@ -67,6 +68,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->searchable()
                             ->required()
                             ->reactive()
+                            ->native(false)
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if (!$state) {
                                     // kosongkan jika tidak ada item
@@ -87,13 +89,20 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             })
                             ->columnSpanFull(),
 
-                        TextInput::make('name')->required()->readOnly()->hidden()->reactive(),
-                        TextInput::make('qty')->numeric()->default(1)->required(),
-                        TextInput::make('unit')->reactive(),
-                        TextInput::make('rate')->numeric()->required()->reactive(),
-                        Textarea::make('description')->rows(2)->reactive(),
+                        Grid::make()
+                            ->columns(3)
+                            ->schema([
+                                TextInput::make('name')->required()->readOnly()->hidden()->reactive(),
+                                TextInput::make('qty')->numeric()->default(1)->required(),
+                                TextInput::make('unit')->reactive(),
+                                TextInput::make('rate')->numeric()->required()->reactive(),
+                            ]),
+                        Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
                     ])
+                    ->minItems(1)
+                    ->deletable(fn($state, callable $get): bool => count($get('invoiceItems')) > 1)
                     ->columnSpanFull()
+                    ->addActionLabel('Add Item')
                     ->columns(),
 
                 TextInput::make('discount')
