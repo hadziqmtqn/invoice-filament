@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -92,10 +93,26 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         Grid::make()
                             ->columns(3)
                             ->schema([
-                                TextInput::make('name')->required()->readOnly()->hidden()->reactive(),
-                                TextInput::make('qty')->numeric()->default(1)->required(),
-                                TextInput::make('unit')->reactive(),
-                                TextInput::make('rate')->numeric()->required()->reactive(),
+                                TextInput::make('name')
+                                    ->required()
+                                    ->readOnly()
+                                    ->hidden()
+                                    ->reactive(),
+
+                                TextInput::make('qty')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->default(1)
+                                    ->required()
+                                    ->reactive(),
+
+                                TextInput::make('unit')
+                                    ->reactive(),
+                                
+                                TextInput::make('rate')
+                                    ->numeric()
+                                    ->required()
+                                    ->reactive(),
                             ]),
                         Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
                     ])
@@ -112,6 +129,20 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 Textarea::make('note')
                     ->rows(3)
+                    ->columnSpanFull(),
+
+                Placeholder::make('total_price')
+                    ->label('Total Harga')
+                    ->content(function (Get $get) {
+                        $items = $get('invoiceItems') ?? [];
+                        $total = 0;
+                        foreach ($items as $item) {
+                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                            $total += $qty * $rate;
+                        }
+                        return 'Rp ' . number_format($total, 0, ',', '.');
+                    })
                     ->columnSpanFull(),
 
                 Grid::make()
