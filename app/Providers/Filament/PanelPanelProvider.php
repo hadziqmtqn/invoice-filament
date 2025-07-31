@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
 use App\Models\Application;
 use Exception;
 use Filament\Http\Middleware\Authenticate;
@@ -36,7 +35,7 @@ class PanelPanelProvider extends PanelProvider
             ->default()
             ->id('panel')
             ->path('panel')
-            ->login(Login::class)
+            ->login() // alt: App/Filament/Pages/Login.php
             ->topNavigation()
             ->brandName($application?->name)
             ->favicon($application?->favicon)

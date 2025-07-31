@@ -14,6 +14,7 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -208,6 +209,30 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             })
                     ])
                     ->columnSpanFull(),
+
+                Grid::make()
+                    ->columns()
+                    ->schema([
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'draft' => 'Draft',
+                                'sent' => 'Sent',
+                                'paid' => 'Paid',
+                                'unpaid' => 'Unpaid',
+                                'overdue' => 'Overdue',
+                                'partially_paid' => 'Partially Paid',
+                            ])
+                            ->default('draft')
+                            ->required()
+                            ->native(false),
+
+                        SpatieMediaLibraryFileUpload::make('attachment')
+                            ->label('Attachment')
+                            ->collection('invoices')
+                            ->disk('s3')
+                            ->visibility('private'),
+                    ]),
 
                 Grid::make()
                     ->columns()
