@@ -21,6 +21,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -29,7 +30,9 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -190,7 +193,6 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                 $allPaid = $invoice->invoicePayments->sum('amount_applied');
 
                                                 // Jika sedang edit Payment, ambil id Payment ini
-                                                //$currentPaymentId = request()->route('record'); // Atau dari $get('id') jika ada
                                                 $currentInvoicePaymentId = $get('id'); // Jika invoicePayments memiliki kolom id
 
                                                 // Cari amount_applied yang sedang diedit (jika ada id di repeater)
@@ -243,6 +245,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                     ->required(),
 
                 Select::make('bank_account_id')
+                    ->label('Bank Account')
                     ->options(fn() => BankAccount::with('bank')->where('is_active', true)->get()->mapWithKeys(
                         fn(BankAccount $ba) => [$ba->id => $ba->bank?->short_name ?? '-']
                     )->toArray())
@@ -307,7 +310,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
                     ->color(fn(string $state): string => match ($state) {
-                        'cash' => 'success',
+                        'cash' => 'warning',
                         'bank_transfer' => 'primary',
                         default => 'secondary',
                     })
@@ -324,12 +327,36 @@ class PaymentResource extends Resource implements HasShieldPermissions
                         'bank_transfer' => 'Bank Transfer',
                     ])
                     ->native(false),
+
+                Filter::make('date')
+                    ->form([
+                        DatePicker::make('start')
+                            ->label('Start Date')
+                            ->native(false)
+                            ->placeholder('Start Date'),
+                        DatePicker::make('end')
+                            ->label('End Date')
+                            ->native(false)
+                            ->placeholder('End Date'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['start']) && !empty($data['end'])) {
+                            $query->whereBetween('date', [$data['start'], $data['end']]);
+                        }
+                    }),
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->icon('heroicon-o-eye')
+                        ->modalContent(fn($record) => view('filament.resources.payment-resource.view', ['payment' => $record])),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
+                ])
+                    ->link()
+                    ->label('Actions')
             ])
             ->bulkActions([
                 BulkActionGroup::make([

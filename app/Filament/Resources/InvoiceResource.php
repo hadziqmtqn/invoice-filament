@@ -286,7 +286,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                 ActionGroup::make([
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
-                        ->tooltip('View Invoice Details')
                         ->modalContent(fn($record) => view('filament.resources.invoice-resource.actions.view-invoice', ['invoice' => $record])),
                     EditAction::make()
                         ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
