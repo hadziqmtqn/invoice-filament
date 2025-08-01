@@ -352,10 +352,13 @@ class PaymentResource extends Resource implements HasShieldPermissions
                         ->icon('heroicon-o-printer')
                         ->modalHeading('Print Payment')
                         ->scale()
-                        ->filename('payment-:code')
+                        ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
                         ->margin([10, 10, 10, 10])
-                        ->modalContent(fn($record) => view('filament.resources.payment-resource.print', ['payment' => $record]))
+                        ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
+                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems'),
+                        ]))
                         ->content(fn($record) => view('filament.resources.payment-resource.print', ['payment' => $record]))
+                        ->savePdf()
                         ->color('primary'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
