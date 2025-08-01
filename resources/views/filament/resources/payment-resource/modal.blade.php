@@ -5,7 +5,7 @@
 <div class="p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
     <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
         <div>
-            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400 tracking-wide mb-1">INVOICELY</div>
+            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400 tracking-wide mb-1">{{ $application?->name }}</div>
             <div class="text-sm text-gray-700 dark:text-gray-300">Faktur Pembayaran</div>
             <div class="text-xs text-gray-400 dark:text-gray-500">#{{ $payment->reference_number }}</div>
         </div>
@@ -59,8 +59,16 @@
 
     <div class="mb-4">
         <div class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Metode Pembayaran</div>
-        <div class="text-gray-600 dark:text-gray-400">{{ ucfirst($payment->payment_method ?? 'Tunai') }}</div>
+        <div class="text-gray-600 dark:text-gray-400">{{ ucfirst(str_replace('_', ' ', $payment->payment_method) ?? 'Tunai') }}</div>
     </div>
+
+    @if($payment->payment_method === 'bank_transfer')
+        <div class="mb-4">
+            <div class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Bank Tujuan</div>
+            <div class="text-gray-600 dark:text-gray-400">{{ $payment->bankAccount?->bank?->short_name }}</div>
+        </div>
+    @endif
+
     @if(isset($payment->note))
         <div class="mb-4">
             <div class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Catatan</div>
@@ -75,6 +83,6 @@
     </div>
     <div class="mt-6 text-center text-gray-400 dark:text-gray-500 text-xs">
         Terima kasih atas pembayaran Anda.<br>
-        <span class="text-primary-600 dark:text-primary-400 font-bold">INVOICELY</span> &copy; {{ date('Y') }}
+        <span class="text-primary-600 dark:text-primary-400 font-bold">{{ $application?->name }}</span> &copy; {{ date('Y') }}
     </div>
 </div>

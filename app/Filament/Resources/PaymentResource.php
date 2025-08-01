@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
+use App\Models\Application;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -351,13 +352,15 @@ class PaymentResource extends Resource implements HasShieldPermissions
                     Html2MediaAction::make('print')
                         ->icon('heroicon-o-printer')
                         ->modalHeading('Print Payment')
-                        ->scale()
                         ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
-                        ->margin([10, 10, 10, 10])
                         ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
-                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems'),
+                            'application' => Application::first(),
+                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
                         ]))
-                        ->content(fn($record) => view('filament.resources.payment-resource.print', ['payment' => $record]))
+                        ->content(fn($record) => view('filament.resources.payment-resource.print', [
+                            'application' => Application::first(),
+                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
+                        ]))
                         ->savePdf()
                         ->color('primary'),
                     ViewAction::make()

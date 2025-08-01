@@ -10,7 +10,7 @@ class ApplicationSeeder extends Seeder
     public function run(): void
     {
         $application = new Application();
-        $application->name = 'Invoice App';
+        $application->name = 'Bekenweb';
         $application->email = 'khadziq@bkn.my.id';
         $application->whatsapp_number = '085157088717';
         $application->save();
