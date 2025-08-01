@@ -38,6 +38,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
 
 class PaymentResource extends Resource implements HasShieldPermissions
 {
@@ -347,6 +348,15 @@ class PaymentResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 ActionGroup::make([
+                    Html2MediaAction::make('print')
+                        ->icon('heroicon-o-printer')
+                        ->modalHeading('Print Payment')
+                        ->scale()
+                        ->filename('payment-:code')
+                        ->margin([10, 10, 10, 10])
+                        ->modalContent(fn($record) => view('filament.resources.payment-resource.print', ['payment' => $record]))
+                        ->content(fn($record) => view('filament.resources.payment-resource.print', ['payment' => $record]))
+                        ->color('primary'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
                         ->modalContent(fn($record) => view('filament.resources.payment-resource.view', ['payment' => $record])),
