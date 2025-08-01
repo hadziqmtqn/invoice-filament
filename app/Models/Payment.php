@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Payment extends Model
+class Payment extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'slug',
@@ -56,5 +58,11 @@ class Payment extends Model
     public function invoicePayments(): HasMany
     {
         return $this->hasMany(InvoicePayment::class, 'payment_id');
+    }
+
+    // more
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 }

@@ -264,6 +264,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         'partially_paid' => 'warning',
                         default => 'secondary',
                     })
+                    ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
                     ->sortable(),
             ])
             ->filters([

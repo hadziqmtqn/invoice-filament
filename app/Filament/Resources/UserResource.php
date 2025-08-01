@@ -332,7 +332,6 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 ActionGroup::make([
-                    //EditAction::make(),
                     EditAction::make()
                         ->before(function ($record, $data) {
                             $emailChanged = $data['email'] !== $record->email;

@@ -15,6 +15,7 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -29,6 +30,7 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -93,7 +95,16 @@ class PaymentResource extends Resource implements HasShieldPermissions
                     ->required()
                     ->numeric()
                     ->prefix('Rp')
-                    ->minValue(0),
+                    ->minValue(0)
+                    ->rule(function (Get $get) {
+                        return function ($attribute, $value, $fail) use ($get) {
+                            $invoicePayments = $get('invoicePayments') ?? [];
+                            $totalApplied = collect($invoicePayments)->sum('amount_applied');
+                            if ($value < $totalApplied) {
+                                $fail('Total Amount tidak boleh kurang dari jumlah Amount Applied pada invoice.');
+                            }
+                        };
+                    }),
 
                 Section::make('Invoices')
                     ->schema([
@@ -168,14 +179,23 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->prefix('Rp')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->required(fn ($context) => $context === 'create'),
+                                    ->required(fn ($context) => $context === 'create')
+                                    ->rule(function (Get $get) {
+                                        return function ($attribute, $value, $fail) use ($get) {
+                                            $outstanding = $get('outstanding') ?? 0;
+                                            if ($value > $outstanding) {
+                                                $fail('Amount Applied tidak boleh melebihi Outstanding.');
+                                            }
+                                        };
+                                    }),
                             ])
                             ->columns(3)
                             ->reactive()
                             ->visible(fn(Get $get) => !empty($get('user_id')))
                             ->required()
                             ->minItems(1)
-                            ->deletable(fn($state, $get) => count($get('invoicePayments')) > 1),
+                            ->deletable(fn($state, $get) => count($get('invoicePayments')) > 1)
+                            ->addActionLabel('Add Invoice Payment'),
                     ]),
 
                 Select::make('payment_method')
@@ -193,12 +213,21 @@ class PaymentResource extends Resource implements HasShieldPermissions
                     ->native(false)
                     ->requiredIf('payment_method', 'bank_transfer'),
 
+                SpatieMediaLibraryFileUpload::make('attachment')
+                    ->collection('payment_attachments')
+                    ->label('Attachment')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->acceptedFileTypes(['image/*', 'application/pdf'])
+                    ->maxSize(1024)
+                    ->openable()
+                    ->helperText('Optional, upload a receipt or proof of payment.'),
+
                 Textarea::make('note')
                     ->rows(3)
                     ->maxLength(500)
                     ->autosize()
-                    ->helperText('Hanya untuk catatan internal, tidak akan ditampilkan pada laporan atau invoice.')
-                    ->columnSpanFull(),
+                    ->helperText('Hanya untuk catatan internal, tidak akan ditampilkan pada laporan atau invoice.'),
 
                 Grid::make()
                     ->columns()
@@ -223,29 +252,42 @@ class PaymentResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('slug')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('user.name')
+                    ->description(fn($record) => $record->user?->userProfile?->phone ?? '-')
+                    ->searchable(),
 
-                TextColumn::make('user_id'),
-
-                TextColumn::make('serial_number'),
-
-                TextColumn::make('reference_number'),
+                TextColumn::make('reference_number')
+                    ->searchable(),
 
                 TextColumn::make('date')
-                    ->date(),
+                    ->date(fn() => 'd M Y')
+                    ->sortable(),
 
-                TextColumn::make('amount'),
+                TextColumn::make('amount')
+                    ->money('idr', true)
+                    ->searchable(),
 
-                TextColumn::make('payment_method'),
+                TextColumn::make('payment_method')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
+                    ->color(fn(string $state): string => match ($state) {
+                        'cash' => 'success',
+                        'bank_transfer' => 'primary',
+                        default => 'secondary',
+                    })
+                    ->sortable(),
 
-                TextColumn::make('bank_account_id'),
-
-                TextColumn::make('note'),
+                TextColumn::make('bankAccount.bank.short_name'),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 TrashedFilter::make(),
+                SelectFilter::make('payment_method')
+                    ->options([
+                        'cash' => 'Cash',
+                        'bank_transfer' => 'Bank Transfer',
+                    ])
+                    ->native(false),
             ])
             ->actions([
                 EditAction::make(),
