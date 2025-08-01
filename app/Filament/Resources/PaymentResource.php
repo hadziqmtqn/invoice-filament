@@ -107,16 +107,52 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->options(function (Get $get) {
                                         $userId = $get('../../user_id');
                                         if (!$userId) return [];
-                                        return Invoice::where('user_id', $userId)
+
+                                        // Semua invoice eligible
+                                        $invoices = Invoice::where('user_id', $userId)
                                             ->where('status', '!=', 'paid')
-                                            ->pluck('code', 'id')
-                                            ->toArray();
+                                            ->pluck('code', 'id');
+
+                                        // Semua invoice_id yang sudah dipilih di semua baris
+                                        $selectedInvoiceIds = collect($get('../../invoicePayments'))
+                                            ->pluck('invoice_id')
+                                            ->filter()
+                                            ->all();
+
+                                        // Dapatkan invoice_id baris ini
+                                        $currentInvoiceId = $get('invoice_id');
+
+                                        // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
+                                        $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
+                                            return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
+                                        });
+
+                                        return $availableInvoices->toArray();
                                     })
                                     ->searchable()
                                     ->native(false)
                                     ->reactive()
                                     ->required()
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        if (!$state) {
+                                            $set('invoice_number', null);
+                                            $set('outstanding', null);
+                                            return;
+                                        }
+
+                                        $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])
+                                            ->find($state);
+
+                                        if ($invoice) {
+                                            $outstanding = $invoice->invoiceItems->sum('rate') - $invoice->invoicePayments->sum('amount_applied');
+                                            $set('invoice_number', $invoice->code);
+                                            $set('outstanding', $outstanding);
+                                        } else {
+                                            $set('invoice_number', null);
+                                            $set('outstanding', null);
+                                        }
+                                    }),
 
                                 TextInput::make('invoice_number')
                                     ->label('Invoice Number')
