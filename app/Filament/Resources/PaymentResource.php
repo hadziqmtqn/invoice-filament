@@ -167,12 +167,48 @@ class PaymentResource extends Resource implements HasShieldPermissions
 
                                 TextInput::make('invoice_number')
                                     ->label('Invoice Number')
-                                    ->disabled(),
+                                    ->disabled()
+                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                        $invoiceId = $get('invoice_id');
+                                        if ($invoiceId) {
+                                            $invoice = Invoice::find($invoiceId);
+                                            $set('invoice_number', $invoice?->code ?? '');
+                                        }
+                                    }),
 
                                 TextInput::make('outstanding')
                                     ->label('Outstanding')
                                     ->prefix('Rp')
-                                    ->disabled(),
+                                    ->disabled()
+                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                        $invoiceId = $get('invoice_id');
+                                        if ($invoiceId) {
+                                            $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])->find($invoiceId);
+
+                                            if ($invoice) {
+                                                $total = $invoice->invoiceItems->sum('rate');
+                                                $allPaid = $invoice->invoicePayments->sum('amount_applied');
+
+                                                // Jika sedang edit Payment, ambil id Payment ini
+                                                //$currentPaymentId = request()->route('record'); // Atau dari $get('id') jika ada
+                                                $currentInvoicePaymentId = $get('id'); // Jika invoicePayments memiliki kolom id
+
+                                                // Cari amount_applied yang sedang diedit (jika ada id di repeater)
+                                                $currentApplied = 0;
+                                                if ($currentInvoicePaymentId) {
+                                                    $currentPayment = $invoice->invoicePayments->firstWhere('id', $currentInvoicePaymentId);
+                                                    if ($currentPayment) {
+                                                        $currentApplied = $currentPayment->amount_applied;
+                                                    }
+                                                }
+
+                                                // Outstanding = total - (total paid - currentApplied)
+                                                $outstanding = $total - ($allPaid - $currentApplied);
+
+                                                $set('outstanding', $outstanding);
+                                            }
+                                        }
+                                    }),
 
                                 TextInput::make('amount_applied')
                                     ->label('Amount Applied')
