@@ -2,7 +2,7 @@
     use Illuminate\Support\Carbon;
 @endphp
 
-<div class="p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
+<div class="bg-white dark:bg-gray-900 rounded-xl shadow">
     <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
         <div>
             <div class="text-2xl font-bold text-primary-600 dark:text-primary-400 tracking-wide mb-1">{{ $application?->name }}</div>
