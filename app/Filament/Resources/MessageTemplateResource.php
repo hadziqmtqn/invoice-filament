@@ -19,8 +19,8 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
-use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
@@ -99,7 +99,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                     ->searchable()
                     ->sortable(),
 
-                CheckboxColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->sortable(),
             ])
             ->filters([
@@ -109,9 +109,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 ActionGroup::make([
                     ViewAction::make()
                         ->modalHeading('Detail Message Template')
-                        ->modalContent(fn($record) => view('filament.resources.message-template.view', [
-                            'record' => $record
-                        ])),
+                        ->modalContent(),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

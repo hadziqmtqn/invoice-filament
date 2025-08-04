@@ -239,15 +239,16 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
                             ->schema([
                                 Grid::make()
-                                    ->columns()
                                     ->schema([
                                         Placeholder::make('created_at')
                                             ->label('Created Date')
-                                            ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+                                            ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-')
+                                            ->columnSpanFull(),
 
                                         Placeholder::make('updated_at')
                                             ->label('Last Modified Date')
-                                            ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                                            ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-')
+                                            ->columnSpanFull(),
                                     ])
                             ])
                     ])
@@ -317,7 +318,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                 ActionGroup::make([
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
-                        ->modalContent(fn($record) => view('filament.resources.invoice-resource.actions.view-invoice', ['invoice' => $record])),
+                        ->modalContent()
+                        ->modalWidth('5xl'),
                     EditAction::make()
                         ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
                         ->icon('heroicon-o-pencil-square'),

@@ -56,3 +56,13 @@ view_invoice;YES;YES
 create_invoice;YES;NO
 update_invoice;YES;NO
 delete_invoice;YES;NO
+view_any_payment;YES;NO
+view_payment;YES;NO
+create_payment;YES;NO
+update_payment;YES;NO
+delete_payment;YES;NO
+delete_any_payment;YES;NO
+restore_payment;YES;NO
+restore_any_payment;YES;NO
+force_delete_payment;YES;NO
+force_delete_any_payment;YES;NO
