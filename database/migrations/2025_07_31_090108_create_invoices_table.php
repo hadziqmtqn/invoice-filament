@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('invoice_number')->unique();
             $table->integer('serial_number')->unique();
             $table->string('code')->unique();
+            $table->string('title');
             $table->unsignedBigInteger('user_id');
             $table->date('date');
             $table->date('due_date');

@@ -19,6 +19,7 @@ class Invoice extends Model implements HasMedia
         'invoice_number',
         'serial_number',
         'code',
+        'title',
         'user_id',
         'date',
         'due_date',
