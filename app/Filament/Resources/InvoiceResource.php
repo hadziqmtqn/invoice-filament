@@ -59,13 +59,12 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->schema([
                                 Select::make('user_id')
                                     ->label('User')
-                                    //->relationship('user', 'name')
                                     ->options(function () {
                                         return User::whereHas('roles', fn($query) => $query->where('name', 'user'))
                                             ->orderBy('name')
                                             ->limit(10)
                                             ->get()
-                                            ->pluck('name', 'id');
+                                            ->mapWithKeys(fn(User $user) => [$user->id => $user->name]);
                                     })
                                     ->searchable()
                                     ->required()

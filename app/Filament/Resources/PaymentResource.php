@@ -40,6 +40,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
 
 class PaymentResource extends Resource implements HasShieldPermissions
@@ -109,6 +110,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->minValue(0)
+                                    ->reactive()
                                     ->rule(function (Get $get) {
                                         return function ($attribute, $value, $fail) use ($get) {
                                             $invoicePayments = $get('invoicePayments') ?? [];
@@ -244,7 +246,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->required()
                                     ->minItems(1)
                                     ->deletable(fn($state, $get) => count($get('invoicePayments')) > 1)
-                                    ->addActionLabel('Add Invoice Payment'),
+                                    ->addActionLabel('Add Item'),
                             ]),
 
                         Section::make('Payment Method')
@@ -261,18 +263,38 @@ class PaymentResource extends Resource implements HasShieldPermissions
 
                                 Select::make('bank_account_id')
                                     ->label('Bank Account')
-                                    ->options(fn() => BankAccount::with('bank')->where('is_active', true)->get()->mapWithKeys(
-                                        fn(BankAccount $ba) => [$ba->id => $ba->bank?->short_name ?? '-']
-                                    )->toArray())
+                                    ->options(function () {
+                                        return BankAccount::with('bank')
+                                            ->where('is_active', true)
+                                            ->get()
+                                            ->mapWithKeys(fn(BankAccount $ba) => [$ba->id => $ba->bank?->short_name ?? '-'])
+                                            ->toArray();
+                                    })
                                     ->native(false)
-                                    ->requiredIf('payment_method', 'bank_transfer'),
+                                    ->required(fn(Get $get) => $get('payment_method') === 'bank_transfer'),
                             ])
                     ])
                     ->columnSpan(['lg' => 2]),
 
-                // TODO Attachments
+                // TODO Summary & Attachments
                 Group::make()
                     ->schema([
+                        Section::make('Summary')
+                            ->columns()
+                            ->schema([
+                                Placeholder::make('total_amount')
+                                    ->label('Total Amount')
+                                    ->content(function (Get $get) {
+                                        return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format(($get('amount') != '') ?? 0, 0, ',', '.') . '</b></div>'));
+                                    })
+                                    ->reactive()
+                                    ->columnSpanFull(),
+
+                                Placeholder::make('payment_method_label')
+                                    ->label('Payment Method')
+                                    ->content(fn(Get $get) => ucfirst(str_replace('_', ' ', $get('payment_method') ?? '-')))
+                                    ->columnSpanFull(),
+                            ]),
                         Section::make()
                             ->schema([
                                 SpatieMediaLibraryFileUpload::make('attachment')
