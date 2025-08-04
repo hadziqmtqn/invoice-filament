@@ -129,118 +129,141 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->relationship('invoicePayments')
                                     ->columnSpanFull()
                                     ->schema([
-                                        Select::make('invoice_id')
-                                            ->label('Invoice')
-                                            ->options(function (Get $get) {
-                                                $userId = $get('../../user_id');
-                                                if (!$userId) return [];
+                                        Grid::make()
+                                            ->columns()
+                                            ->schema([
+                                                Select::make('invoice_id')
+                                                    ->label('Invoice')
+                                                    ->options(function (Get $get) {
+                                                        $userId = $get('../../user_id');
+                                                        if (!$userId) return [];
 
-                                                // Semua invoice eligible
-                                                $invoices = Invoice::where('user_id', $userId)
-                                                    ->where('status', '!=', 'paid')
-                                                    ->pluck('code', 'id');
+                                                        // Semua invoice eligible
+                                                        $invoices = Invoice::where('user_id', $userId)
+                                                            ->where('status', '!=', 'paid')
+                                                            ->pluck('invoice_number', 'id');
 
-                                                // Semua invoice_id yang sudah dipilih di semua baris
-                                                $selectedInvoiceIds = collect($get('../../invoicePayments'))
-                                                    ->pluck('invoice_id')
-                                                    ->filter()
-                                                    ->all();
+                                                        // Semua invoice_id yang sudah dipilih di semua baris
+                                                        $selectedInvoiceIds = collect($get('../../invoicePayments'))
+                                                            ->pluck('invoice_id')
+                                                            ->filter()
+                                                            ->all();
 
-                                                // Dapatkan invoice_id baris ini
-                                                $currentInvoiceId = $get('invoice_id');
+                                                        // Dapatkan invoice_id baris ini
+                                                        $currentInvoiceId = $get('invoice_id');
 
-                                                // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
-                                                $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
-                                                    return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
-                                                });
+                                                        // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
+                                                        $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
+                                                            return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
+                                                        });
 
-                                                return $availableInvoices->toArray();
-                                            })
-                                            ->searchable()
-                                            ->native(false)
-                                            ->reactive()
-                                            ->required()
-                                            ->columnSpanFull()
-                                            ->afterStateUpdated(function ($state, callable $set) {
-                                                if (!$state) {
-                                                    $set('invoice_number', null);
-                                                    $set('outstanding', null);
-                                                    return;
-                                                }
-
-                                                $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])
-                                                    ->find($state);
-
-                                                if ($invoice) {
-                                                    $outstanding = $invoice->invoiceItems->sum('rate') - $invoice->invoicePayments->sum('amount_applied');
-                                                    $set('invoice_number', $invoice->code);
-                                                    $set('outstanding', $outstanding);
-                                                } else {
-                                                    $set('invoice_number', null);
-                                                    $set('outstanding', null);
-                                                }
-                                            }),
-
-                                        TextInput::make('invoice_number')
-                                            ->label('Invoice Number')
-                                            ->disabled()
-                                            ->afterStateHydrated(function ($state, callable $set, $get) {
-                                                $invoiceId = $get('invoice_id');
-                                                if ($invoiceId) {
-                                                    $invoice = Invoice::find($invoiceId);
-                                                    $set('invoice_number', $invoice?->code ?? '');
-                                                }
-                                            }),
-
-                                        TextInput::make('outstanding')
-                                            ->label('Outstanding')
-                                            ->prefix('Rp')
-                                            ->disabled()
-                                            ->afterStateHydrated(function ($state, callable $set, $get) {
-                                                $invoiceId = $get('invoice_id');
-                                                if ($invoiceId) {
-                                                    $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])->find($invoiceId);
-
-                                                    if ($invoice) {
-                                                        $total = $invoice->invoiceItems->sum('rate');
-                                                        $allPaid = $invoice->invoicePayments->sum('amount_applied');
-
-                                                        // Jika sedang edit Payment, ambil id Payment ini
-                                                        $currentInvoicePaymentId = $get('id'); // Jika invoicePayments memiliki kolom id
-
-                                                        // Cari amount_applied yang sedang diedit (jika ada id di repeater)
-                                                        $currentApplied = 0;
-                                                        if ($currentInvoicePaymentId) {
-                                                            $currentPayment = $invoice->invoicePayments->firstWhere('id', $currentInvoicePaymentId);
-                                                            if ($currentPayment) {
-                                                                $currentApplied = $currentPayment->amount_applied;
-                                                            }
+                                                        return $availableInvoices->toArray();
+                                                    })
+                                                    ->searchable()
+                                                    ->native(false)
+                                                    ->reactive()
+                                                    ->required()
+                                                    ->afterStateUpdated(function ($state, callable $set) {
+                                                        if (!$state) {
+                                                            $set('invoice_number', null);
+                                                            $set('outstanding', null);
+                                                            return;
                                                         }
 
-                                                        // Outstanding = total - (total paid - currentApplied)
-                                                        $outstanding = $total - ($allPaid - $currentApplied);
+                                                        $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])
+                                                            ->find($state);
 
-                                                        $set('outstanding', $outstanding);
-                                                    }
-                                                }
-                                            }),
+                                                        if ($invoice) {
+                                                            $outstanding = $invoice->invoiceItems->sum('rate') - $invoice->invoicePayments->sum('amount_applied');
+                                                            $set('invoice_number', $invoice->code);
+                                                            $set('outstanding', $outstanding);
+                                                        } else {
+                                                            $set('invoice_number', null);
+                                                            $set('outstanding', null);
+                                                        }
+                                                    }),
 
-                                        TextInput::make('amount_applied')
-                                            ->label('Amount Applied')
-                                            ->prefix('Rp')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->required(fn ($context) => $context === 'create')
-                                            ->rule(function (Get $get) {
-                                                return function ($attribute, $value, $fail) use ($get) {
-                                                    $outstanding = $get('outstanding') ?? 0;
-                                                    if ($value > $outstanding) {
-                                                        $fail('Amount Applied tidak boleh melebihi Outstanding.');
-                                                    }
-                                                };
-                                            }),
+                                                TextInput::make('invoice_number')
+                                                    ->label('Invoice Number')
+                                                    ->disabled()
+                                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                                        $invoiceId = $get('invoice_id');
+                                                        if ($invoiceId) {
+                                                            $invoice = Invoice::find($invoiceId);
+                                                            $set('invoice_number', $invoice?->code ?? '');
+                                                        }
+                                                    }),
+                                            ]),
+
+                                        Grid::make()
+                                            ->columns(3)
+                                            ->schema([
+                                                TextInput::make('outstanding')
+                                                    ->label('Outstanding')
+                                                    ->prefix('Rp')
+                                                    ->disabled()
+                                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                                        $invoiceId = $get('invoice_id');
+                                                        if ($invoiceId) {
+                                                            $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])->find($invoiceId);
+
+                                                            if ($invoice) {
+                                                                $total = $invoice->invoiceItems->sum('rate');
+                                                                $allPaid = $invoice->invoicePayments->sum('amount_applied');
+
+                                                                // Jika sedang edit Payment, ambil id Payment ini
+                                                                $currentInvoicePaymentId = $get('id'); // Jika invoicePayments memiliki kolom id
+
+                                                                // Cari amount_applied yang sedang diedit (jika ada id di repeater)
+                                                                $currentApplied = 0;
+                                                                if ($currentInvoicePaymentId) {
+                                                                    $currentPayment = $invoice->invoicePayments->firstWhere('id', $currentInvoicePaymentId);
+                                                                    if ($currentPayment) {
+                                                                        $currentApplied = $currentPayment->amount_applied;
+                                                                    }
+                                                                }
+
+                                                                // Outstanding = total - (total paid - currentApplied)
+                                                                $outstanding = $total - ($allPaid - $currentApplied);
+
+                                                                $set('outstanding', $outstanding);
+                                                            }
+                                                        }
+                                                    }),
+
+                                                TextInput::make('amount_applied')
+                                                    ->label('Amount Applied')
+                                                    ->prefix('Rp')
+                                                    ->numeric()
+                                                    ->minValue(0)
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function ($state, callable $set, $get) {
+                                                        $outstanding = intval($get('outstanding'));
+                                                        $amountApplied = intval($get('amount_applied'));
+                                                        $sisa = max($outstanding - $amountApplied, 0);
+                                                        $set('rest_bill', $sisa);
+                                                    })
+                                                    ->required(fn ($context) => $context === 'create')
+                                                    ->rule(function (Get $get) {
+                                                        return function ($attribute, $value, $fail) use ($get) {
+                                                            $outstanding = $get('outstanding') ?? 0;
+                                                            if ($value > $outstanding) {
+                                                                $fail('Amount Applied tidak boleh melebihi Outstanding.');
+                                                            }
+                                                        };
+                                                    }),
+
+                                                TextInput::make('rest_bill')
+                                                    ->prefix('Rp')
+                                                    ->disabled()
+                                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                                        $outstanding = intval($get('outstanding'));
+                                                        $amountApplied = intval($get('amount_applied'));
+                                                        $sisa = max($outstanding - $amountApplied, 0);
+                                                        $set('rest_bill', $sisa);
+                                                    })
+                                            ])
                                     ])
-                                    ->columns(3)
                                     ->reactive()
                                     ->visible(fn(Get $get) => !empty($get('user_id')))
                                     ->required()
