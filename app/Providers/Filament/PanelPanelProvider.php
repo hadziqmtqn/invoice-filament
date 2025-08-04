@@ -20,6 +20,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class PanelPanelProvider extends PanelProvider
@@ -29,7 +30,10 @@ class PanelPanelProvider extends PanelProvider
      */
     public function panel(Panel $panel): Panel
     {
-        $application = Application::first();
+        $application = null;
+        if (Schema::hasTable('applications')) {
+            $application = Application::first();
+        }
 
         return $panel
             ->default()

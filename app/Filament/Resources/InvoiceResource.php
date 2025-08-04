@@ -6,10 +6,12 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Item;
+use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
@@ -50,179 +52,208 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                Select::make('user_id')
-                    ->label('User')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->required()
-                    ->native(false)
-                    ->columnSpanFull(),
-
-                DatePicker::make('date')
-                    ->required()
-                    ->format('d M Y')
-                    ->native(false)
-                    ->default(now()),
-
-                DatePicker::make('due_date')
-                    ->required()
-                    ->format('d M Y')
-                    ->native(false)
-                    ->minDate(fn(Get $get) => $get('date')),
-
-                Repeater::make('invoiceItems')
-                    ->relationship('invoiceItems')
+                Group::make()
                     ->schema([
-                        Select::make('item_id')
-                            ->label('Item')
-                            ->relationship('item', 'name')
-                            ->searchable()
-                            ->required()
-                            ->reactive()
-                            ->native(false)
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                if (!$state) {
-                                    // kosongkan jika tidak ada item
-                                    $set('name', null);
-                                    $set('rate', null);
-                                    $set('description', null);
-                                    $set('unit', null);
-                                    return;
-                                }
-
-                                $item = Item::find($state);
-                                if ($item) {
-                                    $set('name', $item->name);
-                                    $set('rate', $item->rate);
-                                    $set('description', $item->description);
-                                    $set('unit', $item->unit);
-                                }
-                            })
-                            ->columnSpanFull(),
-
-                        Grid::make()
-                            ->columns(4)
-                            ->schema([
-                                TextInput::make('name')
-                                    ->required()
-                                    ->readOnly()
-                                    ->reactive(),
-
-                                TextInput::make('qty')
-                                    ->numeric()
-                                    ->minValue(1)
-                                    ->default(1)
-                                    ->required()
-                                    ->reactive(),
-
-                                TextInput::make('unit')
-                                    ->reactive(),
-
-                                TextInput::make('rate')
-                                    ->numeric()
-                                    ->required()
-                                    ->reactive(),
-                            ]),
-                        Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
-                    ])
-                    ->minItems(1)
-                    ->deletable(fn($state, callable $get): bool => count($get('invoiceItems')) > 1)
-                    ->columnSpanFull()
-                    ->addActionLabel('Add Item')
-                    ->columns(),
-
-                Textarea::make('note')
-                    ->rows(3)
-                    ->columnSpanFull(),
-
-                Section::make('Total')
-                    ->description('Total harga akan dihitung berdasarkan item yang ditambahkan.')
-                    ->aside()
-                    ->schema([
-                        TextInput::make('discount')
-                            ->label('Discount (%)')
-                            ->helperText('Masukkan diskon dalam persen, misal: 10 untuk 10%')
-                            ->required()
-                            ->numeric()
-                            ->default(0)
-                            ->reactive()
-                            ->suffix('%'),
-
-                        Grid::make()
+                        Section::make()
                             ->columns()
                             ->schema([
-                                Placeholder::make('total_price')
-                                    ->label('Total Harga')
-                                    ->content(function (Get $get) {
-                                        $items = $get('invoiceItems') ?? [];
-                                        $total = 0;
-                                        foreach ($items as $item) {
-                                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
-                                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                            $total += $qty * $rate;
-                                        }
-                                        return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
-                                    }),
+                                Select::make('user_id')
+                                    ->label('User')
+                                    //->relationship('user', 'name')
+                                    ->options(function () {
+                                        return User::whereHas('roles', fn($query) => $query->where('name', 'user'))
+                                            ->orderBy('name')
+                                            ->limit(10)
+                                            ->get()
+                                            ->pluck('name', 'id');
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->native(false)
+                                    ->columnSpanFull(),
 
-                                Placeholder::make('final_price')
-                                    ->label('Total Akhir Setelah Diskon')
-                                    ->content(function (Get $get) {
-                                        $items = $get('invoiceItems') ?? [];
-                                        $total = 0;
-                                        foreach ($items as $item) {
-                                            $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
-                                            $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                            $total += $qty * $rate;
-                                        }
-                                        $discount = (float) ($get('discount') ?? 0);
-                                        $final = $total - ($discount / 100 * $total);
+                                DatePicker::make('date')
+                                    ->required()
+                                    ->format('d M Y')
+                                    ->native(false)
+                                    ->default(now())
+                                    ->closeOnDateSelection(),
 
-                                        return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
-                                    }),
+                                DatePicker::make('due_date')
+                                    ->required()
+                                    ->format('d M Y')
+                                    ->native(false)
+                                    ->minDate(fn(Get $get) => $get('date'))
+                                    ->closeOnDateSelection(),
+                            ]),
+
+                        Section::make('Invoice Items')
+                            ->description('Tambahkan item yang akan ditagihkan dalam invoice ini.')
+                            ->schema([
+                                Repeater::make('invoiceItems')
+                                    ->relationship('invoiceItems')
+                                    ->schema([
+                                        Select::make('item_id')
+                                            ->label('Item')
+                                            ->searchable()
+                                            ->options(fn() => Item::all()->pluck('name', 'id'))
+                                            ->preload()
+                                            ->required()
+                                            ->reactive()
+                                            ->native(false)
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                if (!$state) {
+                                                    // kosongkan jika tidak ada item
+                                                    $set('name', null);
+                                                    $set('rate', null);
+                                                    $set('description', null);
+                                                    $set('unit', null);
+                                                    return;
+                                                }
+
+                                                $item = Item::find($state);
+                                                if ($item) {
+                                                    $set('name', $item->name);
+                                                    $set('rate', $item->rate);
+                                                    $set('description', $item->description);
+                                                    $set('unit', $item->unit);
+                                                }
+                                            })
+                                            ->columnSpanFull(),
+
+                                        Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                TextInput::make('name')
+                                                    ->required()
+                                                    ->readOnly()
+                                                    ->reactive(),
+
+                                                TextInput::make('qty')
+                                                    ->numeric()
+                                                    ->minValue(1)
+                                                    ->default(1)
+                                                    ->required()
+                                                    ->reactive(),
+
+                                                TextInput::make('unit')
+                                                    ->reactive(),
+
+                                                TextInput::make('rate')
+                                                    ->numeric()
+                                                    ->required()
+                                                    ->reactive(),
+                                            ]),
+                                        Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
+                                    ])
+                                    ->minItems(1)
+                                    ->deletable(fn($state, callable $get): bool => count($get('invoiceItems')) > 1)
+                                    ->columnSpanFull()
+                                    ->addActionLabel('Add Item')
+                                    ->columns(),
+                            ]),
+
+                        Section::make('Note')
+                            ->description('Tambahkan catatan atau informasi tambahan untuk invoice ini.')
+                            ->schema([
+                                Textarea::make('note')
+                                    ->rows(3),
+                            ]),
+                    ])
+                        ->columnSpan(['lg' => 2]),
+
+                Group::make()
+                    ->schema([
+                        Section::make('Total')
+                            ->description('Total harga akan dihitung berdasarkan item yang ditambahkan.')
+                            ->schema([
+                                TextInput::make('discount')
+                                    ->label('Discount (%)')
+                                    ->helperText('Masukkan diskon dalam persen, misal: 10 untuk 10%')
+                                    ->required()
+                                    ->numeric()
+                                    ->default(0)
+                                    ->reactive()
+                                    ->suffix('%'),
+
+                                Grid::make()
+                                    ->schema([
+                                        Placeholder::make('total_price')
+                                            ->label('Total Harga')
+                                            ->content(function (Get $get) {
+                                                $items = $get('invoiceItems') ?? [];
+                                                $total = 0;
+                                                foreach ($items as $item) {
+                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                                    $total += $qty * $rate;
+                                                }
+                                                return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
+                                            })
+                                            ->columnSpanFull(),
+
+                                        Placeholder::make('final_price')
+                                            ->label('Total Akhir Setelah Diskon')
+                                            ->content(function (Get $get) {
+                                                $items = $get('invoiceItems') ?? [];
+                                                $total = 0;
+                                                foreach ($items as $item) {
+                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                    $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
+                                                    $total += $qty * $rate;
+                                                }
+                                                $discount = (float) ($get('discount') ?? 0);
+                                                $final = $total - ($discount / 100 * $total);
+
+                                                return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
+                                            })
+                                            ->columnSpanFull(),
+                                    ])
+                            ]),
+
+                        Section::make('Rekening Bank')
+                            ->description('Transfer pembayaran ke salah satu rekening berikut:')
+                            ->schema([
+                                Placeholder::make('bank_accounts')
+                                    ->content(function () {
+                                        $accounts = BankAccount::with('bank:id,short_name,full_name')
+                                            ->orderBy('bank_id')
+                                            ->get();
+
+                                        if ($accounts->isEmpty()) {
+                                            return 'Belum ada data rekening bank.';
+                                        }
+
+                                        $html = '<div><ul>';
+                                        foreach ($accounts as $account) {
+                                            $html .= '<li><b>' . e($account->bank?->short_name) . '</b> - '
+                                                . e($account->account_number) . ' a.n. '
+                                                . e($account->account_name) . '</li>';
+                                        }
+                                        $html .= '</ul></div>';
+                                        return new HtmlString($html);
+                                    })
+                            ]),
+
+                        Section::make('Pembaruan')
+                            ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
+                            ->schema([
+                                Grid::make()
+                                    ->columns()
+                                    ->schema([
+                                        Placeholder::make('created_at')
+                                            ->label('Created Date')
+                                            ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+
+                                        Placeholder::make('updated_at')
+                                            ->label('Last Modified Date')
+                                            ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                                    ])
                             ])
                     ])
-                    ->columnSpanFull(),
-
-                Section::make('Rekening Bank')
-                    ->description('Transfer pembayaran ke salah satu rekening berikut:')
-                    ->aside()
-                    ->schema([
-                        Placeholder::make('bank_accounts')
-                            ->content(function () {
-                                $accounts = BankAccount::with('bank:id,short_name,full_name')
-                                    ->orderBy('bank_id')
-                                    ->get();
-
-                                if ($accounts->isEmpty()) {
-                                    return 'Belum ada data rekening bank.';
-                                }
-
-                                $html = '<div><ul>';
-                                foreach ($accounts as $account) {
-                                    $html .= '<li><b>' . e($account->bank?->short_name) . '</b> - '
-                                        . e($account->account_number) . ' a.n. '
-                                        . e($account->account_name) . '</li>';
-                                }
-                                $html .= '</ul></div>';
-                                return new HtmlString($html);
-                            })
-                    ])
-                    ->columnSpanFull(),
-
-                Grid::make()
-                    ->columns()
-                    ->schema([
-                        Placeholder::make('created_at')
-                            ->label('Created Date')
-                            ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
-                            ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                        Placeholder::make('updated_at')
-                            ->label('Last Modified Date')
-                            ->visible(fn(?Invoice $record): bool => $record?->exists ?? false)
-                            ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
-                    ])
-            ]);
+                        ->columnSpan(['lg' => 1]),
+            ])
+                ->columns(3);
     }
 
     /**
