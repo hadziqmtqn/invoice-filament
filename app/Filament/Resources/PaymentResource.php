@@ -308,16 +308,51 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                 Placeholder::make('total_amount')
                                     ->label('Total Amount')
                                     ->content(function (Get $get) {
-                                        return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format(($get('amount') != '') ?? 0, 0, ',', '.') . '</b></div>'));
+                                        $invoicePayments = $get('invoicePayments') ?? [];
+                                        $totalOutstanding = 0;
+                                        foreach ($invoicePayments as $row) {
+                                            // Pastikan outstanding berupa angka
+                                            $outstanding = intval($row['outstanding'] ?? 0);
+                                            $totalOutstanding += $outstanding;
+                                        }
+                                        return new HtmlString(
+                                            '<div style="font-size:15pt; color:#0066cc"><b>Rp' . number_format($totalOutstanding, 0, ',', '.') . '</b></div>'
+                                        );
                                     })
                                     ->reactive()
                                     ->columnSpanFull(),
 
-                                Placeholder::make('payment_method_label')
-                                    ->label('Payment Method')
-                                    ->content(fn(Get $get) => ucfirst(str_replace('_', ' ', $get('payment_method') ?? '-')))
+                                Placeholder::make('total_Pay')
+                                    ->label('Total Pay')
+                                    ->content(function (Get $get) {
+                                        return new HtmlString('<div style="font-size:15pt; color:#00bb00"><b>Rp' . number_format(intval($get('amount') ?? 0), 0, ',', '.') . '</b></div>');
+                                    })
+                                    ->reactive()
+                                    ->columnSpanFull(),
+
+                                Placeholder::make('sum_rest_bill')
+                                    ->label('Rest Bill')
+                                    ->content(function (Get $get) {
+                                        // Ambil total_amount: hitung dari sum outstanding invoicePayments
+                                        $invoicePayments = $get('invoicePayments') ?? [];
+                                        $totalOutstanding = 0;
+                                        foreach ($invoicePayments as $row) {
+                                            $outstanding = intval($row['outstanding'] ?? 0);
+                                            $totalOutstanding += $outstanding;
+                                        }
+
+                                        // Ambil total_pay dari field 'amount'
+                                        $totalPay = intval($get('amount') ?? 0);
+
+                                        // Hitung sisa tagihan
+                                        return new HtmlString(
+                                            '<div style="font-size:15pt; color:#bb0000"><b>Rp' . number_format(max($totalOutstanding - $totalPay, 0), 0, ',', '.') . '</b></div>'
+                                        );
+                                    })
+                                    ->reactive()
                                     ->columnSpanFull(),
                             ]),
+
                         Section::make()
                             ->schema([
                                 SpatieMediaLibraryFileUpload::make('attachment')

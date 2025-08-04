@@ -47,7 +47,7 @@ class EditInvoice extends EditRecord
 
     protected function canEdit(): bool
     {
-        return $this->record->status === 'draft' || $this->record->status === 'unpaid';
+        return $this->record->status === 'draft' || $this->record->status === 'unpaid' || $this->record->status === 'partially_paid';
     }
 
     protected function canDelete(): bool
