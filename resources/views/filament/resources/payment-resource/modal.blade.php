@@ -18,7 +18,7 @@
     <div class="mb-4">
         <div class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Penerima</div>
         <div class="text-gray-900 dark:text-gray-100">{{ $payment->user?->name ?? 'Pembeli' }}</div>
-        <div class="text-gray-500 dark:text-gray-400 text-sm">{{ $payment->user?->email ?? '-' }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">{{ $payment->user?->userProfile?->phone ?? '-' }}</div>
         <div class="text-gray-400 dark:text-gray-500 text-xs">{{ $payment->user?->userProfile?->street ?? '' }}</div>
     </div>
 
@@ -52,6 +52,14 @@
                     @endforeach
                 @endforeach
                 </tbody>
+                <tfoot>
+                <tr class="border-t border-gray-200 dark:border-gray-700">
+                    <td colspan="3" class="py-2 font-semibold text-gray-700 dark:text-gray-200 text-right">Subtotal</td>
+                    <td class="py-2 text-right font-semibold text-gray-900 dark:text-gray-100">
+                        Rp {{ number_format($payment->total_bill, 0, ',', '.') }}
+                    </td>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -75,8 +83,9 @@
             <div class="text-gray-600 dark:text-gray-400">{{ $payment->note }}</div>
         </div>
     @endif
+
     <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="font-semibold text-lg text-gray-700 dark:text-gray-100">Total Pembayaran</div>
+        <div class="font-semibold text-lg text-gray-700 dark:text-gray-400">Total Pembayaran</div>
         <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
             Rp {{ number_format($payment->amount, 0, ',', '.') }}
         </div>

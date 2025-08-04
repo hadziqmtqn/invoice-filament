@@ -141,7 +141,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                         // Semua invoice eligible
                                                         $invoices = Invoice::where('user_id', $userId)
                                                             ->where('status', '!=', 'paid')
-                                                            ->pluck('invoice_number', 'id');
+                                                            ->pluck('title', 'id');
 
                                                         // Semua invoice_id yang sudah dipilih di semua baris
                                                         $selectedInvoiceIds = collect($get('../../invoicePayments'))
@@ -305,8 +305,8 @@ class PaymentResource extends Resource implements HasShieldPermissions
                         Section::make('Summary')
                             ->columns()
                             ->schema([
-                                Placeholder::make('total_amount')
-                                    ->label('Total Amount')
+                                Placeholder::make('total_bill')
+                                    ->label('Total Bill')
                                     ->content(function (Get $get) {
                                         $invoicePayments = $get('invoicePayments') ?? [];
                                         $totalOutstanding = 0;
@@ -315,9 +315,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                             $outstanding = intval($row['outstanding'] ?? 0);
                                             $totalOutstanding += $outstanding;
                                         }
-                                        return new HtmlString(
-                                            '<div style="font-size:15pt; color:#0066cc"><b>Rp' . number_format($totalOutstanding, 0, ',', '.') . '</b></div>'
-                                        );
+                                        return new HtmlString('<div style="font-size:15pt; color:#0066cc"><b>Rp' . number_format($totalOutstanding, 0, ',', '.') . '</b></div>');
                                     })
                                     ->reactive()
                                     ->columnSpanFull(),
@@ -460,17 +458,18 @@ class PaymentResource extends Resource implements HasShieldPermissions
                         ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
                         ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
                             'application' => Application::first(),
-                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
+                            'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
                         ]))
                         ->content(fn($record) => view('filament.resources.payment-resource.print', [
                             'application' => Application::first(),
-                            'payment' => $record->loadMissing('invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
+                            'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
                         ]))
                         ->savePdf()
                         ->color('primary'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
-                        ->modalContent(fn($record) => view('filament.resources.payment-resource.view', ['payment' => $record])),
+                        ->modalContent()
+                        ->modalWidth('5xl'),
                     EditAction::make(),
                     DeleteAction::make(),
                     RestoreAction::make(),
@@ -507,6 +506,6 @@ class PaymentResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['slug'];
+        return ['reference_number'];
     }
 }

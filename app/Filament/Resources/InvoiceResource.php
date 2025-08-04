@@ -74,6 +74,12 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->native(false)
                                     ->columnSpanFull(),
 
+                                TextInput::make('title')
+                                    ->label('Invoice Title')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->columnSpanFull(),
+
                                 DatePicker::make('date')
                                     ->required()
                                     ->format('d M Y')
@@ -155,8 +161,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->columns(),
                             ]),
 
-                        Section::make('Note')
-                            ->description('Tambahkan catatan atau informasi tambahan untuk invoice ini.')
+                        Section::make()
                             ->schema([
                                 Textarea::make('note')
                                     ->rows(3),
@@ -270,6 +275,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->tooltip(fn($record): string => $record->invoice_number)
                     ->searchable(),
 
+                TextColumn::make('title')
+                    ->limit(30)
+                    ->tooltip(fn($record): string => $record->title)
+                    ->searchable(),
+
                 TextColumn::make('user.name')
                     ->description(fn(Invoice $record): string => $record->user?->userProfile?->phone)
                     ->searchable(),
@@ -277,11 +287,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                 TextColumn::make('date')
                     ->date(fn() => 'd M Y')
                     ->description(fn(Invoice $record): string => $record->due_date ? 'Due: ' . $record->due_date->format('d M Y') : 'No Due Date'),
-
-                TextColumn::make('discount')
-                    ->label('Discount (%)')
-                    ->numeric()
-                    ->suffix('%'),
 
                 TextColumn::make('total_price')
                     ->label('Total Price')

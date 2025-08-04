@@ -100,9 +100,7 @@
     .pdf-invoice-table tr {
         border-bottom: 1px solid #f3f4f6;
     }
-    .pdf-invoice-text-right {
-        text-align: right;
-    }
+
     .pdf-invoice-total-row {
         border-top: 2px solid #e5e7eb;
     }
@@ -156,7 +154,7 @@
     <div style="margin-bottom:1.2rem;">
         <div class="pdf-invoice-section-title">Penerima</div>
         <div class="pdf-invoice-section-value">{{ $payment->user?->name ?? 'Pembeli' }}</div>
-        <div class="pdf-invoice-section-value-sm">{{ $payment->user?->email ?? '-' }}</div>
+        <div class="pdf-invoice-section-value-sm">{{ $payment->user?->userProfile?->phone ?? '-' }}</div>
         <div class="pdf-invoice-section-value-xs">{{ $payment->user?->userProfile?->street ?? '' }}</div>
     </div>
 
@@ -173,7 +171,7 @@
                     <th>Kode</th>
                     <th>Item</th>
                     <th>Qty</th>
-                    <th class="pdf-invoice-text-right">Harga</th>
+                    <th style="text-align: right">Harga</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -183,13 +181,21 @@
                             <td>{{ $invoicePayment->invoice?->code }}</td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->qty }}</td>
-                            <td class="pdf-invoice-text-right">
+                            <td style="text-align: right">
                                 Rp {{ number_format($item->rate, 0, ',', '.') }}
                             </td>
                         </tr>
                     @endforeach
                 @endforeach
                 </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right">Subtotal</td>
+                    <th style="text-align: right">
+                        Rp {{ number_format($payment->total_bill, 0, ',', '.') }}
+                    </th>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </div>
