@@ -25,7 +25,9 @@ class InvoicePaymentObserver
             ->find($invoiceId);
         if (!$invoice) return;
 
-        $totalInvoice = $invoice->invoiceItems->sum('rate');
+        $totalInvoice = $invoice->invoiceItems->sum(function ($item) {
+            return $item->rate * $item->qty; // Asumsi ada quantity di invoice items
+        });
         $totalPaid = $invoice->invoicePayments->sum('amount_applied');
 
         if ($totalPaid >= $totalInvoice) {

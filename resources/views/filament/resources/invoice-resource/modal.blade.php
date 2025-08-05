@@ -63,6 +63,18 @@
                     Rp {{ number_format($invoice->total_price, 0, ',', '.') }}
                 </td>
             </tr>
+            <tr class="border-t border-gray-200 dark:border-gray-700">
+                <td colspan="2" class="py-2 font-semibold text-gray-700 dark:text-gray-200 text-right">Total Pay</td>
+                <td class="py-2 text-right font-semibold text-gray-900 dark:text-gray-100">
+                    Rp {{ number_format($invoice->total_paid, 0, ',', '.') }}
+                </td>
+            </tr>
+            <tr class="border-t border-gray-200 dark:border-gray-700">
+                <td colspan="2" class="py-2 font-semibold text-gray-700 dark:text-gray-200 text-right">Total Due</td>
+                <td class="py-2 text-right font-semibold text-gray-900 dark:text-gray-100">
+                    Rp {{ number_format($invoice->total_due, 0, ',', '.') }}
+                </td>
+            </tr>
             </tfoot>
         </table>
     </div>

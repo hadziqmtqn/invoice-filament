@@ -267,7 +267,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                 $discount = (float) ($get('discount') ?? 0);
                                                 $final = $total - ($discount / 100 * $total);
 
-                                                return (new HtmlString('<div style="font-size: 17pt; color: #00bb00"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
+                                                return (new HtmlString('<div style="font-size: 15pt; color: #00bb00"><b>Rp' . number_format($final, 0, ',', '.') . '</b></div>'));
                                             })
                                             ->columnSpanFull(),
                                     ])

@@ -176,7 +176,8 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                             ->find($state);
 
                                                         if ($invoice) {
-                                                            $outstanding = $invoice->invoiceItems->sum('rate') - $invoice->invoicePayments->sum('amount_applied');
+                                                            $totalBill = $invoice->invoiceItems->sum(fn($item) => $item->rate * $item->qty);
+                                                            $outstanding = $totalBill - $invoice->invoicePayments->sum('amount_applied');
                                                             $set('invoice_number', $invoice->code);
                                                             $set('outstanding', $outstanding);
                                                         } else {
@@ -204,13 +205,13 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                     ->label('Outstanding')
                                                     ->prefix('Rp')
                                                     ->disabled()
-                                                    ->afterStateHydrated(function ($state, callable $set, $get) {
+                                                    ->afterStateHydrated(function ($state, callable $set, Get $get) {
                                                         $invoiceId = $get('invoice_id');
                                                         if ($invoiceId) {
                                                             $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])->find($invoiceId);
 
                                                             if ($invoice) {
-                                                                $total = $invoice->invoiceItems->sum('rate');
+                                                                $total = $invoice->invoiceItems->sum(fn($item) => $item->rate * $item->qty);
                                                                 $allPaid = $invoice->invoicePayments->sum('amount_applied');
 
                                                                 // Jika sedang edit Payment, ambil id Payment ini

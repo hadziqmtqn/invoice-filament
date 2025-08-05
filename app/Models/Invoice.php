@@ -70,6 +70,7 @@ class Invoice extends Model implements HasMedia
         return 'slug';
     }
 
+    // TODO Attribute Accessors
     protected function totalPrice(): Attribute
     {
         $discount = $this->discount ?? 0;
@@ -80,5 +81,15 @@ class Invoice extends Model implements HasMedia
         $totalAfterDiscount = $total - ($total * ($discount / 100));
 
         return Attribute::make(fn() => $totalAfterDiscount);
+    }
+
+    protected function totalPaid(): Attribute
+    {
+        return Attribute::make(fn() => $this->invoicePayments->sum('amount_applied'));
+    }
+
+    protected function totalDue(): Attribute
+    {
+        return Attribute::make(fn() => $this->total_price - $this->total_paid);
     }
 }
