@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\BankAccount;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Item;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -104,7 +105,15 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                         Select::make('item_id')
                                             ->label('Item')
                                             ->searchable()
-                                            ->options(fn() => Item::all()->pluck('name', 'id'))
+                                            ->options(function (?InvoiceItem $record) {
+                                                return Item::when($record?->invoice?->invoicePayments, function ($query) use ($record) {
+                                                    $query->whereIn('id', $record->invoice?->invoiceItems?->pluck('item_id') ?? []);
+                                                })
+                                                    ->orderBy('name')
+                                                    ->limit(10)
+                                                    ->get()
+                                                    ->mapWithKeys(fn(Item $item) => [$item->id => $item->name]);
+                                            })
                                             ->preload()
                                             ->required()
                                             ->reactive()
@@ -155,7 +164,36 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                         Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
                                     ])
                                     ->minItems(1)
-                                    ->deletable(fn($state, callable $get): bool => count($get('invoiceItems')) > 1)
+                                    ->deletable(function ($state, callable $get, $livewire) {
+                                        $invoice = $livewire->record ?? null;
+                                        //dd($invoice->invoicePayments()->exists());
+
+                                        // Ambil invoiceItems, pastikan array
+                                        $items = $get('invoiceItems') ?? [];
+                                        $itemsCount = is_array($items) ? count($items) : 0;
+
+                                        if (!$invoice) {
+                                            // Create mode, boleh hapus jika item > 1
+                                            return $itemsCount > 1;
+                                        }
+
+                                        if ($invoice->invoicePayments()->exists()) {
+                                            // Jika sudah ada pembayaran, tidak boleh hapus
+                                            return false;
+                                        }
+
+                                        return $itemsCount > 1;
+                                    })
+                                    ->addable(function ($state, callable $get, $livewire) {
+                                        $invoice = $livewire->record ?? null;
+
+                                        if ($invoice->invoicePayments()->exists()) {
+                                            // Jika sudah ada pembayaran, tidak boleh tambah item
+                                            return false;
+                                        }
+
+                                        return true;
+                                    })
                                     ->columnSpanFull()
                                     ->addActionLabel('Add Item')
                                     ->columns(),
