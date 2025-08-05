@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
+use App\Filament\Resources\InvoiceResource\RelationManagers\InvoicePaymentsRelationManager;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -65,7 +66,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->when($record?->exists, function ($query) use ($record) {
                                                 $query->where('id', $record->user_id);
                                             })
-                                            ->orderBy('name')
+                                            ->orderByDesc('created_at')
                                             ->limit(10)
                                             ->get()
                                             ->mapWithKeys(fn(User $user) => [$user->id => $user->name]);
@@ -109,7 +110,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                 return Item::when($record?->invoice?->invoicePayments, function ($query) use ($record) {
                                                     $query->whereIn('id', $record->invoice?->invoiceItems?->pluck('item_id') ?? []);
                                                 })
-                                                    ->orderBy('name')
+                                                    ->orderByDesc('created_at')
                                                     ->limit(10)
                                                     ->get()
                                                     ->mapWithKeys(fn(Item $item) => [$item->id => $item->name]);
@@ -187,7 +188,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->addable(function ($state, callable $get, $livewire) {
                                         $invoice = $livewire->record ?? null;
 
-                                        if ($invoice->invoicePayments()->exists()) {
+                                        if ($invoice?->invoicePayments()->exists()) {
                                             // Jika sudah ada pembayaran, tidak boleh tambah item
                                             return false;
                                         }
@@ -386,6 +387,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
             'index' => Pages\ListInvoices::route('/'),
             'create' => Pages\CreateInvoice::route('/create'),
             'edit' => Pages\EditInvoice::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            InvoicePaymentsRelationManager::class
         ];
     }
 

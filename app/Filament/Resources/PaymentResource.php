@@ -85,6 +85,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                             ->whereHas('invoices', function ($query) {
                                                 $query->where('status', '!=', 'paid');
                                             })
+                                            ->orderByDesc('created_at')
                                             ->pluck('name', 'id')
                                             ->toArray();
                                     })
@@ -141,6 +142,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                         // Semua invoice eligible
                                                         $invoices = Invoice::where('user_id', $userId)
                                                             ->where('status', '!=', 'paid')
+                                                            ->orderByDesc('created_at')
                                                             ->pluck('title', 'id');
 
                                                         // Semua invoice_id yang sudah dipilih di semua baris
