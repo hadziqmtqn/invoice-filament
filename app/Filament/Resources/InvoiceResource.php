@@ -381,20 +381,16 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     Html2MediaAction::make('export')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->label('Export to PDF')
-                        /*->form(fn(Invoice $record) => [
-                            TextInput::make('filename')
-                                ->label('File Name')
-                                ->default($record->code . '-' . $record->title)
-                                ->required()
-                                ->maxLength(100)
-                                ->columnSpanFull(),
-                        ])*/
                         ->modalHeading('Export Invoice to PDF')
                         ->modalWidth('2xl')
                         ->savePdf()
                         ->modalContent(fn(Invoice $record) => view('filament.resources.invoice-resource.modal', [
                             'invoice' => $record->loadMissing('invoiceItems')
-                        ])),
+                        ]))
+                        ->content(fn(Invoice $record) => view('filament.resources.invoice-resource.print', [
+                            'invoice' => $record->loadMissing('invoiceItems')
+                        ]))
+                        ->filename(fn(Invoice $record) => $record->code . '-' . $record->invoice_number . '.pdf'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
                         ->modalContent()
