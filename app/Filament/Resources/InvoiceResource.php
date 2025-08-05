@@ -32,6 +32,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
 
 class InvoiceResource extends Resource implements HasShieldPermissions
 {
@@ -377,6 +378,23 @@ class InvoiceResource extends Resource implements HasShieldPermissions
             ->defaultSort('serial_number', 'desc')
             ->actions([
                 ActionGroup::make([
+                    Html2MediaAction::make('export')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->label('Export to PDF')
+                        /*->form(fn(Invoice $record) => [
+                            TextInput::make('filename')
+                                ->label('File Name')
+                                ->default($record->code . '-' . $record->title)
+                                ->required()
+                                ->maxLength(100)
+                                ->columnSpanFull(),
+                        ])*/
+                        ->modalHeading('Export Invoice to PDF')
+                        ->modalWidth('2xl')
+                        ->savePdf()
+                        ->modalContent(fn(Invoice $record) => view('filament.resources.invoice-resource.modal', [
+                            'invoice' => $record->loadMissing('invoiceItems')
+                        ])),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
                         ->modalContent()
