@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
@@ -117,6 +118,20 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             })
                                             ->preload()
                                             ->required()
+                                            ->createOptionForm(ItemResource::newItems())
+                                            ->createOptionAction(fn(Action $action) => $action
+                                                ->tooltip('Create a new item to add to this invoice')
+                                                ->icon('heroicon-o-plus')
+                                                ->color('primary')
+                                                ->form(ItemResource::newItems())
+                                                ->modalHeading('Create New Item')
+                                                ->modalWidth('2xl')
+                                            )
+                                            ->createOptionUsing(function (array $data) {
+                                                // Pastikan ini membuat dan menyimpan Item baru
+                                                $item = Item::create($data);
+                                                return $item->getKey();
+                                            })
                                             ->reactive()
                                             ->native(false)
                                             ->afterStateUpdated(function ($state, callable $set) {

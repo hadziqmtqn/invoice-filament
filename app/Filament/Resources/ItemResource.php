@@ -54,62 +54,74 @@ class ItemResource extends Resource implements HasShieldPermissions
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Radio::make('product_type')
-                    ->required()
-                    ->options([
-                        'goods' => 'Barang',
-                        'service' => 'Jasa',
-                    ])
-                    ->inline()
-                    ->columnSpanFull(),
+        return $form->schema(static::newItems());
+    }
 
-                TextInput::make('name')
-                    ->required(),
+    public static function newItems(): array
+    {
+        return [
+            Radio::make('product_type')
+                ->required()
+                ->options([
+                    'goods' => 'Barang',
+                    'service' => 'Jasa',
+                ])
+                ->default('service')
+                ->inline()
+                ->columnSpanFull(),
 
-                Select::make('unit')
-                    ->options([
-                        'pcs' => 'Pieces',
-                        'kg' => 'Kilograms',
-                        'ltr' => 'Liters',
-                        'mtr' => 'Meters',
-                        'box' => 'Box',
-                        'set' => 'Set',
-                    ]),
+            TextInput::make('name')
+                ->required()
+                ->hintIcon('heroicon-o-information-circle', 'Nama item yang muncul pada faktur.'),
 
-                TextInput::make('rate')
-                    ->required()
-                    ->numeric()
-                    ->minValue(10000),
+            TextInput::make('item_name')
+                ->label('Item Name Optional')
+                ->required()
+                ->hintIcon('heroicon-o-information-circle', 'Nama item lain sebagai alternatif atau alias dari nama item utama.'),
 
-                Textarea::make('description')
-                    ->maxLength(500)
-                    ->columnSpanFull()
-                    ->helperText('Optional, can be used to provide additional information about the item.'),
+            Select::make('unit')
+                ->options([
+                    'pcs' => 'Pieces',
+                    'kg' => 'Kilograms',
+                    'ltr' => 'Liters',
+                    'mtr' => 'Meters',
+                    'box' => 'Box',
+                    'set' => 'Set',
+                ])
+                ->native(false),
 
-                // hanya muncul di halaman edit
-                SpatieMediaLibraryFileUpload::make('image')
-                    ->collection('items')
-                    ->image()
-                    ->disk('s3')
-                    ->maxSize(1024) // 1 MB
-                    ->label('Image')
-                    ->visibleOn('edit')
-                    ->visibility('private')
-                    ->columnSpanFull()
-                    ->helperText('Optional, can be used to upload an image of the item.'),
+            TextInput::make('rate')
+                ->required()
+                ->numeric()
+                ->minValue(10000),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->visible(fn(?Item $record): bool => $record?->exists ?? false)
-                    ->content(fn(?Item $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+            Textarea::make('description')
+                ->maxLength(500)
+                ->columnSpanFull()
+                ->helperText('Optional, can be used to provide additional information about the item.'),
 
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->visible(fn(?Item $record): bool => $record?->exists ?? false)
-                    ->content(fn(?Item $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
-            ]);
+            // hanya muncul di halaman edit
+            SpatieMediaLibraryFileUpload::make('image')
+                ->collection('items')
+                ->image()
+                ->disk('s3')
+                ->maxSize(1024) // 1 MB
+                ->label('Image')
+                ->visibleOn('edit')
+                ->visibility('private')
+                ->columnSpanFull()
+                ->helperText('Optional, can be used to upload an image of the item.'),
+
+            Placeholder::make('created_at')
+                ->label('Created Date')
+                ->visible(fn(?Item $record): bool => $record?->exists ?? false)
+                ->content(fn(?Item $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+
+            Placeholder::make('updated_at')
+                ->label('Last Modified Date')
+                ->visible(fn(?Item $record): bool => $record?->exists ?? false)
+                ->content(fn(?Item $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+        ];
     }
 
     /**
@@ -132,6 +144,7 @@ class ItemResource extends Resource implements HasShieldPermissions
                     }),
 
                 TextColumn::make('name')
+                    ->description(fn($record): string => $record->item_name ?? '-')
                     ->searchable()
                     ->sortable(),
 
