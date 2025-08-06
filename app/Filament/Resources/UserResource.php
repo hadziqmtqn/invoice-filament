@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\UserResource\Pages\EditUser;
+use App\Filament\Resources\UserResource\Pages\ManageInvoices;
 use App\Jobs\ChangeAuthenticationMessageJob;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -14,7 +16,9 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -41,6 +45,7 @@ class UserResource extends Resource implements HasShieldPermissions
     protected static ?string $slug = 'users';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getPermissionPrefixes(): array
     {
@@ -370,8 +375,17 @@ class UserResource extends Resource implements HasShieldPermissions
         return [
             'index' => UserResource\Pages\ListUsers::route('/'),
             //'create' => UserResource\Pages\CreateUser::route('/create'),
-            //'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
+            'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
+            'manage-invoices' => UserResource\Pages\ManageInvoices::route('/{record}/invoices'),
         ];
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            EditUser::class,
+            ManageInvoices::class
+        ]);
     }
 
     public static function getEloquentQuery(): Builder
