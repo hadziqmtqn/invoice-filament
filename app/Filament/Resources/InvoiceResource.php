@@ -489,6 +489,37 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->inlineLabel(),
                             ])
                             ->columns(),
+                    ]),
+
+                \Filament\Infolists\Components\Section::make('Invoice Payments')
+                    ->schema([
+                        RepeatableEntry::make('invoicePayments')
+                            ->hiddenLabel()
+                            ->schema([
+                                TextEntry::make('payment.reference_number')
+                                    ->label('Reference Number')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
+
+                                TextEntry::make('payment.date')
+                                    ->label('Date')
+                                    ->date('d M Y')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
+
+                                TextEntry::make('payment.amount')
+                                    ->label('Amount')
+                                    ->weight('bold')
+                                    ->money('idr')
+                                    ->inlineLabel(),
+
+                                TextEntry::make('payment.payment_method')
+                                    ->label('Payment Method')
+                                    ->weight('bold')
+                                    ->formatStateUsing(fn(string $state): string => ucfirst(str_replace('_', ' ', $state)))
+                                    ->inlineLabel(),
+                            ])
+                            ->columns()
                     ])
             ])
             ->columns(3);
