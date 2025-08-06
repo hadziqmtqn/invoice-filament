@@ -300,6 +300,10 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('receivables')
+                    ->label('Receivables')
+                    ->money('idr'),
+
                 TextColumn::make('roles.name')
                     ->label('Role')
                     ->badge()
@@ -309,7 +313,9 @@ class UserResource extends Resource implements HasShieldPermissions
                         default => 'gray',
                     })
                     ->formatStateUsing(fn(string $state) => ucfirst(str_replace('_', ' ', $state)))
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable()
+                    ->toggledHiddenByDefault(),
 
                 TextColumn::make('userProfile.phone')
                     ->label('Phone')
