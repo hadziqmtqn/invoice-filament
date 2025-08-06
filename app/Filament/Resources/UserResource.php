@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ManageInvoices;
+use App\Filament\Resources\UserResource\Pages\PaymentHistory;
 use App\Jobs\ChangeAuthenticationMessageJob;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -377,6 +378,7 @@ class UserResource extends Resource implements HasShieldPermissions
             //'create' => UserResource\Pages\CreateUser::route('/create'),
             'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
             'manage-invoices' => UserResource\Pages\ManageInvoices::route('/{record}/invoices'),
+            'payment-history' => UserResource\Pages\PaymentHistory::route('/{record}/payment-history'),
         ];
     }
 
@@ -384,7 +386,8 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $page->generateNavigationItems([
             EditUser::class,
-            ManageInvoices::class
+            ManageInvoices::class,
+            PaymentHistory::class
         ]);
     }
 

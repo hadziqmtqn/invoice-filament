@@ -79,6 +79,11 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
         return $this->hasMany(Invoice::class, 'user_id');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'user_id');
+    }
+
     // more
     protected function defaultAvatar(): Attribute
     {

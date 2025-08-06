@@ -34,7 +34,9 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\QueryBuilder;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -428,7 +430,8 @@ class PaymentResource extends Resource implements HasShieldPermissions
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->native(false),
                 SelectFilter::make('payment_method')
                     ->options([
                         'cash' => 'Cash',
@@ -452,7 +455,13 @@ class PaymentResource extends Resource implements HasShieldPermissions
                             $query->whereBetween('date', [$data['start'], $data['end']]);
                         }
                     }),
-            ])
+
+                QueryBuilder::make('invoicePayments')
+                    ->constraints([
+                        QueryBuilder\Constraints\TextConstraint::make('invoiceCode')
+                            ->relationship('invoicePayments.invoice', 'code'),
+                    ])
+            ], layout: FiltersLayout::Modal)
             ->actions([
                 ActionGroup::make([
                     Html2MediaAction::make('print')
@@ -501,6 +510,9 @@ class PaymentResource extends Resource implements HasShieldPermissions
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with([
+                'invoicePayments.invoice',
+            ])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
