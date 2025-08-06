@@ -425,7 +425,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         \Filament\Infolists\Components\Section::make()
                             ->schema([
                                 TextEntry::make('code')
-                                    ->label('Invoice Code'),
+                                    ->label('Invoice Code')
+                                    ->color('primary'),
 
                                 TextEntry::make('title')
                                     ->label('Title'),
@@ -436,6 +437,10 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 TextEntry::make('date')
                                     ->label('Date')
                                     ->date('d M Y'),
+
+                                TextEntry::make('due_date')
+                                    ->label('Due Date')
+                                    ->date('d M Y'),
                             ]),
                     ])
                     ->inlineLabel()
@@ -444,7 +449,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                 \Filament\Infolists\Components\Group::make()
                     ->schema([
                         TextEntry::make('status')
-                            ->badge()
                             ->color(fn(string $state): string => match ($state) {
                                 'draft' => 'gray',
                                 'sent' => 'primary',
@@ -453,27 +457,38 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 'partially_paid' => 'warning',
                                 default => 'secondary',
                             })
-                            ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
+                            ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>'))
                     ])
                     ->columnSpan(['lg' => 1]),
 
                 \Filament\Infolists\Components\Section::make('Invoice Items')
                     ->schema([
                         RepeatableEntry::make('invoiceItems')
+                            ->hiddenLabel()
                             ->schema([
                                 TextEntry::make('item.name')
-                                    ->label('Item Name'),
+                                    ->label('Item Name')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
                                 TextEntry::make('qty')
-                                    ->label('Quantity'),
+                                    ->label('Quantity')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
                                 TextEntry::make('unit')
-                                    ->label('Unit'),
+                                    ->label('Unit')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
                                 TextEntry::make('rate')
                                     ->label('Rate')
-                                    ->money('idr'),
-                                TextEntry::make('description')
-                                    ->label('Description'),
+                                    ->weight('bold')
+                                    ->money('idr')
+                                    ->inlineLabel(),
+                                TextEntry::make('note')
+                                    ->label('Note')
+                                    ->weight('bold')
+                                    ->inlineLabel(),
                             ])
-                            ->columnSpanFull(),
+                            ->columns(),
                     ])
             ])
             ->columns(3);
