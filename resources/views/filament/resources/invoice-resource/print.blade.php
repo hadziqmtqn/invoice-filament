@@ -1,4 +1,3 @@
-
 <style>
     .invoice-container {
         background: #fff;
@@ -80,7 +79,7 @@
 </style>
 <div class="invoice-container">
     <div class="invoice-header">
-        <img src="https://i.imgur.com/6oK4v4g.png" alt="Logo" class="invoice-logo">
+        <img src="{{ $application?->logo }}" alt="Logo" class="invoice-logo">
         <div class="invoice-title">#INV-20250805</div>
     </div>
 

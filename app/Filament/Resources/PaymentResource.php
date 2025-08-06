@@ -471,7 +471,6 @@ class PaymentResource extends Resource implements HasShieldPermissions
                         ->color('primary'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
-                        ->modalContent()
                         ->modalWidth('5xl'),
                     EditAction::make(),
                     DeleteAction::make(),

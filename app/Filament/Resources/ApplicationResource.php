@@ -55,7 +55,8 @@ class ApplicationResource extends Resource implements HasShieldPermissions
                             ->image()
                             ->disk('s3')
                             ->maxSize(200)
-                            ->visibility('private')
+                            ->visibility('public')
+                            ->openable()
                             ->dehydrated(fn($state) => filled($state)),
                         SpatieMediaLibraryFileUpload::make('favicon')
                             ->label('Favicon')
@@ -63,7 +64,8 @@ class ApplicationResource extends Resource implements HasShieldPermissions
                             ->image()
                             ->disk('s3')
                             ->maxSize(50)
-                            ->visibility('private')
+                            ->visibility('public')
+                            ->openable()
                             ->dehydrated(fn($state) => filled($state)),
                     ]),
 
