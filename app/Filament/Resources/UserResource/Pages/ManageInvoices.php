@@ -63,6 +63,11 @@ class ManageInvoices extends ManageRelatedRecords
                     ->money('idr')
                     ->sortable(),
 
+                TextColumn::make('total_due')
+                    ->label('Due')
+                    ->money('idr')
+                    ->sortable(),
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
