@@ -61,13 +61,27 @@
         font-size: 0.97rem;
         color: #6b7280;
     }
-    .status-paid {
-        background: #e6fffa;
-        color: #059669;
+    .status-badge {
         padding: 6px 16px;
         border-radius: 20px;
         font-weight: 600;
         display: inline-block;
+    }
+    .status-paid {
+        background: #e6fffa;
+        color: #059669;
+    }
+    .status-partially-paid {
+        background: #fffbeb;
+        color: #d97706;
+    }
+    .status-overdue {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .status-draft {
+        background: #f3f4f6;
+        color: #6b7280;
     }
     .footer {
         text-align: center;
@@ -79,21 +93,25 @@
 <div class="invoice-container">
     <div class="invoice-header">
         <img src="{{ $application?->invoice_logo_asset }}" alt="Logo" class="invoice-logo">
-        <div class="invoice-title">#INV-20250805</div>
+        <div style="text-align: center">
+            <div class="info-block">
+                <span class="status-badge status-{{ str_replace('_', '-', $invoice->status) }}">{{ strtoupper(str_replace('_', ' ', $invoice->status)) }}</span>
+            </div>
+            <div class="invoice-title">#{{ $invoice->code }}</div>
+        </div>
     </div>
 
     <div class="invoice-info">
         <div class="info-block">
             <strong>Billed To:</strong><br>
-            John Doe<br>
-            johndoe@email.com<br>
-            123 Main Street, City
+            {{ $invoice->user?->name }}<br>
+            {{ $invoice->user?->email }}<br>
+            {{ $invoice->user?->userProfile?->street }}
         </div>
         <div class="info-block">
             <strong>Issued By:</strong><br>
-            Modern Company<br>
-            support@moderncompany.com<br>
-            456 Business Ave, Metropolis
+            {{ $application?->name }}<br>
+            {{ $application?->email }}<br>
         </div>
     </div>
 
@@ -103,43 +121,32 @@
             <tr>
                 <th>Item</th>
                 <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
+                <th style="text-align: right">Price</th>
+                <th style="text-align: right">Total</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Web Design</td>
-                <td>1</td>
-                <td>$800</td>
-                <td>$800</td>
-            </tr>
-            <tr>
-                <td>SEO Optimization</td>
-                <td>1</td>
-                <td>$350</td>
-                <td>$350</td>
-            </tr>
-            <tr>
-                <td>Hosting (6 months)</td>
-                <td>1</td>
-                <td>$90</td>
-                <td>$90</td>
-            </tr>
-            <tr class="total-row">
-                <td colspan="3">Total</td>
-                <td>$1,240</td>
-            </tr>
+            @foreach($invoice->invoiceItems as $item)
+                <tr>
+                    <td>{{ $item->name }}</td>
+                    <td>{{ $item->qty }}</td>
+                    <td style="text-align: right">Rp{{ number_format($item->rate,0,',','.') }}</td>
+                    <td style="text-align: right">Rp{{ number_format(($item->qty * $item->rate),0,',','.') }}</td>
+                </tr>
+            @endforeach
             </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="3">Total</td>
+                    <td style="text-align: right">Rp{{ number_format($invoice->total_price,0,',','.') }}</td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 
     <div class="info-block" style="margin-bottom:12px;">
-        <strong>Invoice Date:</strong> 2025-08-05<br>
-        <strong>Due Date:</strong> 2025-08-20<br>
-    </div>
-    <div class="info-block">
-        <span class="status-paid">Paid</span>
+        <strong>Invoice Date:</strong> {{ Carbon\Carbon::parse($invoice->date)->isoFormat('DD MMMM Y') }}<br>
+        <strong>Due Date:</strong> {{ Carbon\Carbon::parse($invoice->due_date)->isoFormat('DD MMMM Y') }}<br>
     </div>
 
     <div class="footer">
