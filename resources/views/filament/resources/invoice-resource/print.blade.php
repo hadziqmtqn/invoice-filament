@@ -21,7 +21,6 @@
         color: #374151;
     }
     .invoice-logo {
-        width: 60px;
         height: 60px;
         object-fit: contain;
         border-radius: 8px;
@@ -79,7 +78,7 @@
 </style>
 <div class="invoice-container">
     <div class="invoice-header">
-        <img src="{{ $application?->logo }}" alt="Logo" class="invoice-logo">
+        <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="invoice-logo">
         <div class="invoice-title">#INV-20250805</div>
     </div>
 

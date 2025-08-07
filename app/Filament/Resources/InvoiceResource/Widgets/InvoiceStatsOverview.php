@@ -12,6 +12,7 @@ class InvoiceStatsOverview extends BaseWidget
     use InteractsWithPageTable;
 
     protected static ?string $pollingInterval = null;
+    public array $tableColumnSearches = [];
 
     protected function getTablePage(): string
     {
