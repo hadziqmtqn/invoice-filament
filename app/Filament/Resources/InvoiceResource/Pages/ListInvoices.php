@@ -16,4 +16,9 @@ class ListInvoices extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return InvoiceResource::getWidgets();
+    }
 }

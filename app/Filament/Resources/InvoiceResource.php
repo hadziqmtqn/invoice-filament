@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers\InvoicePaymentsRelationManager;
+use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
 use App\Models\Application;
 use App\Models\BankAccount;
 use App\Models\Invoice;
@@ -349,6 +350,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 TextColumn::make('total_price')
                     ->label('Total Price')
+                    ->tooltip(fn(Invoice $record): string => 'Total Due: Rp' . number_format($record->total_due, 0, ',', '.'))
                     ->money('idr')
                     ->sortable(),
 
@@ -544,5 +546,12 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     public static function getGloballySearchableAttributes(): array
     {
         return ['code'];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            InvoiceStatsOverview::class
+        ];
     }
 }
