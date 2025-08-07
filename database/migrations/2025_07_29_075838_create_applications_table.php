@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email');
             $table->string('whatsapp_number');
+            $table->string('invoice_logo')->nullable();
             $table->timestamps();
         });
     }

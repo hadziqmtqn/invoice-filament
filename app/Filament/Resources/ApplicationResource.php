@@ -4,8 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Models\Application;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -49,24 +51,34 @@ class ApplicationResource extends Resource implements HasShieldPermissions
                 Grid::make()
                     ->columns()
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('logo')
-                            ->label('Logo')
-                            ->collection('logo')
-                            ->image()
-                            ->disk('s3')
-                            ->maxSize(200)
-                            ->visibility('public')
-                            ->openable()
-                            ->dehydrated(fn($state) => filled($state)),
-                        SpatieMediaLibraryFileUpload::make('favicon')
-                            ->label('Favicon')
-                            ->collection('favicon')
-                            ->image()
-                            ->disk('s3')
-                            ->maxSize(50)
-                            ->visibility('public')
-                            ->openable()
-                            ->dehydrated(fn($state) => filled($state)),
+                        Section::make('Assets')
+                            ->columnSpanFull()
+                            ->inlineLabel()
+                            ->schema([
+                                FileUpload::make('invoice_logo')
+                                    ->disk('public')
+                                    ->directory('invoices')
+                                    ->image()
+                                    ->maxSize(200),
+                                SpatieMediaLibraryFileUpload::make('logo')
+                                    ->label('Logo')
+                                    ->collection('logo')
+                                    ->image()
+                                    ->disk('s3')
+                                    ->maxSize(200)
+                                    ->visibility('public')
+                                    ->openable()
+                                    ->dehydrated(fn($state) => filled($state)),
+                                SpatieMediaLibraryFileUpload::make('favicon')
+                                    ->label('Favicon')
+                                    ->collection('favicon')
+                                    ->image()
+                                    ->disk('s3')
+                                    ->maxSize(50)
+                                    ->visibility('public')
+                                    ->openable()
+                                    ->dehydrated(fn($state) => filled($state)),
+                            ]),
                     ]),
 
                 Grid::make()

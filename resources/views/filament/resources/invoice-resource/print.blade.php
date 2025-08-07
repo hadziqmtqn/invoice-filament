@@ -78,7 +78,7 @@
 </style>
 <div class="invoice-container">
     <div class="invoice-header">
-        <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="invoice-logo">
+        <img src="{{ $application?->invoice_logo_asset }}" alt="Logo" class="invoice-logo">
         <div class="invoice-title">#INV-20250805</div>
     </div>
 
