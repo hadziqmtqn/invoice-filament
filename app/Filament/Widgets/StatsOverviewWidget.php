@@ -3,25 +3,46 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Invoice;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StatsOverviewWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected function getStats(): array
     {
+        $startDate = $this->filters['startDate'] ?? null;
+        $endDate = $this->filters['endDate'] ?? null;
+
+        $invoices = Invoice::query();
+
+        if ($startDate) {
+            $invoices->whereDate('date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $invoices->whereDate('date', '<=', $endDate);
+        }
+
+        $filteredInvoices = $invoices->get();
+
         return [
-            Stat::make('Total Invoice', 'Rp' . number_format(Invoice::get()->sum(function (Invoice $invoice) {
-                return $invoice->total_price;
-            }),0,',','.')),
+            Stat::make(
+                'Total Invoice',
+                'Rp' . number_format($filteredInvoices->sum('total_price'),0,',','.')
+            ),
 
-            Stat::make('Total Paid', 'Rp' . number_format(Invoice::get()->sum(function (Invoice $invoice) {
-                return $invoice->total_paid;
-            }),0,',','.')),
+            Stat::make(
+                'Total Paid',
+                'Rp' . number_format($filteredInvoices->sum('total_paid'),0,',','.')
+            ),
 
-            Stat::make('Total Unpaid', 'Rp' . number_format(Invoice::get()->sum(function (Invoice $invoice) {
-                return $invoice->total_due;
-            }),0,',','.')),
+            Stat::make(
+                'Total Unpaid',
+                'Rp' . number_format($filteredInvoices->sum('total_due'),0,',','.')
+            ),
         ];
     }
 }

@@ -406,6 +406,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         ->icon('heroicon-o-pencil-square'),
                     DeleteAction::make()
                         ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
+                        ->disabled(fn(Invoice $record): bool => $record->status !== 'paid' || $record->status !== 'partially_paid')
                         ->icon('heroicon-o-trash'),
                 ])
                     ->link()
