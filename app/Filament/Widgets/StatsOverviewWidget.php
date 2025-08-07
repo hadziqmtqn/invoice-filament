@@ -13,18 +13,19 @@ class StatsOverviewWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        $productType = $this->filters['productType'] ?? null;
         $startDate = $this->filters['startDate'] ?? null;
         $endDate = $this->filters['endDate'] ?? null;
 
         $invoices = Invoice::query();
 
-        if ($startDate) {
-            $invoices->whereDate('date', '>=', $startDate);
+        if ($productType) {
+            $invoices->whereHas('invoiceItems.item', function ($query) use ($productType) {
+                $query->where('product_type', $productType);
+            });
         }
-
-        if ($endDate) {
-            $invoices->whereDate('date', '<=', $endDate);
-        }
+        if ($startDate) $invoices->whereDate('date', '>=', $startDate);
+        if ($endDate) $invoices->whereDate('date', '<=', $endDate);
 
         $filteredInvoices = $invoices->get();
 

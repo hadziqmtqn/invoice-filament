@@ -39,6 +39,7 @@ class PanelPanelProvider extends PanelProvider
             ->default()
             ->id('panel')
             ->path('panel')
+            ->spa()
             ->login() // alt: App/Filament/Pages/Login.php
             ->topNavigation()
             ->brandName($application?->name)
