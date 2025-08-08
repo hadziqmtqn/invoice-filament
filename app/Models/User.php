@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Backstage\TwoFactorAuth\Enums\TwoFactorType;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
@@ -23,7 +25,7 @@ use Spatie\Sluggable\SlugOptions;
 class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles, SoftDeletes, InteractsWithMedia, HasSlug;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes, InteractsWithMedia, HasSlug, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -57,7 +59,8 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'deleted_at' => 'timestamp'
+            'deleted_at' => 'timestamp',
+            'two_factor_type' => TwoFactorType::class,
         ];
     }
 
