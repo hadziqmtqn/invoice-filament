@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Widgets\PaymentChart;
+use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
 use Exception;
@@ -22,6 +24,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class PanelPanelProvider extends PanelProvider
 {
@@ -56,7 +59,9 @@ class PanelPanelProvider extends PanelProvider
             ])
             //->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                StatsOverviewWidget::class
+                StatsOverviewWidget::class,
+                PaymentChart::class,
+                PaymentMethodChart::class
             ])
             ->navigationGroups([
                 'Pelindung',
@@ -75,7 +80,8 @@ class PanelPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                ChangePasswordPlugin::make()
+                ChangePasswordPlugin::make(),
+                FilamentApexChartsPlugin::make()
             ])
             ->authMiddleware([
                 Authenticate::class,
