@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Imports\UserImporter;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ManageInvoices;
 use App\Filament\Resources\UserResource\Pages\PaymentHistory;
@@ -27,7 +26,6 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ImportAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -348,9 +346,6 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->native(false),
             ])
             ->headerActions([
-                ImportAction::make()
-                    ->importer(UserImporter::class)
-                    ->icon('heroicon-o-cloud-arrow-up'),
                 ExportAction::make()->exports([
                     ExcelExport::make()
                         ->modifyQueryUsing(fn(Builder $query) => $query->whereHas('roles', function (Builder $query) {
