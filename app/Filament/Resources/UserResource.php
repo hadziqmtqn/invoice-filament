@@ -348,16 +348,21 @@ class UserResource extends Resource implements HasShieldPermissions
             ->headerActions([
                 ExportAction::make()->exports([
                     ExcelExport::make()
-                        ->queue()
-                        ->withChunkSize(100)
+                        ->modifyQueryUsing(fn(Builder $query) => $query->whereHas('roles', function (Builder $query) {
+                            $query->where('name', 'user');
+                        }))
                         ->withColumns([
                             Column::make('name')->heading('Name'),
                             Column::make('email')->heading('Email'),
+                            Column::make('userProfile.company_name')->heading('Company Name'),
                             Column::make('userProfile.phone')->heading('Phone'),
                             Column::make('receivables')->heading('Receivables')
                                 ->formatStateUsing(fn($state) => number_format($state, 0, ',', '.')),
                         ])
+                        ->queue()
+                        ->withChunkSize(100)
                         ->askForFilename()
+                        ->withFilename(fn ($filename) => time() . '-' . $filename)
                         ->askForWriterType()
                 ])
             ])
