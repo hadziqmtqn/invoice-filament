@@ -2,44 +2,70 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
+use App\Filament\Widgets\PaymentChart;
+use App\Filament\Widgets\PaymentMethodChart;
+use App\Filament\Widgets\StatsOverviewWidget;
+use App\Models\Application;
+use Exception;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
+use Hardikkhorasiya09\ChangePassword\ChangePasswordPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class PanelPanelProvider extends PanelProvider
 {
+    /**
+     * @throws Exception
+     */
     public function panel(Panel $panel): Panel
     {
+        $application = null;
+        if (Schema::hasTable('applications')) {
+            $application = Application::first();
+        }
+
         return $panel
             ->default()
             ->id('panel')
             ->path('panel')
-            ->login()
+            ->spa()
+            ->login() // alt: App/Filament/Pages/Login.php
+            ->topNavigation()
+            ->brandName($application?->name)
+            ->favicon($application?->favicon)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Green,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            //->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                StatsOverviewWidget::class,
+                PaymentChart::class,
+                PaymentMethodChart::class
+            ])
+            ->navigationGroups([
+                'Pelindung',
+                'Pengaturan',
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -54,6 +80,8 @@ class PanelPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
+                ChangePasswordPlugin::make(),
+                FilamentApexChartsPlugin::make()
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -56,7 +56,7 @@ return [
         'pages' => true,
         'widgets' => true,
         'resources' => true,
-        'custom_permissions' => false,
+        'custom_permissions' => true,
     ],
 
     'generator' => [
@@ -89,4 +89,7 @@ return [
         'enabled' => true,
     ],
 
+    'register_permissions' => [
+        'access panel',
+    ],
 ];
