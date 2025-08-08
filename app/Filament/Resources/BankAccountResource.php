@@ -26,7 +26,7 @@ class BankAccountResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = BankAccount::class;
     protected static ?string $slug = 'bank-accounts';
-    protected static ?string $navigationGroup = 'Konfigurasi';
+    protected static ?string $navigationGroup = 'Configuration';
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?int $navigationSort = 2;
 

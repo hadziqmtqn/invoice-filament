@@ -21,7 +21,7 @@ class ApplicationResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Application::class;
     protected static ?string $slug = 'application';
-    protected static ?string $navigationGroup = 'Pengaturan';
+    protected static ?string $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 2;
     protected static ?string $navigationIcon = 'heroicon-o-cog';
 
