@@ -20,6 +20,7 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "leandrocfe/filament-apex-charts": "^3.2",
         "marcelweidum/filament-expiration-notice": "^1.0",
+        "pxlrbt/filament-excel": "^2.4",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-sluggable": "^3.7",
         "torgodly/html2media": "^1.1"

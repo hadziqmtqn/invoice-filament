@@ -37,6 +37,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource implements HasShieldPermissions
@@ -341,6 +344,22 @@ class UserResource extends Resource implements HasShieldPermissions
                         }
                     })
                     ->native(false),
+            ])
+            ->headerActions([
+                ExportAction::make()->exports([
+                    ExcelExport::make()
+                        ->queue()
+                        ->withChunkSize(100)
+                        ->withColumns([
+                            Column::make('name')->heading('Name'),
+                            Column::make('email')->heading('Email'),
+                            Column::make('userProfile.phone')->heading('Phone'),
+                            Column::make('receivables')->heading('Receivables')
+                                ->formatStateUsing(fn($state) => number_format($state, 0, ',', '.')),
+                        ])
+                        ->askForFilename()
+                        ->askForWriterType()
+                ])
             ])
             ->actions([
                 ActionGroup::make([
