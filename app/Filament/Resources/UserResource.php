@@ -367,7 +367,8 @@ class UserResource extends Resource implements HasShieldPermissions
                         }
                     })
                     ->native(false),
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->native(false),
             ])
             ->headerActions([
                 ExportAction::make()->exports([

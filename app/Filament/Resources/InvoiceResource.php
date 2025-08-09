@@ -30,11 +30,13 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
@@ -383,7 +385,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ])
                         ->selectablePlaceholder(false)
                         ->native(false),
-            ])
+            ], layout: FiltersLayout::Modal)
+            ->filtersFormWidth(MaxWidth::Medium)
             ->defaultSort('serial_number', 'desc')
             ->actions([
                 ActionGroup::make([
@@ -517,6 +520,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->label('Amount')
                                     ->weight('bold')
                                     ->money('idr')
+                                    ->numeric(decimalPlaces: 2)
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.payment_method')
