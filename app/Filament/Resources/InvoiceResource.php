@@ -12,6 +12,7 @@ use App\Models\InvoiceItem;
 use App\Models\Item;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
 use Exception;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -368,6 +369,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->sortable(),
             ])
             ->filters([
+                DateRangeFilter::make('date')
+                    ->label('Date Range'),
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options([
