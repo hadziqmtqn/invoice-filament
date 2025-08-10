@@ -22,7 +22,7 @@ class TestSendMessage extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationGroup = 'Configuration';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
     protected static string $view = 'filament.pages.test-send-whatsapp-message-page';
 
     public mixed $data = [];

@@ -116,8 +116,8 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
     {
         return [
             'index' => Pages\ListWhatsappConfigs::route('/'),
-            /*'create' => Pages\CreateWhatsappConfig::route('/create'),
-            'edit' => Pages\EditWhatsappConfig::route('/{record}/edit'),*/
+            //'create' => Pages\CreateWhatsappConfig::route('/create'),
+            //'edit' => Pages\EditWhatsappConfig::route('/{record}/edit'),
         ];
     }
 

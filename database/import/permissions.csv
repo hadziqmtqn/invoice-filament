@@ -66,8 +66,8 @@ restore_payment;YES;NO
 restore_any_payment;YES;NO
 force_delete_payment;YES;NO
 force_delete_any_payment;YES;NO
-view_any_message::template_category;YES;NO
-view_message::template_category;YES;NO
-create_message::template_category;YES;NO
-update_message::template_category;YES;NO
-delete_message::template_category;YES;NO
+view_any_message::template::category;YES;NO
+view_message::template::category;YES;NO
+create_message::template::category;YES;NO
+update_message::template::category;YES;NO
+delete_message::template::category;YES;NO

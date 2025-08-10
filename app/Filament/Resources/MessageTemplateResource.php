@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MessageTemplateResource\Pages;
 use App\Models\MessageTemplate;
+use App\Models\MessageTemplateCategory;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
@@ -25,6 +26,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class MessageTemplateResource extends Resource implements HasShieldPermissions
@@ -32,7 +34,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     protected static ?string $model = MessageTemplate::class;
     protected static ?string $slug = 'message-templates';
     protected static ?string $navigationGroup = 'Configuration';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     public static function getPermissionPrefixes(): array
@@ -52,16 +54,15 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                Select::make('category')
+                Select::make('message_template_category_id')
+                    ->label('Category')
+                    ->options(fn() => MessageTemplateCategory::pluck('name', 'id')->toArray())
                     ->required()
-                    ->options([
-                        'change-authentication' => 'Change Authentication',
-                        'unpaid-bill' => 'Unpaid Bill',
-                        'partially-paid-bill' => 'Partially Paid Bill',
-                        'payment-received' => 'Payment Received',
-                        'bill-paid-off' => 'Bill Paid Off',
-                    ])
-                    ->searchable(),
+                    ->native(false)
+                    ->searchable()
+                    ->reactive()
+                    ->afterStateUpdated(fn($state, callable $set) => $set('placeholder_category', MessageTemplateCategory::find($state)?->placeholder ?? ''))
+                    ->afterStateHydrated(fn($state, callable $set) => $set('placeholder_category', MessageTemplateCategory::find($state)?->placeholder ?? '')),
 
                 TextInput::make('title')
                     ->required()
@@ -75,19 +76,29 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 ToggleButtons::make('is_active')
                     ->boolean()
                     ->inline()
+                    ->columnSpanFull()
                     ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false),
+
+                \Filament\Forms\Components\Section::make('Placeholder')
+                    ->description('Anda dapat menggunakan placeholder berikut dalam template pesan untuk menyisipkan informasi dinamis. Contoh: [Nama], [Email]')
+                    ->columnSpanFull()
+                    ->schema([
+                        Placeholder::make('placeholder_category')
+                            ->hiddenLabel()
+                            ->reactive()
+                            ->content(fn ($get) => new HtmlString(Str::markdown($get('placeholder_category') ?? ''))),
+                    ]),
 
                 Grid::make()
                     ->columns()
+                    ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                     ->schema([
                         Placeholder::make('created_at')
                             ->label('Created Date')
-                            ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                             ->content(fn(?MessageTemplate $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
                         Placeholder::make('updated_at')
                             ->label('Last Modified Date')
-                            ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                             ->content(fn(?MessageTemplate $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
                     ])
             ]);
@@ -97,8 +108,8 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('category')
-                    ->formatStateUsing(fn($state) => Str::of($state)->replace('-', ' ')->title())
+                TextColumn::make('messageTemplateCategory.name')
+                    ->label('Category')
                     ->searchable()
                     ->sortable(),
 
@@ -150,8 +161,8 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
 
         return $infolist
             ->schema([
-                TextEntry::make('category')
-                    ->formatStateUsing(fn($state) => Str::of($state)->replace('-', ' ')->title()),
+                TextEntry::make('messageTemplateCategory.name')
+                    ->label('Category'),
 
                 TextEntry::make('title'),
 
