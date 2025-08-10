@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
-use App\Filament\Resources\InvoiceResource\RelationManagers\InvoicePaymentsRelationManager;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
 use App\Models\Application;
 use App\Models\BankAccount;
@@ -426,7 +425,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
             'create' => Pages\CreateInvoice::route('/create'),
             'view' => Pages\ViewInvoice::route('/{record}'),
             'edit' => Pages\EditInvoice::route('/{record}/edit'),
-            'manage-payment' => Pages\ManagePayment::route('/{record}/manage-payment'),
         ];
     }
 
@@ -443,18 +441,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
             });
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            InvoicePaymentsRelationManager::class
-        ];
-    }
-
     public static function getRecordSubNavigation(Page $page): array
     {
         return $page->generateNavigationItems([
+            Pages\EditInvoice::class,
             Pages\ViewInvoice::class,
-            Pages\ManagePayment::class
         ]);
     }
 
