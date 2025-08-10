@@ -51,7 +51,7 @@ create_message::template;YES;NO
 update_message::template;YES;NO
 delete_message::template;YES;NO
 delete_any_message::template;YES;NO
-view_any_invoice;YES;NO
+view_any_invoice;YES;YES
 view_invoice;YES;YES
 create_invoice;YES;NO
 update_invoice;YES;NO
