@@ -99,14 +99,6 @@ class ViewInvoice extends ViewRecord
                                     }
                                 })
                                 ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid')),
-
-                            Actions\Action::make('edit')
-                                ->label('Edit Invoice')
-                                ->icon('heroicon-o-pencil-square')
-                                ->color('warning')
-                                ->outlined()
-                                ->url(fn(Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record->slug]))
-                                ->visible(fn(Invoice $record): bool => auth()->user()->can('update_invoice') && $record->status !== 'paid'),
                         ]),
                     ])
                     ->columnSpan(['lg' => 1]),

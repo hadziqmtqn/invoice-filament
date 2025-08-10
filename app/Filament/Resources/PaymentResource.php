@@ -75,6 +75,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                 // TODO Main data
                 Group::make()
                     ->schema([
+                        // TODO User & Date
                         Section::make()
                             ->columns()
                             ->schema([
@@ -127,69 +128,74 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     }),
                             ]),
 
-                        Section::make('Invoices')
+                        // TODO Select Invoices
+                        Section::make('Invoices Payments')
                             ->schema([
                                 Repeater::make('invoicePayments')
-                                    ->label('Invoice Payments')
+                                    ->hiddenLabel()
                                     ->relationship('invoicePayments')
                                     ->columnSpanFull()
                                     ->schema([
+                                        Select::make('invoice_id')
+                                            ->label('Invoice')
+                                            ->options(function (Get $get) {
+                                                $userId = $get('../../user_id');
+                                                if (!$userId) return [];
+
+                                                // Semua invoice eligible
+                                                $invoices = Invoice::where('user_id', $userId)
+                                                    ->where('status', '!=', 'paid')
+                                                    ->orderByDesc('created_at')
+                                                    ->pluck('title', 'id');
+
+                                                // Semua invoice_id yang sudah dipilih di semua baris
+                                                $selectedInvoiceIds = collect($get('../../invoicePayments'))
+                                                    ->pluck('invoice_id')
+                                                    ->filter()
+                                                    ->all();
+
+                                                // Dapatkan invoice_id baris ini
+                                                $currentInvoiceId = $get('invoice_id');
+
+                                                // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
+                                                $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
+                                                    return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
+                                                });
+
+                                                return $availableInvoices->toArray();
+                                            })
+                                            ->searchable()
+                                            ->native(false)
+                                            ->reactive()
+                                            ->required()
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                if (!$state) {
+                                                    $set('invoice_number', null);
+                                                    $set('outstanding', null);
+                                                    $set('amount_applied', null);
+                                                    $set('rest_bill', null);
+                                                    return;
+                                                }
+
+                                                $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])
+                                                    ->find($state);
+
+                                                if ($invoice) {
+                                                    $totalBill = $invoice->invoiceItems->sum(fn($item) => $item->rate * $item->qty);
+                                                    $outstanding = $totalBill - $invoice->invoicePayments->sum('amount_applied');
+                                                    $set('invoice_number', $invoice->code);
+                                                    $set('outstanding', $outstanding);
+                                                } else {
+                                                    $set('invoice_number', null);
+                                                    $set('outstanding', null);
+                                                    $set('amount_applied', null);
+                                                    $set('rest_bill', null);
+                                                }
+                                            }),
+
                                         Grid::make()
                                             ->columns()
                                             ->schema([
-                                                Select::make('invoice_id')
-                                                    ->label('Invoice')
-                                                    ->options(function (Get $get) {
-                                                        $userId = $get('../../user_id');
-                                                        if (!$userId) return [];
-
-                                                        // Semua invoice eligible
-                                                        $invoices = Invoice::where('user_id', $userId)
-                                                            ->where('status', '!=', 'paid')
-                                                            ->orderByDesc('created_at')
-                                                            ->pluck('title', 'id');
-
-                                                        // Semua invoice_id yang sudah dipilih di semua baris
-                                                        $selectedInvoiceIds = collect($get('../../invoicePayments'))
-                                                            ->pluck('invoice_id')
-                                                            ->filter()
-                                                            ->all();
-
-                                                        // Dapatkan invoice_id baris ini
-                                                        $currentInvoiceId = $get('invoice_id');
-
-                                                        // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
-                                                        $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
-                                                            return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
-                                                        });
-
-                                                        return $availableInvoices->toArray();
-                                                    })
-                                                    ->searchable()
-                                                    ->native(false)
-                                                    ->reactive()
-                                                    ->required()
-                                                    ->afterStateUpdated(function ($state, callable $set) {
-                                                        if (!$state) {
-                                                            $set('invoice_number', null);
-                                                            $set('outstanding', null);
-                                                            return;
-                                                        }
-
-                                                        $invoice = Invoice::with(['invoiceItems', 'invoicePayments'])
-                                                            ->find($state);
-
-                                                        if ($invoice) {
-                                                            $totalBill = $invoice->invoiceItems->sum(fn($item) => $item->rate * $item->qty);
-                                                            $outstanding = $totalBill - $invoice->invoicePayments->sum('amount_applied');
-                                                            $set('invoice_number', $invoice->code);
-                                                            $set('outstanding', $outstanding);
-                                                        } else {
-                                                            $set('invoice_number', null);
-                                                            $set('outstanding', null);
-                                                        }
-                                                    }),
-
                                                 TextInput::make('invoice_number')
                                                     ->label('Invoice Number')
                                                     ->disabled()
@@ -200,11 +206,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                             $set('invoice_number', $invoice?->code ?? '');
                                                         }
                                                     }),
-                                            ]),
 
-                                        Grid::make()
-                                            ->columns(3)
-                                            ->schema([
                                                 TextInput::make('outstanding')
                                                     ->label('Outstanding')
                                                     ->prefix('Rp')
@@ -243,7 +245,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                     ->prefix('Rp')
                                                     ->numeric()
                                                     ->minValue(0)
-                                                    ->reactive()
+                                                    ->debounce() // tambahkan ini!
                                                     ->afterStateUpdated(function ($state, callable $set, $get) {
                                                         $outstanding = intval($get('outstanding'));
                                                         $amountApplied = intval($get('amount_applied'));
@@ -269,7 +271,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                                         $sisa = max($outstanding - $amountApplied, 0);
                                                         $set('rest_bill', $sisa);
                                                     })
-                                            ])
+                                            ]),
                                     ])
                                     ->reactive()
                                     ->visible(fn(Get $get) => !empty($get('user_id')))
@@ -279,6 +281,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->addActionLabel('Add Item'),
                             ]),
 
+                        // TODO Payment Method & Bank Account
                         Section::make('Payment Method')
                             ->description('Pilih metode pembayaran yang sesuai.')
                             ->columns()
