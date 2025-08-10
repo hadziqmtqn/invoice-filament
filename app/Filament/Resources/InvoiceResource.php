@@ -484,6 +484,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
                                             'date' => $record->date?->format('d M Y') ?? now()->format('d M Y'),
                                             'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
+                                            'invoice_id' => $record->id,
                                         ]);
 
                                         Notification::make()
@@ -594,7 +595,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
         return parent::getEloquentQuery()
             ->with(['user', 'invoiceItems.item', 'invoicePayments.payment'])
             ->when($userRole === 'user', function (Builder $query) {
-                $query->where('user_id', auth()->id());
+                $query->where('user_id', auth()->id())
+                    ->where('status', '!=', 'draft');
             });
     }
 

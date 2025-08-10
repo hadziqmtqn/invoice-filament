@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\BankAccount;
+use App\Models\Invoice;
 use App\Traits\SendMessageTrait;
 use App\Traits\WhatsappConfigTrait;
 use Illuminate\Bus\Queueable;
@@ -51,7 +52,16 @@ class UnpaidBillMessageJob implements ShouldQueue
 
         $this->sendMessage(
             $this->data['whatsapp_number'],
-            $this->replacePlaceholders($messageTemplate->message, $placeholders),
+            $this->replacePlaceholders($messageTemplate->message, $placeholders)
         );
+
+        // Update the invoice status to 'sent'
+        $invoice = Invoice::find($this->data['invoice_id']);
+        if ($invoice) {
+            $invoice->status = 'sent';
+            $invoice->save();
+        } else {
+            Log::error('Invoice not found for ID: ' . $this->data['invoice_id']);
+        }
     }
 }
