@@ -17,7 +17,7 @@ class InvoicePolicy
 
     public function view(User $user, Invoice $invoice): bool
     {
-        return $user->can('view_invoice') || $user->id === $invoice->user_id;
+        return $user->can('view_invoice') || $user->id == $invoice->user_id;
     }
 
     public function create(User $user): bool
@@ -27,11 +27,11 @@ class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->can('update_invoice') || $user->id === $invoice->user_id;
+        return !$user->hasRole('user') && $user->can('update_invoice');
     }
 
     public function delete(User $user, Invoice $invoice): bool
     {
-        return $user->can('delete_invoice') || $user->id === $invoice->user_id;
+        return !$user->hasRole('user') && $user->can('delete_invoice');
     }
 }

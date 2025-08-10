@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ChangeAuthenticationMessageJob implements ShouldQueue
 {
@@ -30,21 +31,24 @@ class ChangeAuthenticationMessageJob implements ShouldQueue
     public function handle(): void
     {
         $placeholders = [
-            '[user_name]' => $this->data['user_name'],
-            '[name_app]' => $this->application()?->name,
-            '[date]' => now()->isoFormat('DD MMM Y'),
-            '[time]' => now()->isoFormat('HH:mm'),
+            '[Nama]' => $this->data['user_name'],
+            '[Nama Aplikasi]' => $this->application()?->name,
+            '[Tanggal]' => now()->isoFormat('DD MMM Y'),
+            '[Waktu]' => now()->isoFormat('HH:mm'),
             '[password_changed]' => $this->data['password_changed'] ? '*TELAH DIUBAH*' : '_TIDAK DIUBAH_',
-            '[email]' => $this->data['email']
+            '[Email]' => $this->data['email']
         ];
 
-        $messageTemplate = $this->messageTemplate('change-authentication');
+        $messageTemplate = $this->messageTemplate('CHANGE-AUTHENTICATION');
 
-        if ($messageTemplate) {
-            $this->sendMessage(
-                $this->whatsappNumber,
-                $this->replacePlaceholders($messageTemplate->message, $placeholders),
-            );
+        if (!$messageTemplate) {
+            Log::warning('Message template for CHANGE-AUTHENTICATION not found.');
+            return;
         }
+
+        $this->sendMessage(
+            $this->whatsappNumber,
+            $this->replacePlaceholders($messageTemplate->message, $placeholders),
+        );
     }
 }

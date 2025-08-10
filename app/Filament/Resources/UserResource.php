@@ -74,7 +74,8 @@ class UserResource extends Resource implements HasShieldPermissions
                 Tabs::make('Tabs')
                     ->columnSpan('full')
                     ->tabs([
-                        Tabs\Tab::make('Personal Information')
+                        // TODO Personal data
+                        Tabs\Tab::make('Personal')
                             ->icon('heroicon-o-user')
                             ->schema([
                                 Grid::make()
@@ -84,7 +85,8 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->prefixIcon('heroicon-o-user-circle')
                                             ->minLength(3)
                                             ->required()
-                                            ->maxLength(255),
+                                            ->maxLength(255)
+                                            ->placeholder('Enter your name'),
 
                                         TextInput::make('email')
                                             ->label('Email')
@@ -92,7 +94,8 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->email()
                                             ->unique(ignoreRecord: true)
                                             ->required()
-                                            ->maxLength(255),
+                                            ->maxLength(255)
+                                            ->placeholder('Enter your email'),
 
                                         Select::make('roles')
                                             ->label('Role')
@@ -113,7 +116,8 @@ class UserResource extends Resource implements HasShieldPermissions
                                                     ->prefixIcon('heroicon-o-building-office')
                                                     ->maxLength(50)
                                                     ->dehydrated()
-                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
+                                                    ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
+                                                    ->placeholder('Enter your company name'),
                                             ]),
 
                                         Group::make()
@@ -127,7 +131,8 @@ class UserResource extends Resource implements HasShieldPermissions
                                                     ->maxLength(15)
                                                     ->unique(ignoreRecord: true)
                                                     ->dehydrated(fn($state) => filled($state))
-                                                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null),
+                                                    ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null)
+                                                    ->placeholder('Enter your phone number'),
                                             ])
                                     ]),
 
@@ -144,7 +149,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->autocomplete('new-password')
                                             ->dehydrated(fn (?string $state): bool => filled($state))
                                             ->required(fn (string $operation): bool => $operation === 'create')
-                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Leave it blank if you don\'t want to change the password' : 'Enter new password')
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
                                             ->revealable(),
 
@@ -157,12 +162,13 @@ class UserResource extends Resource implements HasShieldPermissions
                                             ->autocomplete('new-password')
                                             ->dehydrated(fn (?string $state): bool => filled($state))
                                             ->required(fn (string $operation): bool => $operation === 'create')
-                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika tidak ingin mengubah password' : null)
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Leave it blank if you don\'t want to change the password' : 'Confirm new password')
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
                                             ->revealable(),
                                     ]),
                             ]),
 
+                        // TODO Address
                         Tabs\Tab::make('Address')
                             ->icon('heroicon-o-map-pin')
                             ->schema([
@@ -258,6 +264,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                     ])
                             ]),
 
+                        // TODO Avatar
                         Tabs\Tab::make('Avatar')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -332,7 +339,6 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                TrashedFilter::make(),
                 SelectFilter::make('role')
                     ->label('Role')
                     ->options(fn () => Role::all()->pluck('name', 'id'))
@@ -343,6 +349,25 @@ class UserResource extends Resource implements HasShieldPermissions
                             });
                         }
                     })
+                    ->native(false),
+                SelectFilter::make('receivables')
+                    ->options([
+                        'YES' => 'Have a debt',
+                        'NO' => 'No debt',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if ($data['value'] === 'YES') {
+                            $query->whereHas('invoices', function (Builder $q) {
+                                $q->where('status', '!=', 'paid');
+                            });
+                        } elseif ($data['value'] === 'NO') {
+                            $query->whereDoesntHave('invoices', function (Builder $q) {
+                                $q->where('status', '!=', 'paid');
+                            });
+                        }
+                    })
+                    ->native(false),
+                TrashedFilter::make()
                     ->native(false),
             ])
             ->headerActions([
@@ -382,7 +407,7 @@ class UserResource extends Resource implements HasShieldPermissions
                             }
                         }),
                     DeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin') || $record->invoices()->exists() || $record->payments()->exists()),
                     RestoreAction::make(),
                     ForceDeleteAction::make()
                         ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
@@ -399,7 +424,6 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return [
             'index' => UserResource\Pages\ListUsers::route('/'),
-            //'create' => UserResource\Pages\CreateUser::route('/create'),
             'edit' => UserResource\Pages\EditUser::route('/{record}/edit'),
             'manage-invoices' => UserResource\Pages\ManageInvoices::route('/{record}/invoices'),
             'payment-history' => UserResource\Pages\PaymentHistory::route('/{record}/payment-history'),

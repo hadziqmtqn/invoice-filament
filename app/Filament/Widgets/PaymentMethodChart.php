@@ -37,10 +37,15 @@ class PaymentMethodChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
+        $startDate = $this->filters['dateRange']['start'] ?? null;
+        $endDate = $this->filters['dateRange']['end'] ?? null;
 
-        $query = Payment::query();
+        $userRole = auth()->user()->hasRole('user');
+
+        $query = Payment::query()
+            ->when($userRole, function ($query) {
+                return $query->where('user_id', auth()->id());
+            });
 
         if ($startDate) $query->whereDate('date', '>=', $startDate);
         if ($endDate) $query->whereDate('date', '<=', $endDate);

@@ -34,9 +34,14 @@ class PaymentChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
+        $userRole = auth()->user()->hasRole('user');
+
         // Ambil data total pembayaran per bulan, 12 bulan terakhir
         $payments = Payment::selectRaw('EXTRACT(MONTH FROM "date") as month, SUM(amount) as total')
             ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [date('Y')])
+            ->when($userRole, function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')

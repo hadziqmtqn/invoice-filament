@@ -4,14 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MessageTemplateResource\Pages;
 use App\Models\MessageTemplate;
+use App\Models\MessageTemplateCategory;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -22,6 +26,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class MessageTemplateResource extends Resource implements HasShieldPermissions
@@ -29,7 +34,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     protected static ?string $model = MessageTemplate::class;
     protected static ?string $slug = 'message-templates';
     protected static ?string $navigationGroup = 'Configuration';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     public static function getPermissionPrefixes(): array
@@ -49,13 +54,15 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                Select::make('category')
+                Select::make('message_template_category_id')
+                    ->label('Category')
+                    ->options(fn() => MessageTemplateCategory::pluck('name', 'id')->toArray())
                     ->required()
-                    ->options([
-                        'change-authentication' => 'Change Authentication',
-                        'unpaid-bill' => 'Unpaid Bill',
-                    ])
-                    ->searchable(),
+                    ->native(false)
+                    ->searchable()
+                    ->reactive()
+                    ->afterStateUpdated(fn($state, callable $set) => $set('placeholder_category', MessageTemplateCategory::find($state)?->placeholder ?? ''))
+                    ->afterStateHydrated(fn($state, callable $set) => $set('placeholder_category', MessageTemplateCategory::find($state)?->placeholder ?? '')),
 
                 TextInput::make('title')
                     ->required()
@@ -66,20 +73,32 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                     ->autosize()
                     ->columnSpanFull(),
 
-                Checkbox::make('is_active')
+                ToggleButtons::make('is_active')
+                    ->boolean()
+                    ->inline()
+                    ->columnSpanFull()
                     ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false),
+
+                \Filament\Forms\Components\Section::make('Placeholder')
+                    ->description('Anda dapat menggunakan placeholder berikut dalam template pesan untuk menyisipkan informasi dinamis. Contoh: [Nama], [Email]')
+                    ->columnSpanFull()
+                    ->schema([
+                        Placeholder::make('placeholder_category')
+                            ->hiddenLabel()
+                            ->reactive()
+                            ->content(fn ($get) => new HtmlString(Str::markdown($get('placeholder_category') ?? ''))),
+                    ]),
 
                 Grid::make()
                     ->columns()
+                    ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                     ->schema([
                         Placeholder::make('created_at')
                             ->label('Created Date')
-                            ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                             ->content(fn(?MessageTemplate $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
                         Placeholder::make('updated_at')
                             ->label('Last Modified Date')
-                            ->visible(fn(?MessageTemplate $record): bool => $record?->exists ?? false)
                             ->content(fn(?MessageTemplate $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
                     ])
             ]);
@@ -89,8 +108,8 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('category')
-                    ->formatStateUsing(fn($state) => Str::of($state)->replace('-', ' ')->title())
+                TextColumn::make('messageTemplateCategory.name')
+                    ->label('Category')
                     ->searchable()
                     ->sortable(),
 
@@ -102,14 +121,13 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
                 ToggleColumn::make('is_active')
                     ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
             ->actions([
                 ActionGroup::make([
-                    ViewAction::make()
-                        ->modalHeading('Detail Message Template')
-                        ->modalContent(),
+                    ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])
@@ -134,6 +152,33 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['slug', 'title'];
+        return ['title'];
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        parent::infolist($infolist); // TODO: Change the autogenerated stub
+
+        return $infolist
+            ->schema([
+                TextEntry::make('messageTemplateCategory.name')
+                    ->label('Category'),
+
+                TextEntry::make('title'),
+
+                Section::make('Message')
+                    ->schema([
+                        TextEntry::make('message')
+                            ->label('')
+                            ->formatStateUsing(fn($state) => nl2br(e($state)))
+                            ->html(),
+                    ]),
+
+                TextEntry::make('is_active')
+                    ->formatStateUsing(fn($state) => $state ? 'Yes' : 'No')
+                    ->badge()
+                    ->color(fn($state) => $state ? 'success' : 'danger')
+                    ->inlineLabel(),
+            ]);
     }
 }

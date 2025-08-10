@@ -2,8 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use CodeWithKyrian\FilamentDateRange\Forms\Components\DateRangePicker;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
@@ -40,6 +41,14 @@ class Dashboard extends \Filament\Pages\Dashboard
                 Section::make()
                     ->columns(3)
                     ->schema([
+                        Grid::make()
+                            ->schema([
+                                DateRangePicker::make('dateRange')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpanFull()
+                            ->columnSpan(['lg' => 2]),
+
                         Select::make('productType')
                             ->native(false)
                             ->options([
@@ -47,21 +56,8 @@ class Dashboard extends \Filament\Pages\Dashboard
                                 'service' => 'Service',
                             ])
                             ->selectablePlaceholder(false)
-                            ->reactive(),
-
-                        DatePicker::make('startDate')
-                            ->closeOnDateSelection()
                             ->reactive()
-                            ->prefixIcon('heroicon-o-calendar')
-                            ->afterStateUpdated(fn (callable $get, callable $set) => $set('endDate', null))
-                            ->native(false),
-
-                        DatePicker::make('endDate')
-                            ->closeOnDateSelection()
-                            ->reactive()
-                            ->prefixIcon('heroicon-o-calendar')
-                            ->minDate(fn (callable $get) => $get('startDate'))
-                            ->native(false),
+                            ->columnSpan(['lg' => 1]),
                     ]),
             ])
             ->columns(1)

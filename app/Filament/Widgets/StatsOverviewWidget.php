@@ -14,10 +14,16 @@ class StatsOverviewWidget extends BaseWidget
     protected function getStats(): array
     {
         $productType = $this->filters['productType'] ?? null;
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
+        $startDate = $this->filters['dateRange']['start'] ?? null;
+        $endDate = $this->filters['dateRange']['end'] ?? null;
 
-        $invoices = Invoice::query();
+        $userHasRole = auth()->user()->hasRole('user');
+
+        $invoices = Invoice::query()
+            ->when($userHasRole, function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->where('status', '!=', 'draft');
 
         if ($productType) {
             $invoices->whereHas('invoiceItems.item', function ($query) use ($productType) {

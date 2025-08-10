@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1efcc5247c36a33c770ac2cd4afcda6a",
+    "content-hash": "850ddc1c5dc56aacd09c45a4f905f9a4",
     "packages": [
         {
             "name": "afatmustafa/filamentv3-turnstile",
@@ -928,6 +928,55 @@
                 "source": "https://github.com/coderflexx/laravel-turnstile/tree/2.1.1"
             },
             "time": "2025-03-01T13:04:55+00:00"
+        },
+        {
+            "name": "codewithkyrian/filament-date-range",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CodeWithKyrian/filament-date-range.git",
+                "reference": "bbdd1dc032fcb62e1521932317f7638445f2743a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CodeWithKyrian/filament-date-range/zipball/bbdd1dc032fcb62e1521932317f7638445f2743a",
+                "reference": "bbdd1dc032fcb62e1521932317f7638445f2743a",
+                "shasum": ""
+            },
+            "require": {
+                "filament/forms": "^3.0",
+                "filament/tables": "^3.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "CodeWithKyrian\\FilamentDateRange\\DateRangeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "CodeWithKyrian\\FilamentDateRange\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kyrian Obikwelu",
+                    "email": "kyrianobikwelu@gmail.com"
+                }
+            ],
+            "description": "A date range field and filter for Filament v3.",
+            "support": {
+                "issues": "https://github.com/CodeWithKyrian/filament-date-range/issues",
+                "source": "https://github.com/CodeWithKyrian/filament-date-range/tree/1.1.0"
+            },
+            "time": "2025-06-21T07:53:29+00:00"
         },
         {
             "name": "composer/class-map-generator",

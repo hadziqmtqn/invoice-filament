@@ -12,7 +12,7 @@ class WhatsappConfigSeeder extends Seeder
         $whatsappConfig = new WhatsappConfig();
         $whatsappConfig->provider = 'fonnte';
         $whatsappConfig->api_domain = 'https://api.fonnte.com/send';
-        $whatsappConfig->api_key = 'BrzQLTdyASTUiWa1xv9eKhDjdEYUAFYzDZ7iA';
+        $whatsappConfig->api_key = 'f7wxELuZJc1VE9e7Yq7F';
         $whatsappConfig->save();
     }
 }
