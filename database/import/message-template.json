@@ -7,7 +7,7 @@
   {
     "category": "unpaid-bill",
     "title": "Tagihan Belum Dibayar",
-    "message": "Halo [Nama],\nIni pengingat untuk tagihan [Jenis Tagihan] sebesar Rp [Jumlah] dengan jatuh tempo [Tanggal].\n\nSilakan transfer ke [Nomor Rekening / Metode Pembayaran].\nKonfirmasi setelah pembayaran ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
+    "message": "Halo [Nama],\nIni pengingat untuk tagihan [Jenis Tagihan] sebesar Rp [Jumlah] dengan jatuh tempo [Tanggal].\n\nSilakan transfer ke [Nomor Rekening / Metode Pembayaran]\nKonfirmasi setelah pembayaran ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
   },
   {
     "category": "partially-paid-bill",

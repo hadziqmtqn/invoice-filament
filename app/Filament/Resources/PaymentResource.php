@@ -102,6 +102,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->required(),
 
                                 DatePicker::make('date')
+                                    ->placeholder('Select Date')
                                     ->required()
                                     ->native(false)
                                     ->prefixIcon('heroicon-o-calendar')
@@ -109,6 +110,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->closeOnDateSelection(),
 
                                 TextInput::make('amount')
+                                    ->placeholder('Total Amount')
                                     ->required()
                                     ->numeric()
                                     ->prefix('Rp')
@@ -369,6 +371,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
                                     ->helperText('Optional, upload a receipt or proof of payment.'),
 
                                 Textarea::make('note')
+                                    ->placeholder('Add internal notes here...')
                                     ->rows(3)
                                     ->maxLength(500)
                                     ->autosize()

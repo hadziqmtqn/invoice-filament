@@ -37,7 +37,7 @@ class UnpaidBillMessageJob implements ShouldQueue
             '[Nama]' => $this->data['user_name'],
             '[Jenis Tagihan]' => $this->data['invoice_name'],
             '[Jumlah]' => $this->data['amount'],
-            '[Tanggal]' => $this->data['date'],
+            '[Tanggal]' => $this->data['due_date'],
             '[Nomor Rekening / Metode Pembayaran]' => "\n\n" . implode("\n", $bankAccounts->map(function ($account) {
                 return $account->bank?->short_name . " - " . $account->account_number . " (" . $account->account_name . ")";
             })->toArray()) . "\n\n",
