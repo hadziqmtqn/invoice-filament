@@ -407,7 +407,7 @@ class UserResource extends Resource implements HasShieldPermissions
                             }
                         }),
                     DeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin') || $record->invoices()->exists() || $record->payments()->exists()),
                     RestoreAction::make(),
                     ForceDeleteAction::make()
                         ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),

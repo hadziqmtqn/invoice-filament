@@ -31,6 +31,7 @@ use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\ActionGroup;
@@ -439,7 +440,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->label('Title'),
 
                                 TextEntry::make('user.name')
-                                    ->label('User'),
+                                    ->label('User')
+                                    ->url(fn(Invoice $record): string => UserResource::getUrl('edit', ['record' => $record->user?->username]))
+                                    ->color('primary'),
 
                                 TextEntry::make('date')
                                     ->label('Date')
@@ -480,7 +483,19 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
                                             'date' => $record->date?->format('d M Y') ?? now()->format('d M Y'),
                                             'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
-                                        ])->onQueue('invoice');
+                                        ]);
+
+                                        Notification::make()
+                                            ->success()
+                                            ->title('Invoice Sent')
+                                            ->body('The invoice has been sent successfully.')
+                                            ->send();
+
+                                        Notification::make()
+                                            ->success()
+                                            ->title('New Invoice Sent')
+                                            ->body('You have a new bill with a billing number: ' . $record->code)
+                                            ->sendToDatabase($record->user);
                                     }
                                 })
                                 ->visible(fn(Invoice $record): bool => $record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid'),
