@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers\InvoicePaymentsRelationManager;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
+use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
 use App\Models\BankAccount;
 use App\Models\Invoice;
@@ -26,6 +27,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -39,6 +41,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
 
@@ -335,11 +338,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
         return $table
             ->columns([
                 TextColumn::make('code')
-                    ->tooltip(fn($record): string => $record->invoice_number)
-                    ->searchable(),
-
-                TextColumn::make('title')
-                    ->limit(30)
                     ->tooltip(fn($record): string => $record->title)
                     ->searchable(),
 
@@ -466,7 +464,27 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 'partially_paid' => 'warning',
                                 default => 'secondary',
                             })
-                            ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>'))
+                            ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>')),
+
+                        Actions::make([
+                            Actions\Action::make('send_invoice')
+                                ->label('Send Invoice')
+                                ->icon('heroicon-o-paper-airplane')
+                                ->color('primary')
+                                ->action(function (Invoice $record) {
+                                    Log::info('Sending invoice for record: ' . $record->code);
+                                    if ($record->status === 'draft' || $record->status === 'sent') {
+                                        UnpaidBillMessageJob::dispatch([
+                                            'user_name' => $record->user?->name ?? 'Unknown User',
+                                            'invoice_name' => $record->title,
+                                            'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
+                                            'date' => $record->date?->format('d M Y') ?? now()->format('d M Y'),
+                                            'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
+                                        ])->onQueue('invoice');
+                                    }
+                                })
+                                ->visible(fn(Invoice $record): bool => $record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid'),
+                        ]),
                     ])
                     ->columnSpan(['lg' => 1]),
 

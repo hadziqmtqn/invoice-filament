@@ -18,7 +18,7 @@ trait SendMessageTrait
 
     protected function messageTemplate($category): ?MessageTemplate
     {
-        return MessageTemplate::where('category', $category)
+        return MessageTemplate::whereHas('messageTemplateCategory', fn($query) => $query->where('code', $category))
             ->active()
             ->first();
     }
