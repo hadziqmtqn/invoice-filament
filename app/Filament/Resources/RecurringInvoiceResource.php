@@ -2,13 +2,19 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\RecurrenceFrequency;
 use App\Filament\Resources\RecurringInvoiceResource\Pages;
 use App\Models\RecurringInvoice;
+use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -23,7 +29,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
     protected static ?string $slug = 'recurring-invoices';
     protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 2;
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
 
     public static function getPermissionPrefixes(): array
     {
@@ -40,32 +46,60 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(3)
             ->schema([
-                DatePicker::make('invoice_number'),
+                Group::make([
+                    Section::make()
+                        ->columns()
+                        ->schema([
+                            Select::make('user_id')
+                                ->label('User')
+                                ->options(fn(?RecurringInvoice $invoice) => UserService::dropdownOptions($invoice?->exists ? $invoice->user_id : null))
+                                ->required()
+                                ->native(false)
+                                ->prefixIcon('heroicon-o-user')
+                                ->searchable()
+                                ->columnSpanFull(),
 
-                TextInput::make('serial_number')
-                    ->required()
-                    ->integer(),
+                            DatePicker::make('date')
+                                ->required()
+                                ->default(now())
+                                ->label('Invoice Date')
+                                ->prefixIcon('heroicon-o-calendar')
+                                ->native(false)
+                                ->closeOnDateSelection(),
 
-                TextInput::make('code')
-                    ->required(),
+                            DatePicker::make('due_date')
+                                ->required()
+                                ->minDate(fn(Get $get) => $get('date'))
+                                ->label('Due Date')
+                                ->prefixIcon('heroicon-o-calendar')
+                                ->native(false)
+                                ->closeOnDateSelection(),
+                        ]),
+                ])
+                    ->columnSpan(['lg' => 2]),
 
-                TextInput::make('user_id')
-                    ->required(),
+                Group::make([
+                    Section::make()
+                        ->schema([
+                            Select::make('recurrence_frequency')
+                                ->options(RecurrenceFrequency::options())
+                                ->required()
+                                ->native(false),
 
-                DatePicker::make('date'),
+                            TextInput::make('repeat_every')
+                                ->required()
+                                ->integer(),
 
-                DatePicker::make('due_date'),
+                            TextInput::make('discount')
+                                ->numeric()
+                                ->suffix('%'),
+                        ]),
+                ])
+                    ->columnSpan(['lg' => 1]),
 
-                TextInput::make('recurrence_frequency')
-                    ->required(),
 
-                TextInput::make('repeat_every')
-                    ->required()
-                    ->integer(),
-
-                TextInput::make('discount')
-                    ->numeric(),
 
                 TextInput::make('note'),
 

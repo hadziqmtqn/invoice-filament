@@ -82,7 +82,6 @@ class PanelPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            //->plugin(TwoFactorAuthPlugin::make())
             ->plugins([
                 FilamentShieldPlugin::make(),
                 ChangePasswordPlugin::make(),

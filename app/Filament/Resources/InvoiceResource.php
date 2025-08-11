@@ -9,7 +9,7 @@ use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Item;
-use App\Models\User;
+use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
 use Exception;
@@ -74,14 +74,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 Select::make('user_id')
                                     ->label('User')
                                     ->options(function (?Invoice $record) {
-                                        return User::whereHas('roles', fn($query) => $query->where('name', 'user'))
-                                            ->when($record?->exists, function ($query) use ($record) {
-                                                $query->where('id', $record->user_id);
-                                            })
-                                            ->orderByDesc('created_at')
-                                            ->limit(10)
-                                            ->get()
-                                            ->mapWithKeys(fn(User $user) => [$user->id => $user->name]);
+                                        return UserService::dropdownOptions($record?->exists ? $record->user_id : null);
                                     })
                                     ->searchable()
                                     ->required()

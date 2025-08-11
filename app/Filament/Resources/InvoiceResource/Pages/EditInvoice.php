@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
@@ -16,10 +14,7 @@ class EditInvoice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            ViewAction::make()
-                ->icon('heroicon-o-eye'),
-            DeleteAction::make()
-                ->visible(fn() => $this->canDelete()),
+            //
         ];
     }
 

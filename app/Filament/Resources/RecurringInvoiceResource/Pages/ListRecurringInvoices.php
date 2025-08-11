@@ -13,7 +13,9 @@ class ListRecurringInvoices extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Add New')
+                ->icon('heroicon-o-plus'),
         ];
     }
 }
