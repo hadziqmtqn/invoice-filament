@@ -28,7 +28,6 @@ class RecurringInvoice extends Model
     {
         return [
             'slug' => 'string',
-            'invoice_number' => 'timestamp',
             'date' => 'date',
             'due_date' => 'date',
         ];
@@ -54,5 +53,10 @@ class RecurringInvoice extends Model
     public function lineItems(): HasMany
     {
         return $this->hasMany(LineItem::class, 'recurring_invoice_id');
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 }

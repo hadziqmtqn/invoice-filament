@@ -5,8 +5,8 @@ namespace App\Filament\Resources;
 use App\Enums\ItemUnit;
 use App\Enums\RecurrenceFrequency;
 use App\Filament\Resources\RecurringInvoiceResource\Pages;
-use App\Models\InvoiceItem;
 use App\Models\Item;
+use App\Models\LineItem;
 use App\Models\RecurringInvoice;
 use App\Services\ItemService;
 use App\Services\UserService;
@@ -81,7 +81,6 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                 ->closeOnDateSelection(),
 
                             DatePicker::make('due_date')
-                                ->required()
                                 ->minDate(fn(Get $get) => $get('date'))
                                 ->label('Due Date')
                                 ->prefixIcon('heroicon-o-calendar')
@@ -99,8 +98,8 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                     Select::make('item_id')
                                         ->label('Item')
                                         ->searchable()
-                                        ->options(function (?InvoiceItem $record) {
-                                            return ItemService::dropdownOptions($record?->invoice?->invoiceItems?->pluck('item_id') ?? []);
+                                        ->options(function (?LineItem $record) {
+                                            return ItemService::dropdownOptions($record?->recurringInvoice?->lineItems?->pluck('item_id')->toArray() ?? []);
                                         })
                                         ->preload()
                                         ->required()
@@ -123,6 +122,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set) {
                                             if (!$state) {
                                                 // kosongkan jika tidak ada item
+                                                $set('name', null);
                                                 $set('rate', null);
                                                 $set('description', null);
                                                 $set('unit', null);
@@ -131,6 +131,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
 
                                             $item = Item::find($state);
                                             if ($item) {
+                                                $set('name', $item->name);
                                                 $set('rate', $item->rate);
                                                 $set('description', $item->description);
                                                 $set('unit', $item->unit);
@@ -139,8 +140,12 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                         ->columnSpanFull(),
 
                                     Grid::make()
-                                        ->columns(3)
+                                        ->columns()
                                         ->schema([
+                                            TextInput::make('name')
+                                                ->required()
+                                                ->placeholder('Enter the item name'),
+
                                             TextInput::make('qty')
                                                 ->numeric()
                                                 ->required()
@@ -274,26 +279,22 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                TextColumn::make('slug')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('code')
+                    ->tooltip(fn($record) => $record->invoice_number)
+                    ->searchable(),
 
-                TextColumn::make('invoice_number')
-                    ->date(),
-
-                TextColumn::make('serial_number'),
-
-                TextColumn::make('code'),
-
-                TextColumn::make('user_id'),
+                TextColumn::make('user.name')
+                    ->searchable(),
 
                 TextColumn::make('date')
-                    ->date(),
+                    ->description(fn($record) => 'Due: ' . ($record->due_date?->format('d M Y') ?? '-'))
+                    ->date('d M Y'),
 
-                TextColumn::make('due_date')
-                    ->date(),
-
-                TextColumn::make('recurrence_frequency'),
+                TextColumn::make('recurrence_frequency')
+                    ->badge()
+                    ->color(fn ($state) => RecurrenceFrequency::tryFrom($state)?->getColor() ?? 'gray')
+                    ->formatStateUsing(fn ($state) => RecurrenceFrequency::tryFrom($state)?->label() ?? $state)
+                    ->label('Frequency'),
 
                 TextColumn::make('repeat_every'),
 
@@ -328,6 +329,6 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['slug'];
+        return ['code'];
     }
 }

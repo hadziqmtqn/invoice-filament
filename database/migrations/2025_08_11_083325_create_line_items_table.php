@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('name');
             $table->integer('qty');
             $table->string('unit')->nullable();
-            $table->decimal('rate');
+            $table->decimal('rate', 20, 0);
             $table->text('description')->nullable();
             $table->timestamps();
 

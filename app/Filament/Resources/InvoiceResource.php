@@ -50,6 +50,25 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 1;
     protected static ?string $navigationIcon = 'heroicon-o-receipt-percent';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return Invoice::where('status', '!=', 'paid')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Total unpaid invoices';
+    }
+
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getPermissionPrefixes(): array
@@ -138,6 +157,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
                                                     // kosongkan jika tidak ada item
+                                                    $set('name', null);
                                                     $set('rate', null);
                                                     $set('description', null);
                                                     $set('unit', null);
@@ -146,6 +166,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                                                 $item = Item::find($state);
                                                 if ($item) {
+                                                    // Set nilai berdasarkan item yang dipilih
+                                                    $set('name', $item->name);
                                                     $set('rate', $item->rate);
                                                     $set('description', $item->description);
                                                     $set('unit', $item->unit);
@@ -154,8 +176,12 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Grid::make()
-                                            ->columns(3)
+                                            ->columns(2)
                                             ->schema([
+                                                TextInput::make('name')
+                                                    ->required()
+                                                    ->placeholder('Enter the item name'),
+
                                                 TextInput::make('qty')
                                                     ->numeric()
                                                     ->minValue(1)

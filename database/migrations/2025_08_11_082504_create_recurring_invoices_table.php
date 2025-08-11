@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('recurring_invoices', function (Blueprint $table) {
             $table->id();
             $table->uuid('slug');
-            $table->timestamp('invoice_number');
+            $table->string('invoice_number');
             $table->integer('serial_number')->unique();
             $table->string('code')->unique();
             $table->unsignedBigInteger('user_id');
