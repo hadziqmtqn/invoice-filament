@@ -134,7 +134,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->label('Item')
                                             ->searchable()
                                             ->options(function (?InvoiceItem $record) {
-                                                return ItemService::dropdownOptions($record?->invoice?->invoiceItems?->pluck('item_id') ?? []);
+                                                return ItemService::dropdownOptions($record?->invoice?->invoiceItems?->pluck('item_id')->toArray() ?? []);
                                             })
                                             ->preload()
                                             ->required()

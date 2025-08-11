@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -58,5 +59,18 @@ class RecurringInvoice extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    protected function totalPrice(): Attribute
+    {
+        $totalPrice = $this->lineItems->sum(function ($item) {
+            return $item->qty * $item->rate;
+        });
+        $discountAmount = ($totalPrice * $this->discount) / 100;
+        $totalPrice -= $discountAmount;
+
+        return Attribute::make(
+            get: fn() => $totalPrice,
+        );
     }
 }

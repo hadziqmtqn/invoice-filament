@@ -9,6 +9,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditRecurringInvoice extends EditRecord
 {
     protected static string $resource = RecurringInvoiceResource::class;
+    protected ?bool $hasDatabaseTransactions = true;
 
     protected function getHeaderActions(): array
     {

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ItemUnit;
 use App\Enums\RecurrenceFrequency;
+use App\Enums\RecurringInvoiceStatus;
 use App\Filament\Resources\RecurringInvoiceResource\Pages;
 use App\Models\Item;
 use App\Models\LineItem;
@@ -11,6 +12,7 @@ use App\Models\RecurringInvoice;
 use App\Services\ItemService;
 use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Exception;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
@@ -24,11 +26,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 
@@ -275,6 +277,9 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
             ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public static function table(Table $table): Table
     {
         return $table
@@ -293,28 +298,34 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                 TextColumn::make('recurrence_frequency')
                     ->badge()
                     ->color(fn ($state) => RecurrenceFrequency::tryFrom($state)?->getColor() ?? 'gray')
-                    ->formatStateUsing(fn ($state) => RecurrenceFrequency::tryFrom($state)?->label() ?? $state)
-                    ->label('Frequency'),
+                    ->formatStateUsing(fn ($state, $record) => $record->repeat_every . ' ' . RecurrenceFrequency::tryFrom($state)?->label() ?? $state)
+                    ->label('Repeat Every'),
 
-                TextColumn::make('repeat_every'),
+                TextColumn::make('total_price')
+                    ->money('idr'),
 
-                TextColumn::make('discount'),
-
-                TextColumn::make('note'),
-
-                TextColumn::make('status'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->icon(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getIcon() ?? 'heroicon-o-question-mark-circle')
+                    ->color(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getColor() ?? 'gray')
+                    ->formatStateUsing(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getLabel() ?? $state)
+                    ->sortable(),
             ])
+            ->defaultSort('date', 'desc')
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(RecurringInvoiceStatus::options())
+                    ->label('Status')
+                    ->native(false),
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make()
+                ])
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 
