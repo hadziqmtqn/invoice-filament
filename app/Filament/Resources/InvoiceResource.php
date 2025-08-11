@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ItemUnit;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
 use App\Models\Application;
@@ -9,6 +10,7 @@ use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Item;
+use App\Services\ItemService;
 use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
@@ -107,18 +109,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->schema([
                                 Repeater::make('invoiceItems')
                                     ->relationship('invoiceItems')
+                                    ->hiddenLabel()
                                     ->schema([
                                         Select::make('item_id')
                                             ->label('Item')
                                             ->searchable()
                                             ->options(function (?InvoiceItem $record) {
-                                                return Item::when($record?->invoice?->invoicePayments, function ($query) use ($record) {
-                                                    $query->whereIn('id', $record->invoice?->invoiceItems?->pluck('item_id') ?? []);
-                                                })
-                                                    ->orderByDesc('created_at')
-                                                    ->limit(10)
-                                                    ->get()
-                                                    ->mapWithKeys(fn(Item $item) => [$item->id => $item->name]);
+                                                return ItemService::dropdownOptions($record?->invoice?->invoiceItems?->pluck('item_id') ?? []);
                                             })
                                             ->preload()
                                             ->required()
@@ -141,7 +138,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
                                                     // kosongkan jika tidak ada item
-                                                    $set('name', null);
                                                     $set('rate', null);
                                                     $set('description', null);
                                                     $set('unit', null);
@@ -150,7 +146,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                                                 $item = Item::find($state);
                                                 if ($item) {
-                                                    $set('name', $item->name);
                                                     $set('rate', $item->rate);
                                                     $set('description', $item->description);
                                                     $set('unit', $item->unit);
@@ -159,13 +154,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Grid::make()
-                                            ->columns(4)
+                                            ->columns(3)
                                             ->schema([
-                                                TextInput::make('name')
-                                                    ->required()
-                                                    ->readOnly()
-                                                    ->reactive(),
-
                                                 TextInput::make('qty')
                                                     ->numeric()
                                                     ->minValue(1)
@@ -173,20 +163,27 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->required()
                                                     ->reactive(),
 
-                                                TextInput::make('unit')
-                                                    ->reactive(),
+                                                Select::make('unit')
+                                                    ->options(ItemUnit::options())
+                                                    ->reactive()
+                                                    ->native(false),
 
                                                 TextInput::make('rate')
                                                     ->numeric()
                                                     ->required()
-                                                    ->reactive(),
+                                                    ->reactive()
+                                                    ->readOnly(),
                                             ]),
-                                        Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
+
+                                        Textarea::make('description')
+                                            ->rows(2)
+                                            ->reactive()
+                                            ->placeholder('Optional description for this item')
+                                            ->columnSpanFull(),
                                     ])
                                     ->minItems(1)
                                     ->deletable(function ($state, callable $get, $livewire) {
                                         $invoice = $livewire->record ?? null;
-                                        //dd($invoice->invoicePayments()->exists());
 
                                         // Ambil invoiceItems, pastikan array
                                         $items = $get('invoiceItems') ?? [];
@@ -244,7 +241,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 Grid::make()
                                     ->schema([
                                         Placeholder::make('total_price')
-                                            ->label('Total Harga')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = 0;
@@ -258,7 +254,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Placeholder::make('final_price')
-                                            ->label('Total Akhir Setelah Diskon')
+                                            ->label('Total Price After Discount')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = 0;
@@ -276,10 +272,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ])
                             ]),
 
-                        Section::make('Rekening Bank')
+                        Section::make('Bank Accounts')
                             ->description('Transfer pembayaran ke salah satu rekening berikut:')
                             ->schema([
                                 Placeholder::make('bank_accounts')
+                                    ->hiddenLabel()
                                     ->content(function () {
                                         $accounts = BankAccount::with('bank:id,short_name,full_name')
                                             ->orderBy('bank_id')

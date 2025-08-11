@@ -8,6 +8,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateRecurringInvoice extends CreateRecord
 {
     protected static string $resource = RecurringInvoiceResource::class;
+    protected ?bool $hasDatabaseTransactions = true;
 
     protected function getHeaderActions(): array
     {

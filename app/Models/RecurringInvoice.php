@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class RecurringInvoice extends Model
@@ -42,5 +44,15 @@ class RecurringInvoice extends Model
             $recurringInvoice->serial_number = self::max('serial_number') + 1;
             $recurringInvoice->code = 'RINV-' . Str::upper(Str::random(6)) . '-' . $recurringInvoice->serial_number;
         });
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function lineItems(): HasMany
+    {
+        return $this->hasMany(LineItem::class, 'recurring_invoice_id');
     }
 }
