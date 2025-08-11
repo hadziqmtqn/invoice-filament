@@ -16,6 +16,7 @@ class RecurringInvoice extends Model
         'serial_number',
         'code',
         'user_id',
+        'title',
         'date',
         'due_date',
         'recurrence_frequency',
@@ -72,5 +73,19 @@ class RecurringInvoice extends Model
         return Attribute::make(
             get: fn() => $totalPrice,
         );
+    }
+
+    protected function nextInvoiceDate(): Attribute
+    {
+        return Attribute::make(function () {
+            $date = $this->date;
+            return match ($this->recurrence_frequency) {
+                'days' => $date->addDays($this->repeat_every),
+                'weeks' => $date->addWeeks($this->repeat_every),
+                'months' => $date->addMonths($this->repeat_every),
+                'years' => $date->addYears($this->repeat_every),
+                default => $date,
+            };
+        });
     }
 }

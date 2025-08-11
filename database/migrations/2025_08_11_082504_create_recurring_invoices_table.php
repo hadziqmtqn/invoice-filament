@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->integer('serial_number')->unique();
             $table->string('code')->unique();
             $table->unsignedBigInteger('user_id');
+            $table->string('title');
             $table->date('date');
             $table->date('due_date')->nullable();
             $table->string('recurrence_frequency');

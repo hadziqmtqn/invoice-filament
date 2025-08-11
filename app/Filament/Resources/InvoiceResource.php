@@ -353,11 +353,14 @@ class InvoiceResource extends Resource implements HasShieldPermissions
         return $table
             ->columns([
                 TextColumn::make('code')
-                    ->tooltip(fn($record): string => $record->title)
                     ->searchable(),
 
                 TextColumn::make('user.name')
                     ->description(fn(Invoice $record): string => $record->user?->userProfile?->phone)
+                    ->searchable(),
+
+                TextColumn::make('title')
+                    ->wrap()
                     ->searchable(),
 
                 TextColumn::make('date')

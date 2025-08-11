@@ -73,6 +73,11 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                 ->searchable()
                                 ->columnSpanFull(),
 
+                            TextInput::make('title')
+                                ->placeholder('Enter the title of this invoice')
+                                ->required()
+                                ->columnSpanFull(),
+
                             DatePicker::make('date')
                                 ->required()
                                 ->default(now())
@@ -291,15 +296,24 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                 TextColumn::make('user.name')
                     ->searchable(),
 
+                TextColumn::make('title')
+                    ->searchable()
+                    ->wrap(),
+
                 TextColumn::make('date')
                     ->description(fn($record) => 'Due: ' . ($record->due_date?->format('d M Y') ?? '-'))
+                    ->date('d M Y'),
+
+                TextColumn::make('next_invoice_date')
                     ->date('d M Y'),
 
                 TextColumn::make('recurrence_frequency')
                     ->badge()
                     ->color(fn ($state) => RecurrenceFrequency::tryFrom($state)?->getColor() ?? 'gray')
                     ->formatStateUsing(fn ($state, $record) => $record->repeat_every . ' ' . RecurrenceFrequency::tryFrom($state)?->label() ?? $state)
-                    ->label('Repeat Every'),
+                    ->label('Repeat Every')
+                    ->toggleable()
+                    ->toggledHiddenByDefault(),
 
                 TextColumn::make('total_price')
                     ->money('idr'),
