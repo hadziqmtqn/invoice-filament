@@ -6,3 +6,14 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+\Illuminate\Support\Facades\Schedule::command('invoice:due')
+    ->at('0 0 * * *') // Every day at midnight
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Invoice due command executed successfully.');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Invoice due command failed.');
+    })
+    ->sendOutputTo(storage_path('logs/invoice_due.log'));

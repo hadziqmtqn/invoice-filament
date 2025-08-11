@@ -15,8 +15,8 @@ return new class extends Migration {
             $table->string('code')->unique();
             $table->unsignedBigInteger('user_id');
             $table->string('title');
-            $table->date('date');
-            $table->date('due_date')->nullable();
+            $table->dateTime('date');
+            $table->dateTime('due_date')->nullable();
             $table->string('recurrence_frequency');
             $table->integer('repeat_every');
             $table->float('discount')->nullable();

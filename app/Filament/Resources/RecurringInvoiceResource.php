@@ -310,7 +310,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                 TextColumn::make('recurrence_frequency')
                     ->badge()
                     ->color(fn ($state) => RecurrenceFrequency::tryFrom($state)?->getColor() ?? 'gray')
-                    ->formatStateUsing(fn ($state, $record) => $record->repeat_every . ' ' . RecurrenceFrequency::tryFrom($state)?->label() ?? $state)
+                    ->formatStateUsing(fn ($state, $record) => $record->repeat_every . ' ' . RecurrenceFrequency::tryFrom($state)?->getLabel() ?? $state)
                     ->label('Repeat Every')
                     ->toggleable()
                     ->toggledHiddenByDefault(),

@@ -30,8 +30,8 @@ class RecurringInvoice extends Model
     {
         return [
             'slug' => 'string',
-            'date' => 'date',
-            'due_date' => 'date',
+            'date' => 'datetime',
+            'due_date' => 'datetime',
         ];
     }
 
