@@ -71,3 +71,8 @@ view_message::template::category;YES;NO
 create_message::template::category;YES;NO
 update_message::template::category;YES;NO
 delete_message::template::category;YES;NO
+view_any_recurring::invoice;YES;NO
+view_recurring::invoice;YES;NO
+create_recurring::invoice;YES;NO
+update_recurring::invoice;YES;NO
+delete_recurring::invoice;YES;NO

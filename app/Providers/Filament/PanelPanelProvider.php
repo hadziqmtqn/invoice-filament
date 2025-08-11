@@ -45,7 +45,6 @@ class PanelPanelProvider extends PanelProvider
             ->path('panel')
             ->spa()
             ->login() // alt: App/Filament/Pages/Login.php
-            ->topNavigation()
             ->brandName($application?->name)
             ->favicon($application?->favicon)
             ->colors([
@@ -65,8 +64,12 @@ class PanelPanelProvider extends PanelProvider
                 PaymentMethodChart::class
             ])
             ->navigationGroups([
-                'Pelindung',
-                'Pengaturan',
+                'Main',
+                'Finance',
+                'Payments',
+                'References',
+                'Configuration',
+                'Settings',
             ])
             ->middleware([
                 EncryptCookies::class,
