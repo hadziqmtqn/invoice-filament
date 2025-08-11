@@ -17,7 +17,7 @@ class RecurringInvoicePolicy
 
     public function view(User $user, RecurringInvoice $recurringInvoice): bool
     {
-        return $user->can('view_recurring::invoice');
+        return $user->can('view_recurring::invoice', $recurringInvoice);
     }
 
     public function create(User $user): bool
@@ -27,11 +27,11 @@ class RecurringInvoicePolicy
 
     public function update(User $user, RecurringInvoice $recurringInvoice): bool
     {
-        return $user->can('update_recurring::invoice');
+        return $user->can('update_recurring::invoice', $recurringInvoice);
     }
 
     public function delete(User $user, RecurringInvoice $recurringInvoice): bool
     {
-        return $user->can('delete_recurring::invoice');
+        return $user->can('delete_recurring::invoice', $recurringInvoice);
     }
 }

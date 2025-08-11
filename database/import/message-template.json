@@ -13,5 +13,10 @@
     "category": "partially-paid-bill",
     "title": "Tagihan dibayar Sebagian",
     "message": "Halo [Nama],\nKami informasikan bahwa pembayaran untuk [Jenis Tagihan] sebesar Rp [Jumlah Dibayar] sudah kami terima.\nSaat ini masih terdapat sisa tagihan sebesar Rp [Sisa Tagihan] dengan jatuh tempo [Tanggal].\n\nMohon dapat melakukan pelunasan ke [Nomor Rekening / Metode Pembayaran].\nKonfirmasi setelah pembayaran ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
+  },
+  {
+    "category": "invoice-will-due",
+    "title": "Tagihan Akan Jatuh Tempo",
+    "message": "Halo [Nama],\nMengingatkan bahwa faktur [Nomor Faktur] sebesar Rp [Jumlah] akan jatuh tempo pada [Tanggal].\n\nSilakan melakukan pembayaran ke [Nomor Rekening].\nKonfirmasi setelah transfer ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
   }
 ]

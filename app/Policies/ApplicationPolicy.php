@@ -17,6 +17,6 @@ class ApplicationPolicy
 
     public function update(User $user, Application $application): bool
     {
-        return $user->can('edit_application');
+        return $user->can('edit_application', $application);
     }
 }

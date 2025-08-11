@@ -27,11 +27,11 @@ class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return !$user->hasRole('user') && $user->can('update_invoice');
+        return !$user->hasRole('user') && $user->can('update_invoice', $invoice);
     }
 
     public function delete(User $user, Invoice $invoice): bool
     {
-        return !$user->hasRole('user') && $user->can('delete_invoice');
+        return !$user->hasRole('user') && $user->can('delete_invoice', $invoice);
     }
 }

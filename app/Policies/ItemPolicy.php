@@ -17,7 +17,7 @@ class ItemPolicy
 
     public function view(User $user, Item $item): bool
     {
-        return $user->can('view_item');
+        return $user->can('view_item', $item);
     }
 
     public function create(User $user): bool
@@ -27,7 +27,7 @@ class ItemPolicy
 
     public function update(User $user, Item $item): bool
     {
-        return $user->can('update_item');
+        return $user->can('update_item', $item);
     }
 
     public function deleteAny(User $user): bool
@@ -37,7 +37,7 @@ class ItemPolicy
 
     public function delete(User $user, Item $item): bool
     {
-        return $user->can('delete_item');
+        return $user->can('delete_item', $item);
     }
 
     public function restoreAny(User $user): bool

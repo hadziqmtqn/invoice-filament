@@ -27,12 +27,12 @@ class PaymentPolicy
 
     public function update(User $user, Payment $payment): bool
     {
-        return $user->can('update_payment');
+        return $user->can('update_payment', $payment);
     }
 
     public function delete(User $user, Payment $payment): bool
     {
-        return $user->can('delete_payment');
+        return $user->can('delete_payment', $payment);
     }
 
     public function deleteAny(User $user): bool
@@ -42,7 +42,7 @@ class PaymentPolicy
 
     public function restore(User $user, Payment $payment): bool
     {
-        return $user->can('restore_payment');
+        return $user->can('restore_payment', $payment);
     }
 
     public function restoreAny(User $user): bool
@@ -52,7 +52,7 @@ class PaymentPolicy
 
     public function forceDelete(User $user, Payment $payment): bool
     {
-        return $user->can('force_delete_payment');
+        return $user->can('force_delete_payment', $payment);
     }
 
     public function forceDeleteAny(User $user): bool
