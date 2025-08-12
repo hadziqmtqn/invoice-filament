@@ -17,42 +17,24 @@ class GenerateRecurringInvoiceCommand extends Command
     {
         $recurringInvoices = RecurringInvoice::with('lineItems')
             ->where('status', 'active')
+            ->where('start_generate_date', '<=', now()->toDateTimeString())
             ->get();
 
-        $count = 0;
-
-        foreach ($recurringInvoices as $recurringInvoice) {
-            Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
-            // Hitung next_invoice_date berdasarkan last_generated_date
-            // Pastikan recurringInvoice->next_invoice_date menggunakan last_generated_date sebagai acuan
-            // Jika belum pernah generate, gunakan start_date atau date
-            $nextDate = $recurringInvoice->next_invoice_date;
-
-            // Selama next_invoice_date sudah waktunya, buat invoice (menutup kasus server/scheduler down)
-            while ($recurringInvoice->start_generate_date <= now()) {
-                // Dispatch job dengan data snapshot recurring + tanggal invoice yang ingin dibuat
-                GenerateRecurringInvoiceJob::dispatch($recurringInvoice);
-
-                $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code . " at $nextDate");
-
-                // Hitung next occurrence berikutnya
-                $recurringInvoice->last_generated_date = $nextDate;
-                $recurringInvoice->save();
-
-                // (refresh property agar custom attribute next_invoice_date menghitung berdasarkan last_generated_date baru)
-                $recurringInvoice->refresh();
-                $recurringInvoice->start_generate_date = $recurringInvoice->calculateNextInvoiceDate();
-                $recurringInvoice->save();
-                $nextDate = $recurringInvoice->next_invoice_date;
-                $count++;
-            }
-
-            $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code);
+        if ($recurringInvoices->isEmpty()) {
+            Log::info('No recurring invoices to process at ' . now());
+            $this->info('No recurring invoices to process at ' . now());
+            return;
         }
 
-        if ($count === 0) {
-            Log::info('No recurring invoices to generate at this time.');
-            $this->info('No recurring invoices to generate at this time.');
+        foreach ($recurringInvoices as $recurringInvoice) {
+            $recurringInvoice->start_generate_date = $recurringInvoice->calculateNextInvoiceDate();
+            $recurringInvoice->last_generated_date = now();
+            $recurringInvoice->save();
+
+            Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
+            $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code);
+            // Dispatch the job to generate the recurring invoice
+            GenerateRecurringInvoiceJob::dispatch($recurringInvoice);
         }
     }
 }

@@ -318,7 +318,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                     ->description(fn($record) => 'Due: ' . ($record->due_date?->format('d M Y') ?? '-'))
                     ->date('d M Y'),
 
-                TextColumn::make('next_invoice_date')
+                TextColumn::make('start_generate_date')
                     ->date('d M Y H:i:s'),
 
                 TextColumn::make('recurrence_frequency')
