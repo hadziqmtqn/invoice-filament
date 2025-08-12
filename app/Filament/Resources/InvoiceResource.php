@@ -53,7 +53,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationBadge(): ?string
     {
-        return Invoice::where('status', '!=', 'paid')->count();
+        return Invoice::where('status', '!=', 'paid')
+            ->whereBetween('due_date', [now(), now()->addDays(7)])
+            ->count();
     }
 
     public static function getNavigationBadgeColor(): string|array|null
@@ -66,7 +68,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
      */
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Total unpaid invoices';
+        return 'Total invoices due within the next 7 days';
     }
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;

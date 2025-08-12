@@ -17,6 +17,6 @@
   {
     "category": "invoice-will-due",
     "title": "Tagihan Akan Jatuh Tempo",
-    "message": "Halo [Nama],\nMengingatkan bahwa faktur [Nomor Faktur] sebesar Rp [Jumlah] akan jatuh tempo pada [Tanggal].\n\nSilakan melakukan pembayaran ke [Nomor Rekening].\nKonfirmasi setelah transfer ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
+    "message": "Halo [Nama],\nMengingatkan bahwa faktur [Nomor Faktur] sebesar Rp [Jumlah] akan jatuh tempo pada [Tanggal].\n\nSilakan melakukan pembayaran ke\n\n[Nomor Rekening]\n\nKonfirmasi setelah transfer ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
   }
 ]

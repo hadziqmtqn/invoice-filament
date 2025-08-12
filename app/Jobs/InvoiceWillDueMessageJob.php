@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\BankAccount;
-use App\Models\Invoice;
 use App\Traits\SendMessageTrait;
 use App\Traits\WhatsappConfigTrait;
 use Illuminate\Bus\Queueable;
@@ -11,9 +10,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Log;
+use Illuminate\Support\Facades\Log;
 
-class UnpaidBillMessageJob implements ShouldQueue
+class InvoiceWillDueMessageJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, WhatsappConfigTrait, SendMessageTrait;
 
@@ -29,7 +28,8 @@ class UnpaidBillMessageJob implements ShouldQueue
 
     public function handle(): void
     {
-        $bankAccounts = BankAccount::with('bank:id,short_name')
+        $bankAccounts = BankAccount::query()
+            ->with('bank:id,short_name')
             ->active()
             ->get();
 
@@ -38,15 +38,15 @@ class UnpaidBillMessageJob implements ShouldQueue
             '[Jenis Tagihan]' => $this->data['invoice_name'],
             '[Jumlah]' => $this->data['amount'],
             '[Tanggal]' => $this->data['due_date'],
-            '[Nomor Rekening / Metode Pembayaran]' => "\n\n" . implode("\n", $bankAccounts->map(function (BankAccount $account) {
+            '[Nomor Rekening]' => implode("\n", $bankAccounts->map(function (BankAccount $account) {
                 return $account->bank?->short_name . " - " . $account->account_number . " (" . $account->account_name . ")";
-            })->toArray()) . "\n\n",
+            })->toArray()),
         ];
 
-        $messageTemplate = $this->messageTemplate('UNPAID-BILL');
+        $messageTemplate = $this->messageTemplate('INVOICE-WILL-DUE');
 
         if (!$messageTemplate) {
-            Log::warning('Message template for UNPAID-BILL not found.');
+            Log::warning('Message template for INVOICE-WILL-DUE not found.');
             return;
         }
 
@@ -54,14 +54,5 @@ class UnpaidBillMessageJob implements ShouldQueue
             $this->data['whatsapp_number'],
             $this->replacePlaceholders($messageTemplate->message, $placeholders)
         );
-
-        // Update the invoice status to 'sent'
-        $invoice = Invoice::find($this->data['invoice_id']);
-        if ($invoice) {
-            $invoice->status = 'sent';
-            $invoice->save();
-        } else {
-            Log::error('Invoice not found for ID: ' . $this->data['invoice_id']);
-        }
     }
 }

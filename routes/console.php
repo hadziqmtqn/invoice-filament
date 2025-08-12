@@ -8,7 +8,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 \Illuminate\Support\Facades\Schedule::command('invoice:due')
-    ->at('0 0 * * *') // Every day at midnight
+    ->dailyAt('07:50') // Every day at midnight
+    ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
     ->onSuccess(function () {
         \Illuminate\Support\Facades\Log::info('Invoice due command executed successfully.');
