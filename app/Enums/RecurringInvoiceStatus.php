@@ -17,8 +17,8 @@ enum RecurringInvoiceStatus: string implements HasColor, HasIcon, HasLabel
         // TODO: Implement getColor() method.
         return match ($this) {
             self::DRAFT => 'gray',
-            self::ACTIVE => 'green',
-            self::DISCONTINUED => 'red',
+            self::ACTIVE => 'success',
+            self::DISCONTINUED => 'danger',
         };
     }
 
@@ -48,6 +48,15 @@ enum RecurringInvoiceStatus: string implements HasColor, HasIcon, HasLabel
             self::DRAFT->value => self::DRAFT->getLabel(),
             self::ACTIVE->value => self::ACTIVE->getLabel(),
             self::DISCONTINUED->value => self::DISCONTINUED->getLabel(),
+        ];
+    }
+
+    public static function colors(): array
+    {
+        return [
+            self::DRAFT->value => self::DRAFT->getColor(),
+            self::ACTIVE->value => self::ACTIVE->getColor(),
+            self::DISCONTINUED->value => self::DISCONTINUED->getColor(),
         ];
     }
 }

@@ -23,6 +23,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -264,6 +265,17 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                         })
                                         ->columnSpanFull(),
                                 ])
+                        ]),
+
+                    Section::make('Status')
+                        ->schema([
+                            ToggleButtons::make('status')
+                                ->hiddenLabel()
+                                ->options(RecurringInvoiceStatus::options())
+                                ->default(RecurringInvoiceStatus::DRAFT->value)
+                                ->colors(RecurringInvoiceStatus::colors())
+                                ->required()
+                                ->inline()
                         ]),
 
                     // TODO Manufacturing Time
