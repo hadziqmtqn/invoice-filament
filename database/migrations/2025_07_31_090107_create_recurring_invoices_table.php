@@ -22,6 +22,7 @@ return new class extends Migration {
             $table->float('discount')->nullable();
             $table->text('note')->nullable();
             $table->enum('status', ['draft', 'active', 'discontinued'])->default('draft');
+            $table->dateTime('last_generated_date')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')

@@ -30,7 +30,8 @@ Artisan::command('inspire', function () {
     });
 
 \Illuminate\Support\Facades\Schedule::command('invoice:generate-recurring')
-    ->dailyAt('10:50') // Every day at midnight
+    //->dailyAt('10:50') // Every day at midnight
+    ->everyMinute()
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
     ->onSuccess(function () {

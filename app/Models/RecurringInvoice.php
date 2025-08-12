@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class RecurringInvoice extends Model
@@ -24,6 +25,7 @@ class RecurringInvoice extends Model
         'discount',
         'note',
         'status',
+        'last_generated_date'
     ];
 
     protected function casts(): array
@@ -32,6 +34,7 @@ class RecurringInvoice extends Model
             'slug' => 'string',
             'date' => 'datetime',
             'due_date' => 'datetime',
+            'last_generated_date' => 'datetime'
         ];
     }
 
@@ -78,11 +81,14 @@ class RecurringInvoice extends Model
     protected function nextInvoiceDate(): Attribute
     {
         return Attribute::make(function () {
-            $date = $this->date->copy(); // Carbon instance, JANGAN pakai reference!
+            // Fallback jika last_generated_date kosong
+            $baseDate = $this->last_generated_date ? Carbon::parse($this->last_generated_date) : Carbon::parse($this->date); // fallback terakhir
+
+            $date = $baseDate->copy();
             $now = now();
 
-            // Cek jika next interval sudah lewat, tambahkan terus sampai lewat now
-            while ($date <= $now) {
+            $i = 0; // batas iterasi agar aman dari infinite loop
+            while ($date <= $now && $i < 100) {
                 $date = match ($this->recurrence_frequency) {
                     'seconds' => $date->addSeconds($this->repeat_every),
                     'minutes' => $date->addMinutes($this->repeat_every),
@@ -92,6 +98,7 @@ class RecurringInvoice extends Model
                     'years' => $date->addYears($this->repeat_every),
                     default => $date,
                 };
+                $i++;
             }
 
             return $date;

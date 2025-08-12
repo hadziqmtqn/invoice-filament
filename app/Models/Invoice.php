@@ -47,9 +47,9 @@ class Invoice extends Model implements HasMedia
 
         static::creating(function (Invoice $invoice) {
             $invoice->slug = Str::uuid()->toString();
-            $invoice->invoice_number = now()->timestamp;
             $invoice->serial_number = self::max('serial_number') + 1;
             $invoice->code = 'INV' . Str::padLeft($invoice->serial_number, 6, '0');
+            $invoice->invoice_number = $invoice->code . '-' . now()->timestamp;
         });
     }
 
