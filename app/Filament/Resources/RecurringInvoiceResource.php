@@ -15,6 +15,7 @@ use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Placeholder;
@@ -80,7 +81,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                 ->required()
                                 ->columnSpanFull(),
 
-                            DatePicker::make('date')
+                            DateTimePicker::make('date')
                                 ->required()
                                 ->default(now())
                                 ->label('Invoice Date')

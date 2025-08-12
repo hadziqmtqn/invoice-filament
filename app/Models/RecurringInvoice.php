@@ -25,6 +25,7 @@ class RecurringInvoice extends Model
         'discount',
         'note',
         'status',
+        'start_generate_date',
         'last_generated_date'
     ];
 
@@ -34,6 +35,7 @@ class RecurringInvoice extends Model
             'slug' => 'string',
             'date' => 'datetime',
             'due_date' => 'datetime',
+            'start_generate_date' => 'datetime',
             'last_generated_date' => 'datetime'
         ];
     }
@@ -46,7 +48,8 @@ class RecurringInvoice extends Model
             $recurringInvoice->slug = Str::uuid()->toString();
             $recurringInvoice->invoice_number = time();
             $recurringInvoice->serial_number = self::max('serial_number') + 1;
-            $recurringInvoice->code = 'RINV-' . Str::upper(Str::random(6)) . '-' . $recurringInvoice->serial_number;
+            $recurringInvoice->code = 'RINV' . Str::upper(Str::random(6)) . '-' . $recurringInvoice->serial_number;
+            $recurringInvoice->start_generate_date = $recurringInvoice->next_invoice_date;
         });
     }
 
@@ -82,20 +85,22 @@ class RecurringInvoice extends Model
     {
         return Attribute::make(function () {
             // Fallback jika last_generated_date kosong
-            $baseDate = $this->last_generated_date ? Carbon::parse($this->last_generated_date) : Carbon::parse($this->date); // fallback terakhir
+            $baseDate = Carbon::parse($this->date); // fallback terakhir
 
             $date = $baseDate->copy();
             $now = now();
 
+            $repeatEvery = (int) ($this->repeat_every ?: 1);
+
             $i = 0; // batas iterasi agar aman dari infinite loop
             while ($date <= $now && $i < 100) {
                 $date = match ($this->recurrence_frequency) {
-                    'seconds' => $date->addSeconds($this->repeat_every),
-                    'minutes' => $date->addMinutes($this->repeat_every),
-                    'days' => $date->addDays($this->repeat_every),
-                    'weeks' => $date->addWeeks($this->repeat_every),
-                    'months' => $date->addMonths($this->repeat_every),
-                    'years' => $date->addYears($this->repeat_every),
+                    'seconds' => $date->addSeconds($repeatEvery),
+                    'minutes' => $date->addMinutes($repeatEvery),
+                    'days' => $date->addDays($repeatEvery),
+                    'weeks' => $date->addWeeks($repeatEvery),
+                    'months' => $date->addMonths($repeatEvery),
+                    'years' => $date->addYears($repeatEvery),
                     default => $date,
                 };
                 $i++;

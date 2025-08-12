@@ -26,17 +26,17 @@ class GenerateRecurringInvoiceCommand extends Command
             // Pastikan recurringInvoice->next_invoice_date menggunakan last_generated_date sebagai acuan
             // Jika belum pernah generate, gunakan start_date atau date
             $nextDate = $recurringInvoice->next_invoice_date;
-            // Hitung next occurrence berikutnya
-            $recurringInvoice->last_generated_date = $nextDate;
-            $recurringInvoice->save();
 
             // Selama next_invoice_date sudah waktunya, buat invoice (menutup kasus server/scheduler down)
-            while ($recurringInvoice->last_generated_date <= now()) {
+            while ($recurringInvoice->start_generate_date <= now()) {
                 // Dispatch job dengan data snapshot recurring + tanggal invoice yang ingin dibuat
                 GenerateRecurringInvoiceJob::dispatch($recurringInvoice);
 
                 $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code . " at $nextDate");
 
+                // Hitung next occurrence berikutnya
+                $recurringInvoice->last_generated_date = $nextDate;
+                $recurringInvoice->save();
 
                 // (refresh property agar custom attribute next_invoice_date menghitung berdasarkan last_generated_date baru)
                 $recurringInvoice->refresh();
