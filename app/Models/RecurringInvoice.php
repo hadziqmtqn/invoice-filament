@@ -66,18 +66,18 @@ class RecurringInvoice extends Model
         return match ($this->recurrence_frequency) {
             'seconds' => $baseDate->copy()->addSeconds($repeatEvery),
             'minutes' => $baseDate->copy()->addMinutes($repeatEvery),
-            'days'    => $baseDate->copy()->addDays($repeatEvery),
-            'weeks'   => $baseDate->copy()->addWeeks($repeatEvery),
-            'months'  => $baseDate->copy()->addMonths($repeatEvery),
-            'years'   => $baseDate->copy()->addYears($repeatEvery),
-            default   => $baseDate,
+            'days' => $baseDate->copy()->addDays($repeatEvery),
+            'weeks' => $baseDate->copy()->addWeeks($repeatEvery),
+            'months' => $baseDate->copy()->addMonths($repeatEvery),
+            'years' => $baseDate->copy()->addYears($repeatEvery),
+            default => $baseDate,
         };
     }
 
 // 2. Next Invoice Date (berjalan)
     public function calculateNextInvoiceDate(): Carbon
     {
-        $anchor = $this->start_generate_date;
+        /*$anchor = $this->start_generate_date;
 
         $date = Carbon::parse($anchor);
         $now = now();
@@ -95,6 +95,36 @@ class RecurringInvoice extends Model
                 default => $date,
             };
             $i++;
+        }
+
+        return $date;*/
+        /*$baseDate = $this->last_generated_date ? Carbon::parse($this->last_generated_date) : Carbon::parse($this->date);
+        $repeatEvery = (int)($this->repeat_every ?: 1);
+
+        return match ($this->recurrence_frequency) {
+            'seconds' => $baseDate->copy()->addSeconds($repeatEvery),
+            'minutes' => $baseDate->copy()->addMinutes($repeatEvery),
+            'days' => $baseDate->copy()->addDays($repeatEvery),
+            'weeks' => $baseDate->copy()->addWeeks($repeatEvery),
+            'months' => $baseDate->copy()->addMonths($repeatEvery),
+            'years' => $baseDate->copy()->addYears($repeatEvery),
+            default => $baseDate,
+        };*/
+
+        $date = $this->date->copy(); // Carbon instance, JANGAN pakai reference!
+        $now = now();
+
+        // Cek jika next interval sudah lewat, tambahkan terus sampai lewat now
+        while ($date <= $now) {
+            $date = match ($this->recurrence_frequency) {
+                'seconds' => $date->addSeconds($this->repeat_every),
+                'minutes' => $date->addMinutes($this->repeat_every),
+                'days' => $date->addDays($this->repeat_every),
+                'weeks' => $date->addWeeks($this->repeat_every),
+                'months' => $date->addMonths($this->repeat_every),
+                'years' => $date->addYears($this->repeat_every),
+                default => $date,
+            };
         }
 
         return $date;

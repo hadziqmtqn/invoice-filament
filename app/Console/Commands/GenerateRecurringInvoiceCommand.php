@@ -27,6 +27,11 @@ class GenerateRecurringInvoiceCommand extends Command
         }
 
         foreach ($recurringInvoices as $recurringInvoice) {
+            Log::info('Start generate at: ' . $recurringInvoice->start_generate_date);
+            /*if ($recurringInvoice->start_generate_date > now()) {
+                Log::info('Skipping Recurring Invoice ID: ' . $recurringInvoice->code . ' as it is not yet time to generate.');
+                continue;
+            }*/
             // Dispatch the job to generate the recurring invoice
             GenerateRecurringInvoiceJob::dispatch($recurringInvoice);
             Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
