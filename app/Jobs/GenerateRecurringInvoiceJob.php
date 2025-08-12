@@ -68,7 +68,6 @@ class GenerateRecurringInvoiceJob implements ShouldQueue
 
             $invoice->refresh();
             $recurringInvoice = $this->recurringInvoice;
-            $recurringInvoice->start_generate_date = $recurringInvoice->next_invoice_date;
             $recurringInvoice->last_generated_date = now();
             $recurringInvoice->save();
             DB::commit();
