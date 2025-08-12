@@ -27,14 +27,10 @@ class GenerateRecurringInvoiceCommand extends Command
         }
 
         foreach ($recurringInvoices as $recurringInvoice) {
-            $recurringInvoice->start_generate_date = $recurringInvoice->calculateNextInvoiceDate();
-            $recurringInvoice->last_generated_date = now();
-            $recurringInvoice->save();
-
-            Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
-            $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code);
             // Dispatch the job to generate the recurring invoice
             GenerateRecurringInvoiceJob::dispatch($recurringInvoice);
+            Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
+            $this->info("Dispatched job for Recurring Invoice ID: " . $recurringInvoice->code);
         }
     }
 }

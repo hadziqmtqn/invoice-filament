@@ -77,9 +77,7 @@ class RecurringInvoice extends Model
 // 2. Next Invoice Date (berjalan)
     public function calculateNextInvoiceDate(): Carbon
     {
-        $anchor = $this->last_generated_date
-            ?? $this->start_generate_date
-            ?? $this->date;
+        $anchor = $this->start_generate_date;
 
         $date = Carbon::parse($anchor);
         $now = now();
@@ -90,11 +88,11 @@ class RecurringInvoice extends Model
             $date = match ($this->recurrence_frequency) {
                 'seconds' => $date->addSeconds($repeatEvery),
                 'minutes' => $date->addMinutes($repeatEvery),
-                'days'    => $date->addDays($repeatEvery),
-                'weeks'   => $date->addWeeks($repeatEvery),
-                'months'  => $date->addMonths($repeatEvery),
-                'years'   => $date->addYears($repeatEvery),
-                default   => $date,
+                'days' => $date->addDays($repeatEvery),
+                'weeks' => $date->addWeeks($repeatEvery),
+                'months' => $date->addMonths($repeatEvery),
+                'years' => $date->addYears($repeatEvery),
+                default => $date,
             };
             $i++;
         }

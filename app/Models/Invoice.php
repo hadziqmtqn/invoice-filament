@@ -68,6 +68,11 @@ class Invoice extends Model implements HasMedia
         return $this->hasMany(InvoicePayment::class, 'invoice_id');
     }
 
+    public function recurringInvoice(): BelongsTo
+    {
+        return $this->belongsTo(RecurringInvoice::class);
+    }
+
     // More
     public function getRouteKeyName(): string
     {

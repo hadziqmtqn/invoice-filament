@@ -58,6 +58,19 @@ class GenerateRecurringInvoiceJob implements ShouldQueue
                     'description' => $lineItem->description,
                 ]);
             }
+
+            Log::info('Recurring invoice generated successfully', [
+                'recurring_invoice_code' => $this->recurringInvoice->code,
+                'start_generate_date' => $this->recurringInvoice->start_generate_date,
+                'next_invoice_date' => $this->recurringInvoice->next_invoice_date,
+                'last_generated_date' => $this->recurringInvoice->last_generated_date,
+            ]);
+
+            $invoice->refresh();
+            $recurringInvoice = $invoice->recurringInvoice;
+            $recurringInvoice->start_generate_date = $this->recurringInvoice->calculateNextInvoiceDate();
+            $recurringInvoice->last_generated_date = now();
+            $recurringInvoice->save();
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();

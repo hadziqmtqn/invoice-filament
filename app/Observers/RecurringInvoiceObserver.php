@@ -19,6 +19,5 @@ class RecurringInvoiceObserver
     public function updating(RecurringInvoice $recurringInvoice): void
     {
         $recurringInvoice->start_generate_date = $recurringInvoice->getFirstNextInvoiceDate();
-        $recurringInvoice->last_generated_date = null; // Reset last generated date on update
     }
 }
