@@ -22,6 +22,7 @@ class GenerateRecurringInvoiceCommand extends Command
         $count = 0;
 
         foreach ($recurringInvoices as $recurringInvoice) {
+            Log::info('Processing Recurring Invoice ID: ' . $recurringInvoice->code . ' at ' . $recurringInvoice->start_generate_date);
             // Hitung next_invoice_date berdasarkan last_generated_date
             // Pastikan recurringInvoice->next_invoice_date menggunakan last_generated_date sebagai acuan
             // Jika belum pernah generate, gunakan start_date atau date
@@ -40,6 +41,8 @@ class GenerateRecurringInvoiceCommand extends Command
 
                 // (refresh property agar custom attribute next_invoice_date menghitung berdasarkan last_generated_date baru)
                 $recurringInvoice->refresh();
+                $recurringInvoice->start_generate_date = $recurringInvoice->calculateNextInvoiceDate();
+                $recurringInvoice->save();
                 $nextDate = $recurringInvoice->next_invoice_date;
                 $count++;
             }
