@@ -78,14 +78,23 @@ class RecurringInvoice extends Model
     protected function nextInvoiceDate(): Attribute
     {
         return Attribute::make(function () {
-            $date = $this->date;
-            return match ($this->recurrence_frequency) {
-                'days' => $date->addDays($this->repeat_every),
-                'weeks' => $date->addWeeks($this->repeat_every),
-                'months' => $date->addMonths($this->repeat_every),
-                'years' => $date->addYears($this->repeat_every),
-                default => $date,
-            };
+            $date = $this->date->copy(); // Carbon instance, JANGAN pakai reference!
+            $now = now();
+
+            // Cek jika next interval sudah lewat, tambahkan terus sampai lewat now
+            while ($date <= $now) {
+                $date = match ($this->recurrence_frequency) {
+                    'seconds' => $date->addSeconds($this->repeat_every),
+                    'minutes' => $date->addMinutes($this->repeat_every),
+                    'days' => $date->addDays($this->repeat_every),
+                    'weeks' => $date->addWeeks($this->repeat_every),
+                    'months' => $date->addMonths($this->repeat_every),
+                    'years' => $date->addYears($this->repeat_every),
+                    default => $date,
+                };
+            }
+
+            return $date;
         });
     }
 }

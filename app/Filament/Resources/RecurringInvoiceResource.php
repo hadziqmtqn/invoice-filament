@@ -29,6 +29,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -305,7 +306,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                     ->date('d M Y'),
 
                 TextColumn::make('next_invoice_date')
-                    ->date('d M Y'),
+                    ->date('d M Y H:i:s'),
 
                 TextColumn::make('recurrence_frequency')
                     ->badge()
@@ -334,6 +335,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 ActionGroup::make([
+                    ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make()
                 ])

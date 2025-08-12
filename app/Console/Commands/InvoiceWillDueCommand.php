@@ -12,7 +12,7 @@ class InvoiceWillDueCommand extends Command
 {
     protected $signature = 'invoice:will-due';
 
-    protected $description = 'Command description';
+    protected $description = 'Command to notify users about invoices that will be due within the next 7 days or 3 days';
 
     public function handle(): void
     {

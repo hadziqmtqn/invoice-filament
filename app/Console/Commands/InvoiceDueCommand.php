@@ -10,7 +10,7 @@ class InvoiceDueCommand extends Command
 {
     protected $signature = 'invoice:due';
 
-    protected $description = 'Command description';
+    protected $description = 'Check and update invoices that are due today';
 
     public function handle(): void
     {
