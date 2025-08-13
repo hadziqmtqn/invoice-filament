@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
+//use Laravel\Fortify\TwoFactorAuthenticatable;
+use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Filament\Panel;
 use Filament\Models\Contracts\FilamentUser;
@@ -111,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     // more
     protected function defaultAvatar(): Attribute
     {
-        return Attribute::make(fn() => url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
+        return Attribute::make(fn() => $this->hasMedia('avatar') ? $this->getFirstTemporaryUrl(now()->addHour(), 'avatar') : url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
     }
 
     protected function receivables(): Attribute

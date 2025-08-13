@@ -2,17 +2,20 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Dashboard;
+// use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
 use Exception;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -24,6 +27,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class PanelPanelProvider extends PanelProvider
@@ -81,10 +85,22 @@ class PanelPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->authGuard('web')
             ->plugins([
                 FilamentShieldPlugin::make(),
                 ChangePasswordPlugin::make(),
                 FilamentApexChartsPlugin::make(),
+                BreezyCore::make()
+                    //->avatarUploadComponent(fn($fileUpload) => $fileUpload->disableLabel())
+                    ->avatarUploadComponent(fn() => SpatieMediaLibraryFileUpload::make('avatar')->hiddenLabel()->collection('avatar')->disk('s3')->avatar())
+                    ->enableTwoFactorAuthentication()
+                    ->myProfile(true, // Sets the 'account' link in the panel User Menu (default = true)
+                        'My Profile', // Customizes the 'account' link label in the panel User Menu (default = null)
+                        false, // Adds a main navigation item for the My Profile page (default = false)
+                        true, // Sets the navigation group for the My Profile page (default = null)
+                        'my-profile', // Enables the avatar upload form component (default = false)
+                        'my-profile' // Sets the slug for the profile page (default = 'my-profile')
+                    )
             ])
             ->authMiddleware([
                 Authenticate::class,

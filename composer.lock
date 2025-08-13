@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad9168519255b3484f5be09d83527af1",
+    "content-hash": "3520dc148c52146b82d5caaa0ab26ee8",
     "packages": [
         {
             "name": "afatmustafa/filamentv3-turnstile",
@@ -3266,6 +3266,74 @@
                 }
             ],
             "time": "2025-02-03T10:55:03+00:00"
+        },
+        {
+            "name": "jeffgreco13/filament-breezy",
+            "version": "v2.6.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jeffgreco13/filament-breezy.git",
+                "reference": "d4097f79f3305824b565fc63dce8039af3ad2c04"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jeffgreco13/filament-breezy/zipball/d4097f79f3305824b565fc63dce8039af3ad2c04",
+                "reference": "d4097f79f3305824b565fc63dce8039af3ad2c04",
+                "shasum": ""
+            },
+            "require": {
+                "bacon/bacon-qr-code": "^3.0",
+                "filament/filament": "^3.0.9",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
+                "php": "^8.1|^8.2|^8.3|^8.4",
+                "pragmarx/google2fa": "^7.0|^8.0",
+                "spatie/laravel-package-tools": "^1.14.0"
+            },
+            "require-dev": {
+                "pestphp/pest": "^2.20|^3.7",
+                "pestphp/pest-plugin-arch": "^2.0|^v3.0.0",
+                "pestphp/pest-plugin-laravel": "^2.0|^v3.1.0",
+                "pestphp/pest-plugin-livewire": "^2.1|^v3.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "FilamentBreezy": "Jeffgreco13\\FilamentBreezy\\Facades\\FilamentBreezy"
+                    },
+                    "providers": [
+                        "Jeffgreco13\\FilamentBreezy\\FilamentBreezyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Jeffgreco13\\FilamentBreezy\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jeff Greco",
+                    "email": "jeff@jeffpgreco.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A custom package for Filament with login flow, profile and teams support.",
+            "homepage": "https://github.com/jeffgreco13/filament-breezy",
+            "keywords": [
+                "filament-breezy",
+                "jeffgreco13",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/jeffgreco13/filament-breezy/issues",
+                "source": "https://github.com/jeffgreco13/filament-breezy/tree/v2.6.2"
+            },
+            "time": "2025-05-02T13:29:47+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
