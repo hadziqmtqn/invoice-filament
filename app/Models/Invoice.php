@@ -84,12 +84,19 @@ class Invoice extends Model implements HasMedia
     {
         $discount = $this->discount ?? 0;
         $total = $this->invoiceItems->sum(function ($item) {
-            return $item->rate * $item->qty;
+            return $item->rate;
         });
 
         $totalAfterDiscount = $total - ($total * ($discount / 100));
 
         return Attribute::make(fn() => $totalAfterDiscount);
+    }
+
+    protected function totalPriceBeforeDiscount(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->invoiceItems->sum('rate')
+        );
     }
 
     protected function totalPaid(): Attribute

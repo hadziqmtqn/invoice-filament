@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RecurringInvoiceResource\Pages;
 
 use App\Enums\RecurrenceFrequency;
+use App\Enums\RecurringInvoiceStatus;
 use App\Filament\Resources\RecurringInvoiceResource;
 use App\Filament\Resources\UserResource;
 use App\Models\RecurringInvoice;
@@ -28,7 +29,10 @@ class ViewRecurringInvoice extends ViewRecord
             ->schema([
             Group::make()
                 ->schema([
+                    // TODO Invoice To
                     Section::make('Invoice To')
+                        ->icon('heroicon-o-user-circle')
+                        ->iconColor('primary')
                         ->columns()
                         ->schema([
                             TextEntry::make('code')
@@ -53,14 +57,13 @@ class ViewRecurringInvoice extends ViewRecord
                                 ->weight(FontWeight::Bold),
                         ]),
 
+                    // TODO Bill To
                     Section::make('Bill To')
+                        ->icon('heroicon-o-wallet')
+                        ->iconColor('primary')
+                        ->description(fn($state, RecurringInvoice $record) => $record->title ?? 'N/A')
                         ->columns()
                         ->schema([
-                            TextEntry::make('title')
-                                ->hiddenLabel()
-                                ->weight(FontWeight::Bold)
-                                ->columnSpanFull(),
-
                             TextEntry::make('date')
                                 ->label('Date')
                                 ->icon('heroicon-o-calendar')
@@ -87,14 +90,20 @@ class ViewRecurringInvoice extends ViewRecord
                                 ->inlineLabel(),
                         ]),
 
+                    // TODO Line Items
                     Section::make('Line Items')
+                        ->icon('heroicon-o-bookmark-square')
+                        ->iconColor('primary')
                         ->schema([
                             RepeatableEntry::make('lineItems')
                                 ->hiddenLabel()
-                                ->columns()
+                                ->columns(3)
                                 ->schema([
                                     TextEntry::make('item.name'),
-                                    TextEntry::make('qty')
+                                    TextEntry::make('qty'),
+                                    TextEntry::make('rate')
+                                        ->money('idr')
+                                        ->weight(FontWeight::Bold)
                                 ])
                         ]),
                 ])
@@ -104,8 +113,32 @@ class ViewRecurringInvoice extends ViewRecord
                 ->schema([
                     Section::make('Status')
                         ->schema([
+                            TextEntry::make('status')
+                                ->hiddenLabel()
+                                ->formatStateUsing(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getLabel() ?? 'N/A')
+                                ->color(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getColor() ?? 'gray')
+                                ->size(TextEntry\TextEntrySize::Large)
+                                ->weight(FontWeight::Bold)
+                                ->icon(fn($state) => RecurringInvoiceStatus::tryFrom($state)?->getIcon() ?? 'heroicon-o-question-mark-circle')
+                        ]),
 
-                        ])
+                    Section::make('Total')
+                        ->schema([
+                            TextEntry::make('total_price_before_discount')
+                                ->label('Total Price (Before Discount)')
+                                ->money('idr')
+                                ->size(TextEntry\TextEntrySize::Large)
+                                ->weight(FontWeight::Bold)
+                                ->visible(fn(RecurringInvoice $record): bool => $record->discount > 0),
+
+                            TextEntry::make('total_price')
+                                ->label(fn($state, RecurringInvoice $record) => $record->discount > 0 ? 'Total Price (After Discount)' : 'Total')
+                                ->hiddenLabel(fn($state, RecurringInvoice $record) => $record->discount <= 0)
+                                ->money('idr')
+                                ->size(TextEntry\TextEntrySize::Large)
+                                ->weight(FontWeight::Bold)
+                                ->color('primary'),
+                        ]),
                 ])
                 ->columnSpan(['lg' => 1]),
         ]);

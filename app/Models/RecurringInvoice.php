@@ -106,14 +106,19 @@ class RecurringInvoice extends Model
     // TODO Attribute
     protected function totalPrice(): Attribute
     {
-        $totalPrice = $this->lineItems->sum(function ($item) {
-            return $item->qty * $item->rate;
-        });
+        $totalPrice = $this->lineItems->sum('rate');
         $discountAmount = ($totalPrice * $this->discount) / 100;
         $totalPrice -= $discountAmount;
 
         return Attribute::make(
             get: fn() => $totalPrice,
+        );
+    }
+
+    protected function totalPriceBeforeDiscount(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->lineItems->sum('rate'),
         );
     }
 
