@@ -10,6 +10,7 @@ class EditRecurringInvoice extends EditRecord
 {
     protected static string $resource = RecurringInvoiceResource::class;
     protected ?bool $hasDatabaseTransactions = true;
+    protected static ?string $title = 'Edit';
 
     protected function getHeaderActions(): array
     {

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Observers\RecurringInvoiceObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +52,11 @@ class RecurringInvoice extends Model
     public function lineItems(): HasMany
     {
         return $this->hasMany(LineItem::class, 'recurring_invoice_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'recurring_invoice_id');
     }
 
     public function getRouteKeyName(): string
@@ -101,9 +108,7 @@ class RecurringInvoice extends Model
     // TODO Attribute
     protected function totalPrice(): Attribute
     {
-        $totalPrice = $this->lineItems->sum(function ($item) {
-            return $item->qty * $item->rate;
-        });
+        $totalPrice = $this->lineItems->sum('rate');
         $discountAmount = ($totalPrice * $this->discount) / 100;
         $totalPrice -= $discountAmount;
 
@@ -112,10 +117,24 @@ class RecurringInvoice extends Model
         );
     }
 
+    protected function totalPriceBeforeDiscount(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->lineItems->sum('rate'),
+        );
+    }
+
     protected function nextInvoiceDate(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->calculateNextInvoiceDate()
         );
+    }
+
+    // TODO Scope
+    #[Scope]
+    protected function userId(Builder $query, $userId): Builder
+    {
+        return $query->where('user_id', $userId);
     }
 }

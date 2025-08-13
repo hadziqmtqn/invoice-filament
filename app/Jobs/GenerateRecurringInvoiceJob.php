@@ -40,9 +40,8 @@ class GenerateRecurringInvoiceJob implements ShouldQueue
                 'recurring_invoice_id' => $this->recurringInvoice->id,
                 'user_id' => $this->recurringInvoice->user_id,
                 'title' => $this->recurringInvoice->title,
-                'date' => $this->recurringInvoice->next_invoice_date,
-                // 7 days after the next invoice date
-                'due_date' => $this->recurringInvoice->next_invoice_date->addDays(7),
+                'date' => now(),
+                'due_date' => now()->addDays(14),
                 'discount' => $this->recurringInvoice->discount,
                 'note' => $this->recurringInvoice->note,
             ]);

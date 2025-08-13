@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Resources\RecurringInvoiceResource\Pages\ViewRecurringInvoice;
 use App\Filament\Resources\UserResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Invoice;
@@ -14,6 +15,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
@@ -31,28 +33,73 @@ class ViewInvoice extends ViewRecord
                     ->schema([
                         Section::make()
                             ->schema([
+                                TextEntry::make('recurringInvoice.code')
+                                    ->label('Recurring Invoice Code')
+                                    ->color('primary')
+                                    ->inlineLabel()
+                                    ->url(fn(Invoice $record): string => $record->recurringInvoice ? ViewRecurringInvoice::getUrl(['record' => $record->recurringInvoice?->slug]) : '#'),
+
                                 TextEntry::make('code')
                                     ->label('Invoice Code')
-                                    ->color('primary'),
+                                    ->color('primary')
+                                    ->inlineLabel(),
 
                                 TextEntry::make('title')
-                                    ->label('Title'),
+                                    ->label('Title')
+                                    ->inlineLabel(),
 
                                 TextEntry::make('user.name')
                                     ->label('User')
                                     ->url(fn(Invoice $record): string => UserResource::getUrl('edit', ['record' => $record->user?->username]))
-                                    ->color('primary'),
+                                    ->color('primary')
+                                    ->inlineLabel(),
 
                                 TextEntry::make('date')
                                     ->label('Date')
-                                    ->date('d M Y'),
+                                    ->date('d M Y')
+                                    ->inlineLabel(),
 
                                 TextEntry::make('due_date')
                                     ->label('Due Date')
-                                    ->date('d M Y'),
+                                    ->date('d M Y')
+                                    ->inlineLabel(),
+                            ]),
+
+                        Section::make('Invoice Items')
+                            ->schema([
+                                RepeatableEntry::make('invoiceItems')
+                                    ->hiddenLabel()
+                                    ->columns()
+                                    ->schema([
+                                        TextEntry::make('item.name')
+                                            ->label('Item Name')
+                                            ->weight('bold')
+                                            ->inlineLabel(),
+
+                                        TextEntry::make('qty')
+                                            ->label('Quantity')
+                                            ->weight('bold')
+                                            ->inlineLabel(),
+
+                                        TextEntry::make('unit')
+                                            ->label('Unit')
+                                            ->weight('bold')
+                                            ->inlineLabel(),
+
+                                        TextEntry::make('rate')
+                                            ->label('Rate')
+                                            ->weight('bold')
+                                            ->money('idr')
+                                            ->inlineLabel()
+                                            ->color('primary'),
+
+                                        TextEntry::make('note')
+                                            ->label('Note')
+                                            ->weight('bold')
+                                            ->inlineLabel(),
+                                    ]),
                             ]),
                     ])
-                    ->inlineLabel()
                     ->columnSpan(['lg' => 2]),
 
                 Group::make()
@@ -75,7 +122,7 @@ class ViewInvoice extends ViewRecord
                                 ->color('primary')
                                 ->action(function (Invoice $record) {
                                     Log::info('Sending invoice for record: ' . $record->code);
-                                    if ($record->status === 'draft' || $record->status === 'sent') {
+                                    if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
                                         UnpaidBillMessageJob::dispatch([
                                             'user_name' => $record->user?->name ?? 'Unknown User',
                                             'invoice_name' => $record->title,
@@ -102,40 +149,27 @@ class ViewInvoice extends ViewRecord
                                             ]);
                                     }
                                 })
-                                ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid')),
+                                ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid')),
                         ]),
+
+                        Section::make('Total')
+                            ->schema([
+                                TextEntry::make('total_price_before_discount')
+                                    ->label('Total Price (Before Discount)')
+                                    ->money('idr')
+                                    ->size(TextEntry\TextEntrySize::Large)
+                                    ->weight(FontWeight::Bold)
+                                    ->visible(fn(Invoice $record): bool => $record->discount > 0),
+
+                                TextEntry::make('total_price')
+                                    ->label(fn(Invoice $record): string => $record->discount > 0 ? 'Total Price (After Discount)' : 'Total Price')
+                                    ->money('idr')
+                                    ->size(TextEntry\TextEntrySize::Large)
+                                    ->weight(FontWeight::Bold)
+                                    ->color('primary'),
+                            ]),
                     ])
                     ->columnSpan(['lg' => 1]),
-
-                Section::make('Invoice Items')
-                    ->schema([
-                        RepeatableEntry::make('invoiceItems')
-                            ->hiddenLabel()
-                            ->schema([
-                                TextEntry::make('item.name')
-                                    ->label('Item Name')
-                                    ->weight('bold')
-                                    ->inlineLabel(),
-                                TextEntry::make('qty')
-                                    ->label('Quantity')
-                                    ->weight('bold')
-                                    ->inlineLabel(),
-                                TextEntry::make('unit')
-                                    ->label('Unit')
-                                    ->weight('bold')
-                                    ->inlineLabel(),
-                                TextEntry::make('rate')
-                                    ->label('Rate')
-                                    ->weight('bold')
-                                    ->money('idr')
-                                    ->inlineLabel(),
-                                TextEntry::make('note')
-                                    ->label('Note')
-                                    ->weight('bold')
-                                    ->inlineLabel(),
-                            ])
-                            ->columns(),
-                    ]),
 
                 Section::make('Invoice Payments')
                     ->schema([

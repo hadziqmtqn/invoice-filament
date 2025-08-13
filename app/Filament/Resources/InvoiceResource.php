@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\ItemUnit;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
@@ -11,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Item;
 use App\Services\ItemService;
+use App\Services\RecurringInvoiceService;
 use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
@@ -102,12 +104,28 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->searchable()
                                     ->required()
                                     ->native(false)
-                                    ->columnSpanFull(),
+                                    ->reactive()
+                                    ->afterStateUpdated(function (Get $get, callable $set) {
+                                        // Reset recurring_invoice_id when user changes
+                                        $set('recurring_invoice_id', null);
+                                    }),
+
+                                Select::make('recurring_invoice_id')
+                                    ->label('Recurring Invoice')
+                                    ->options(function(Get $get, ?Invoice $record) {
+                                        $userId = $get('user_id');
+
+                                        return RecurringInvoiceService::selectOptions($userId, ($record?->exists ? $record->recurring_invoice_id : null));
+                                    })
+                                    ->searchable()
+                                    ->native(false)
+                                    ->reactive(),
 
                                 TextInput::make('title')
                                     ->label('Invoice Title')
                                     ->required()
                                     ->maxLength(100)
+                                    ->placeholder('Enter the title of the invoice')
                                     ->columnSpanFull(),
 
                                 DatePicker::make('date')
@@ -115,6 +133,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->format('d M Y')
                                     ->native(false)
                                     ->default(now())
+                                    ->placeholder('Select the invoice date')
                                     ->closeOnDateSelection(),
 
                                 DatePicker::make('due_date')
@@ -122,6 +141,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->format('d M Y')
                                     ->native(false)
                                     ->minDate(fn(Get $get) => $get('date'))
+                                    ->placeholder('Select the due date')
                                     ->closeOnDateSelection(),
                             ]),
 
@@ -156,7 +176,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             })
                                             ->reactive()
                                             ->native(false)
-                                            ->afterStateUpdated(function ($state, callable $set) {
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                                 if (!$state) {
                                                     // kosongkan jika tidak ada item
                                                     $set('name', null);
@@ -169,8 +189,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                 $item = Item::find($state);
                                                 if ($item) {
                                                     // Set nilai berdasarkan item yang dipilih
+                                                    $qty = $get('qty') ?? 1; // Ambil qty jika ada, default 1
                                                     $set('name', $item->name);
-                                                    $set('rate', $item->rate);
+                                                    $set('rate', $item->rate * $qty); // Rate dikalikan qty
                                                     $set('description', $item->description);
                                                     $set('unit', $item->unit);
                                                 }
@@ -189,6 +210,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->minValue(1)
                                                     ->default(1)
                                                     ->required()
+                                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                        // Update rate jika qty berubah
+                                                        $itemId = $get('item_id');
+                                                        $item = $itemId ? Item::find($itemId) : null;
+                                                        $rate = $item ? $item->rate : 0;
+                                                        $set('rate', $rate * ($state ?: 1));
+                                                    })
                                                     ->reactive(),
 
                                                 Select::make('unit')
@@ -200,6 +228,14 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->numeric()
                                                     ->required()
                                                     ->reactive()
+                                                    ->afterStateHydrated(function (callable $set, callable $get) {
+                                                        $itemId = $get('item_id');
+                                                        $item = $itemId ? Item::find($itemId) : null;
+                                                        if ($item) {
+                                                            $qty = $get('qty') ?: 1;
+                                                            $set('rate', $item->rate * $qty);
+                                                        }
+                                                    })
                                                     ->readOnly(),
                                             ]),
 
@@ -247,7 +283,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         Section::make()
                             ->schema([
                                 Textarea::make('note')
-                                    ->rows(3),
+                                    ->rows(3)
+                                    ->placeholder('Optional note for this invoice'),
                             ]),
                     ])
                         ->columnSpan(['lg' => 2]),
@@ -271,12 +308,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                         Placeholder::make('total_price')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
-                                                $total = 0;
-                                                foreach ($items as $item) {
-                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                $total = array_reduce($items, function ($carry, $item) {
                                                     $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                    $total += $qty * $rate;
-                                                }
+                                                    return $carry + $rate;
+                                                }, 0);
+
                                                 return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
                                             })
                                             ->columnSpanFull(),
@@ -285,12 +321,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->label('Total Price After Discount')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
-                                                $total = 0;
-                                                foreach ($items as $item) {
-                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                $total = array_reduce($items, function ($carry, $item) {
                                                     $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                    $total += $qty * $rate;
-                                                }
+                                                    return $carry + $rate;
+                                                }, 0);
+
                                                 $discount = (float) ($get('discount') ?? 0);
                                                 $final = $total - ($discount / 100 * $total);
 
@@ -377,15 +412,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'sent' => 'primary',
-                        'paid' => 'success',
-                        'unpaid', 'overdue' => 'danger',
-                        'partially_paid' => 'warning',
-                        default => 'secondary',
-                    })
-                    ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
+                    ->formatStateUsing(fn($state) => InvoiceStatus::tryFrom($state)?->getLabel())
+                    ->color(fn($state) => InvoiceStatus::tryFrom($state)?->getColor())
+                    ->icon(fn($state) => InvoiceStatus::tryFrom($state)?->getIcon())
                     ->sortable(),
 
                 TextColumn::make('created_at')
@@ -400,16 +429,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->label('Date Range'),
                 SelectFilter::make('status')
                     ->label('Status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'sent' => 'Sent',
-                        'paid' => 'Paid',
-                        'unpaid' => 'Unpaid',
-                        'overdue' => 'Overdue',
-                        'partially_paid' => 'Partially Paid',
-                    ])
-                        ->selectablePlaceholder(false)
-                        ->native(false),
+                    ->options(InvoiceStatus::options())
+                    ->selectablePlaceholder(false)
+                    ->native(false),
             ], layout: FiltersLayout::Modal)
             ->filtersFormWidth(MaxWidth::Medium)
             ->defaultSort('serial_number', 'desc')
