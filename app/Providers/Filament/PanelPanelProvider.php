@@ -9,7 +9,6 @@ use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
 use Exception;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -92,7 +91,7 @@ class PanelPanelProvider extends PanelProvider
                 FilamentApexChartsPlugin::make(),
                 BreezyCore::make()
                     //->avatarUploadComponent(fn($fileUpload) => $fileUpload->disableLabel())
-                    ->avatarUploadComponent(fn() => SpatieMediaLibraryFileUpload::make('avatar')->hiddenLabel()->collection('avatar')->disk('s3')->avatar())
+                    ->avatarUploadComponent(fn() => FileUpload::make('profile_photo_path')->hiddenLabel()->directory('avatar')->disk('public')->avatar())
                     ->enableTwoFactorAuthentication()
                     ->myProfile(true, // Sets the 'account' link in the panel User Menu (default = true)
                         'My Profile', // Customizes the 'account' link label in the panel User Menu (default = null)

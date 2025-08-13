@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 //use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Support\Facades\Storage;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Filament\Panel;
@@ -48,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         'name',
         'email',
         'password',
+        'profile_photo_path'
     ];
 
     /**
@@ -112,7 +114,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     // more
     protected function defaultAvatar(): Attribute
     {
-        return Attribute::make(fn() => $this->hasMedia('avatar') ? $this->getFirstTemporaryUrl(now()->addHour(), 'avatar') : url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
+        return Attribute::make(fn() => $this->hasMedia('avatar') ? $this->getFirstTemporaryUrl(now()->addHour(), 'avatar') : ($this->profile_photo_path ? Storage::url($this->profile_photo_path) : url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128')));
     }
 
     protected function receivables(): Attribute
