@@ -178,7 +178,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Grid::make()
-                                            ->columns(2)
+                                            ->columns()
                                             ->schema([
                                                 TextInput::make('name')
                                                     ->required()
@@ -387,6 +387,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     })
                     ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
                     ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->date(fn() => 'd M Y H:i')
+                    ->sortable()
+                    ->toggleable()
+                    ->toggledHiddenByDefault(),
             ])
             ->filters([
                 DateRangeFilter::make('date')
