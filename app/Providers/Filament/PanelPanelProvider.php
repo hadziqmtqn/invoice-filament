@@ -26,7 +26,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
-use Mvenghaus\FilamentScheduleMonitor;
 
 class PanelPanelProvider extends PanelProvider
 {
@@ -88,7 +87,6 @@ class PanelPanelProvider extends PanelProvider
                 ChangePasswordPlugin::make(),
                 FilamentApexChartsPlugin::make(),
                 TwoFactorAuthPlugin::make(),
-                FilamentScheduleMonitor\FilamentPlugin::make()
             ])
             ->authMiddleware([
                 Authenticate::class,
