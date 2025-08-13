@@ -7,7 +7,6 @@ use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
-use Backstage\TwoFactorAuth\TwoFactorAuthPlugin;
 use Exception;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -86,7 +85,6 @@ class PanelPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
                 ChangePasswordPlugin::make(),
                 FilamentApexChartsPlugin::make(),
-                TwoFactorAuthPlugin::make(),
             ])
             ->authMiddleware([
                 Authenticate::class,
