@@ -58,7 +58,7 @@ class RecurringInvoice extends Model
     }
 
     // 1. First Next Invoice Date (saat recurring baru)
-    public function getFirstNextInvoiceDate(): Carbon
+    /*public function getFirstNextInvoiceDate(): Carbon
     {
         $baseDate = Carbon::parse($this->date);
         $repeatEvery = (int)($this->repeat_every ?: 1);
@@ -72,23 +72,25 @@ class RecurringInvoice extends Model
             'years' => $baseDate->copy()->addYears($repeatEvery),
             default => $baseDate,
         };
-    }
+    }*/
 
-// 2. Next Invoice Date (berjalan)
+    // 2. Next Invoice Date (berjalan)
     public function calculateNextInvoiceDate(): Carbon
     {
         $date = $this->date->copy(); // Carbon instance, JANGAN pakai reference!
         $now = now();
 
+        $repeatEvery = (int)($this->repeat_every ?: 1);
+
         // Cek jika next interval sudah lewat, tambahkan terus sampai lewat now
         while ($date <= $now) {
             $date = match ($this->recurrence_frequency) {
-                'seconds' => $date->addSeconds($this->repeat_every),
-                'minutes' => $date->addMinutes($this->repeat_every),
-                'days' => $date->addDays($this->repeat_every),
-                'weeks' => $date->addWeeks($this->repeat_every),
-                'months' => $date->addMonths($this->repeat_every),
-                'years' => $date->addYears($this->repeat_every),
+                'seconds' => $date->addSeconds($repeatEvery),
+                'minutes' => $date->addMinutes($repeatEvery),
+                'days' => $date->addDays($repeatEvery),
+                'weeks' => $date->addWeeks($repeatEvery),
+                'months' => $date->addMonths($repeatEvery),
+                'years' => $date->addYears($repeatEvery),
                 default => $date,
             };
         }
