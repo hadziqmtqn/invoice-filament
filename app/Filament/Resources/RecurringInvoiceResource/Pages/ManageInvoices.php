@@ -2,37 +2,24 @@
 
 namespace App\Filament\Resources\RecurringInvoiceResource\Pages;
 
+use App\Enums\InvoiceStatus;
+use App\Filament\Resources\InvoiceResource\Pages\CreateInvoice;
+use App\Filament\Resources\InvoiceResource\Pages\EditInvoice;
+use App\Filament\Resources\InvoiceResource\Pages\ViewInvoice;
 use App\Filament\Resources\RecurringInvoiceResource;
-use Filament\Actions;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ManageInvoices extends ManageRelatedRecords
 {
     protected static string $resource = RecurringInvoiceResource::class;
-
     protected static string $relationship = 'invoices';
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-wallet';
 
     public static function getNavigationLabel(): string
     {
-        return 'Recurring Invoice';
-    }
-
-    public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('recurring_invoice_id')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        return 'Invoices';
     }
 
     public function table(Table $table): Table
@@ -40,26 +27,51 @@ class ManageInvoices extends ManageRelatedRecords
         return $table
             ->recordTitleAttribute('recurring_invoice_id')
             ->columns([
-                Tables\Columns\TextColumn::make('recurring_invoice_id'),
+                Tables\Columns\TextColumn::make('code')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('user.name')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->wrap(),
+
+                Tables\Columns\TextColumn::make('total_price')
+                    ->money('idr'),
+
+                Tables\Columns\TextColumn::make('total_paid')
+                    ->money('idr'),
+
+                Tables\Columns\TextColumn::make('date')
+                    ->date('d M Y')
+                    ->description(fn($record) => 'Due: ' . $record->due_date->format('d M Y'))
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => InvoiceStatus::tryFrom($state)?->getLabel())
+                    ->color(fn($state) => InvoiceStatus::tryFrom($state)?->getColor())
+                    ->icon(fn($state) => InvoiceStatus::tryFrom($state)?->getIcon())
+                    ->sortable()
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-                Tables\Actions\AssociateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->url(fn () => CreateInvoice::getUrl()),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DissociateAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->url(fn ($record) => ViewInvoice::getUrl(['record' => $record])),
+                    Tables\Actions\EditAction::make()
+                        ->url(fn ($record) => EditInvoice::getUrl(['record' => $record])),
+                ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DissociateBulkAction::make(),
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 }

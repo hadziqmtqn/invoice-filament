@@ -7,7 +7,7 @@ use Filament\Forms\Form;
 
 class Login extends \Filament\Pages\Auth\Login
 {
-    public function form(Form $form): Form
+    /*public function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -20,5 +20,15 @@ class Login extends \Filament\Pages\Auth\Login
                     ->language('id-ID'),
             ])
             ->statePath('data');
+    }*/
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->form->fill([
+            'email' => 'superadmin@bkn.my.id',
+            'password' => 'superadmin',
+            'remember' => true,
+        ]);
     }
 }

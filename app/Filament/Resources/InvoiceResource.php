@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\ItemUnit;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
@@ -391,15 +392,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'sent' => 'primary',
-                        'paid' => 'success',
-                        'unpaid', 'overdue' => 'danger',
-                        'partially_paid' => 'warning',
-                        default => 'secondary',
-                    })
-                    ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
+                    ->formatStateUsing(fn($state) => InvoiceStatus::tryFrom($state)?->getLabel())
+                    ->color(fn($state) => InvoiceStatus::tryFrom($state)?->getColor())
+                    ->icon(fn($state) => InvoiceStatus::tryFrom($state)?->getIcon())
                     ->sortable(),
 
                 TextColumn::make('created_at')
@@ -414,16 +409,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                     ->label('Date Range'),
                 SelectFilter::make('status')
                     ->label('Status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'sent' => 'Sent',
-                        'paid' => 'Paid',
-                        'unpaid' => 'Unpaid',
-                        'overdue' => 'Overdue',
-                        'partially_paid' => 'Partially Paid',
-                    ])
-                        ->selectablePlaceholder(false)
-                        ->native(false),
+                    ->options(InvoiceStatus::options())
+                    ->selectablePlaceholder(false)
+                    ->native(false),
             ], layout: FiltersLayout::Modal)
             ->filtersFormWidth(MaxWidth::Medium)
             ->defaultSort('serial_number', 'desc')

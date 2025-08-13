@@ -9,3 +9,4 @@ Route::get('callback-messages', function () {
         'request' => request()->all(),
     ]);
 });
+

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Resources\RecurringInvoiceResource\Pages\ViewRecurringInvoice;
 use App\Filament\Resources\UserResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Invoice;
@@ -32,6 +33,12 @@ class ViewInvoice extends ViewRecord
                     ->schema([
                         Section::make()
                             ->schema([
+                                TextEntry::make('recurringInvoice.code')
+                                    ->label('Recurring Invoice Code')
+                                    ->color('primary')
+                                    ->inlineLabel()
+                                    ->url(fn(Invoice $record): string => $record->recurringInvoice ? ViewRecurringInvoice::getUrl(['record' => $record->recurringInvoice?->slug]) : '#'),
+
                                 TextEntry::make('code')
                                     ->label('Invoice Code')
                                     ->color('primary')
