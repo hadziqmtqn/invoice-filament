@@ -95,7 +95,11 @@ class ViewInvoice extends ViewRecord
                                             ->success()
                                             ->title('New Invoice Sent')
                                             ->body('You have a new bill with a billing number: ' . $record->code)
-                                            ->sendToDatabase($record->user);
+                                            ->sendToDatabase($record->user)
+                                            ->actions([
+                                                Actions\Action::make('View Invoice')
+                                                    ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
+                                            ]);
                                     }
                                 })
                                 ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid')),

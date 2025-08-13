@@ -26,6 +26,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use Mvenghaus\FilamentScheduleMonitor;
 
 class PanelPanelProvider extends PanelProvider
 {
@@ -45,7 +46,6 @@ class PanelPanelProvider extends PanelProvider
             ->path('panel')
             ->spa()
             ->login() // alt: App/Filament/Pages/Login.php
-            ->topNavigation()
             ->brandName($application?->name)
             ->favicon($application?->favicon)
             ->colors([
@@ -65,8 +65,12 @@ class PanelPanelProvider extends PanelProvider
                 PaymentMethodChart::class
             ])
             ->navigationGroups([
-                'Pelindung',
-                'Pengaturan',
+                'Main',
+                'Finance',
+                'Payments',
+                'References',
+                'Configuration',
+                'Settings',
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -79,12 +83,12 @@ class PanelPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            //->plugin(TwoFactorAuthPlugin::make())
             ->plugins([
                 FilamentShieldPlugin::make(),
                 ChangePasswordPlugin::make(),
                 FilamentApexChartsPlugin::make(),
-                TwoFactorAuthPlugin::make()
+                TwoFactorAuthPlugin::make(),
+                FilamentScheduleMonitor\FilamentPlugin::make()
             ])
             ->authMiddleware([
                 Authenticate::class,

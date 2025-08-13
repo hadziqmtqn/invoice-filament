@@ -17,7 +17,7 @@ class BankAccountPolicy
 
     public function view(User $user, BankAccount $bankAccount): bool
     {
-        return $user->can('view_bank::account');
+        return $user->can('view_bank::account', $bankAccount);
     }
 
     public function create(User $user): bool
@@ -27,11 +27,11 @@ class BankAccountPolicy
 
     public function update(User $user, BankAccount $bankAccount): bool
     {
-        return $user->can('update_bank::account');
+        return $user->can('update_bank::account', $bankAccount);
     }
 
     public function delete(User $user, BankAccount $bankAccount): bool
     {
-        return $user->can('delete_bank::account');
+        return $user->can('delete_bank::account', $bankAccount);
     }
 }

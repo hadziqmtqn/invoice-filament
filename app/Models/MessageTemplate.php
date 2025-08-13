@@ -36,7 +36,7 @@ class MessageTemplate extends Model
 
         static::created(function (MessageTemplate $messageTemplate) {
             if ($messageTemplate->is_active) {
-                self::where('category', $messageTemplate->category)
+                self::where('message_template_category_id', $messageTemplate->message_template_category_id)
                     ->where('id', '!=', $messageTemplate->id)
                     ->update(['is_active' => false]);
             }
@@ -44,7 +44,7 @@ class MessageTemplate extends Model
 
         static::updated(function (MessageTemplate $messageTemplate) {
             if ($messageTemplate->is_active) {
-                self::where('category', $messageTemplate->category)
+                self::where('message_template_category_id', $messageTemplate->message_template_category_id)
                     ->where('id', '!=', $messageTemplate->id)
                     ->update(['is_active' => false]);
             }

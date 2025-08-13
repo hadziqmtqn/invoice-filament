@@ -22,12 +22,14 @@ class Item extends Model implements HasMedia
         'unit',
         'rate',
         'description',
+        'is_active'
     ];
 
     protected function casts(): array
     {
         return [
             'slug' => 'string',
+            'is_active' => 'boolean'
         ];
     }
 

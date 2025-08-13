@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\InvoiceObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+#[ObservedBy([InvoiceObserver::class])]
 class Invoice extends Model implements HasMedia
 {
     use InteractsWithMedia;
@@ -19,8 +22,9 @@ class Invoice extends Model implements HasMedia
         'invoice_number',
         'serial_number',
         'code',
-        'title',
         'user_id',
+        'recurring_invoice_id',
+        'title',
         'date',
         'due_date',
         'discount',
@@ -43,9 +47,9 @@ class Invoice extends Model implements HasMedia
 
         static::creating(function (Invoice $invoice) {
             $invoice->slug = Str::uuid()->toString();
-            $invoice->invoice_number = now()->timestamp;
             $invoice->serial_number = self::max('serial_number') + 1;
             $invoice->code = 'INV' . Str::padLeft($invoice->serial_number, 6, '0');
+            $invoice->invoice_number = $invoice->code . '-' . now()->timestamp;
         });
     }
 
@@ -62,6 +66,11 @@ class Invoice extends Model implements HasMedia
     public function invoicePayments(): HasMany
     {
         return $this->hasMany(InvoicePayment::class, 'invoice_id');
+    }
+
+    public function recurringInvoice(): BelongsTo
+    {
+        return $this->belongsTo(RecurringInvoice::class);
     }
 
     // More

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ItemUnit;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Widgets\InvoiceStatsOverview;
 use App\Models\Application;
@@ -9,7 +10,8 @@ use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Item;
-use App\Models\User;
+use App\Services\ItemService;
+use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
 use Exception;
@@ -45,7 +47,30 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Invoice::class;
     protected static ?string $slug = 'invoices';
+    protected static ?string $navigationGroup = 'Finance';
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationIcon = 'heroicon-o-receipt-percent';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return Invoice::where('status', '!=', 'paid')
+            ->whereBetween('due_date', [now(), now()->addDays(7)])
+            ->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Total invoices due within the next 7 days';
+    }
+
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getPermissionPrefixes(): array
@@ -72,14 +97,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 Select::make('user_id')
                                     ->label('User')
                                     ->options(function (?Invoice $record) {
-                                        return User::whereHas('roles', fn($query) => $query->where('name', 'user'))
-                                            ->when($record?->exists, function ($query) use ($record) {
-                                                $query->where('id', $record->user_id);
-                                            })
-                                            ->orderByDesc('created_at')
-                                            ->limit(10)
-                                            ->get()
-                                            ->mapWithKeys(fn(User $user) => [$user->id => $user->name]);
+                                        return UserService::dropdownOptions($record?->exists ? $record->user_id : null);
                                     })
                                     ->searchable()
                                     ->required()
@@ -112,18 +130,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                             ->schema([
                                 Repeater::make('invoiceItems')
                                     ->relationship('invoiceItems')
+                                    ->hiddenLabel()
                                     ->schema([
                                         Select::make('item_id')
                                             ->label('Item')
                                             ->searchable()
                                             ->options(function (?InvoiceItem $record) {
-                                                return Item::when($record?->invoice?->invoicePayments, function ($query) use ($record) {
-                                                    $query->whereIn('id', $record->invoice?->invoiceItems?->pluck('item_id') ?? []);
-                                                })
-                                                    ->orderByDesc('created_at')
-                                                    ->limit(10)
-                                                    ->get()
-                                                    ->mapWithKeys(fn(Item $item) => [$item->id => $item->name]);
+                                                return ItemService::dropdownOptions($record?->invoice?->invoiceItems?->pluck('item_id')->toArray() ?? []);
                                             })
                                             ->preload()
                                             ->required()
@@ -155,6 +168,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
                                                 $item = Item::find($state);
                                                 if ($item) {
+                                                    // Set nilai berdasarkan item yang dipilih
                                                     $set('name', $item->name);
                                                     $set('rate', $item->rate);
                                                     $set('description', $item->description);
@@ -164,12 +178,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Grid::make()
-                                            ->columns(4)
+                                            ->columns(2)
                                             ->schema([
                                                 TextInput::make('name')
                                                     ->required()
-                                                    ->readOnly()
-                                                    ->reactive(),
+                                                    ->placeholder('Enter the item name'),
 
                                                 TextInput::make('qty')
                                                     ->numeric()
@@ -178,20 +191,27 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->required()
                                                     ->reactive(),
 
-                                                TextInput::make('unit')
-                                                    ->reactive(),
+                                                Select::make('unit')
+                                                    ->options(ItemUnit::options())
+                                                    ->reactive()
+                                                    ->native(false),
 
                                                 TextInput::make('rate')
                                                     ->numeric()
                                                     ->required()
-                                                    ->reactive(),
+                                                    ->reactive()
+                                                    ->readOnly(),
                                             ]),
-                                        Textarea::make('description')->rows(2)->reactive()->columnSpanFull(),
+
+                                        Textarea::make('description')
+                                            ->rows(2)
+                                            ->reactive()
+                                            ->placeholder('Optional description for this item')
+                                            ->columnSpanFull(),
                                     ])
                                     ->minItems(1)
                                     ->deletable(function ($state, callable $get, $livewire) {
                                         $invoice = $livewire->record ?? null;
-                                        //dd($invoice->invoicePayments()->exists());
 
                                         // Ambil invoiceItems, pastikan array
                                         $items = $get('invoiceItems') ?? [];
@@ -249,7 +269,6 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                 Grid::make()
                                     ->schema([
                                         Placeholder::make('total_price')
-                                            ->label('Total Harga')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = 0;
@@ -263,7 +282,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->columnSpanFull(),
 
                                         Placeholder::make('final_price')
-                                            ->label('Total Akhir Setelah Diskon')
+                                            ->label('Total Price After Discount')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = 0;
@@ -281,10 +300,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ])
                             ]),
 
-                        Section::make('Rekening Bank')
+                        Section::make('Bank Accounts')
                             ->description('Transfer pembayaran ke salah satu rekening berikut:')
                             ->schema([
                                 Placeholder::make('bank_accounts')
+                                    ->hiddenLabel()
                                     ->content(function () {
                                         $accounts = BankAccount::with('bank:id,short_name,full_name')
                                             ->orderBy('bank_id')
@@ -335,11 +355,14 @@ class InvoiceResource extends Resource implements HasShieldPermissions
         return $table
             ->columns([
                 TextColumn::make('code')
-                    ->tooltip(fn($record): string => $record->title)
                     ->searchable(),
 
                 TextColumn::make('user.name')
                     ->description(fn(Invoice $record): string => $record->user?->userProfile?->phone)
+                    ->searchable(),
+
+                TextColumn::make('title')
+                    ->wrap()
                     ->searchable(),
 
                 TextColumn::make('date')

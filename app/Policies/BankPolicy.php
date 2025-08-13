@@ -17,7 +17,7 @@ class BankPolicy
 
     public function view(User $user, Bank $bank): bool
     {
-        return $user->can('view_bank');
+        return $user->can('view_bank', $bank);
     }
 
     public function create(User $user): bool
@@ -27,11 +27,11 @@ class BankPolicy
 
     public function update(User $user, Bank $bank): bool
     {
-        return $user->can('update_bank');
+        return $user->can('update_bank', $bank);
     }
 
     public function delete(User $user, Bank $bank): bool
     {
-        return $user->can('delete_bank');
+        return $user->can('delete_bank', $bank);
     }
 }

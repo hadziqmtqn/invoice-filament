@@ -17,7 +17,7 @@ class MessageTemplatePolicy
 
     public function view(User $user, MessageTemplate $messageTemplate): bool
     {
-        return $user->can('view_message::template');
+        return $user->can('view_message::template', $messageTemplate);
     }
 
     public function create(User $user): bool
@@ -27,11 +27,11 @@ class MessageTemplatePolicy
 
     public function update(User $user, MessageTemplate $messageTemplate): bool
     {
-        return $user->can('update_message::template');
+        return $user->can('update_message::template', $messageTemplate);
     }
 
     public function delete(User $user, MessageTemplate $messageTemplate): bool
     {
-        return $user->can('delete_message::template');
+        return $user->can('delete_message::template', $messageTemplate);
     }
 }

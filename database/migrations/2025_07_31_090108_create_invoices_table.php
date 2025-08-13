@@ -13,8 +13,9 @@ return new class extends Migration {
             $table->string('invoice_number')->unique();
             $table->integer('serial_number')->unique();
             $table->string('code')->unique();
-            $table->string('title');
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('recurring_invoice_id')->nullable();
+            $table->string('title');
             $table->date('date');
             $table->date('due_date');
             $table->float('discount')->default(0);
@@ -23,6 +24,7 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->restrictOnDelete();
+            $table->foreign('recurring_invoice_id')->references('id')->on('recurring_invoices')->nullOnDelete();
         });
     }
 

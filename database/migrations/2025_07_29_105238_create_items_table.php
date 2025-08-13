@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('unit')->nullable();
             $table->decimal('rate', 20, 0);
             $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });

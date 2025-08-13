@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Filament\Resources\RecurringInvoiceResource\Pages;
+
+use App\Filament\Resources\RecurringInvoiceResource;
+use Filament\Actions\DeleteAction;
+use Filament\Resources\Pages\EditRecord;
+
+class EditRecurringInvoice extends EditRecord
+{
+    protected static string $resource = RecurringInvoiceResource::class;
+    protected ?bool $hasDatabaseTransactions = true;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            DeleteAction::make(),
+        ];
+    }
+}

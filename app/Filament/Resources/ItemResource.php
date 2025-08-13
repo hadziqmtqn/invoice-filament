@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ItemUnit;
 use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -23,6 +24,7 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -33,6 +35,7 @@ class ItemResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Item::class;
     protected static ?string $slug = 'items';
+    protected static ?string $navigationGroup = 'References';
     protected static ?string $navigationIcon = 'heroicon-o-cube';
 
     public static function getPermissionPrefixes(): array
@@ -80,14 +83,7 @@ class ItemResource extends Resource implements HasShieldPermissions
                 ->hintIcon('heroicon-o-information-circle', 'Nama item lain sebagai alternatif atau alias dari nama item utama.'),
 
             Select::make('unit')
-                ->options([
-                    'pcs' => 'Pieces',
-                    'kg' => 'Kilograms',
-                    'ltr' => 'Liters',
-                    'mtr' => 'Meters',
-                    'box' => 'Box',
-                    'set' => 'Set',
-                ])
+                ->options(ItemUnit::options())
                 ->native(false),
 
             TextInput::make('rate')
@@ -154,6 +150,9 @@ class ItemResource extends Resource implements HasShieldPermissions
                     ->searchable()
                     ->money('idr', true)
                     ->formatStateUsing(fn($state): string => number_format($state, 0, ',', '.')),
+
+                ToggleColumn::make('is_active')
+                    ->sortable()
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
