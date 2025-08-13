@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Observers\RecurringInvoiceObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -127,5 +129,12 @@ class RecurringInvoice extends Model
         return Attribute::make(
             get: fn() => $this->calculateNextInvoiceDate()
         );
+    }
+
+    // TODO Scope
+    #[Scope]
+    protected function userId(Builder $query, $userId): Builder
+    {
+        return $query->where('user_id', $userId);
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Item;
 use App\Services\ItemService;
+use App\Services\RecurringInvoiceService;
 use App\Services\UserService;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
@@ -103,12 +104,28 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->searchable()
                                     ->required()
                                     ->native(false)
-                                    ->columnSpanFull(),
+                                    ->reactive()
+                                    ->afterStateUpdated(function (Get $get, callable $set) {
+                                        // Reset recurring_invoice_id when user changes
+                                        $set('recurring_invoice_id', null);
+                                    }),
+
+                                Select::make('recurring_invoice_id')
+                                    ->label('Recurring Invoice')
+                                    ->options(function(Get $get, ?Invoice $record) {
+                                        $userId = $get('user_id');
+
+                                        return RecurringInvoiceService::selectOptions($userId, ($record?->exists ? $record->recurring_invoice_id : null));
+                                    })
+                                    ->searchable()
+                                    ->native(false)
+                                    ->reactive(),
 
                                 TextInput::make('title')
                                     ->label('Invoice Title')
                                     ->required()
                                     ->maxLength(100)
+                                    ->placeholder('Enter the title of the invoice')
                                     ->columnSpanFull(),
 
                                 DatePicker::make('date')
@@ -116,6 +133,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->format('d M Y')
                                     ->native(false)
                                     ->default(now())
+                                    ->placeholder('Select the invoice date')
                                     ->closeOnDateSelection(),
 
                                 DatePicker::make('due_date')
@@ -123,6 +141,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                     ->format('d M Y')
                                     ->native(false)
                                     ->minDate(fn(Get $get) => $get('date'))
+                                    ->placeholder('Select the due date')
                                     ->closeOnDateSelection(),
                             ]),
 
@@ -264,7 +283,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                         Section::make()
                             ->schema([
                                 Textarea::make('note')
-                                    ->rows(3),
+                                    ->rows(3)
+                                    ->placeholder('Optional note for this invoice'),
                             ]),
                     ])
                         ->columnSpan(['lg' => 2]),
