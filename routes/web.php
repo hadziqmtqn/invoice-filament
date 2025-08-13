@@ -15,13 +15,13 @@ use Laravel\Jetstream\Http\Controllers\TeamInvitationController;
 |
 */
 
-Route::redirect('/', '/app/login')->name('home');
+Route::redirect('/', '/panel/login')->name('home');
 
-Route::redirect('/login', '/app/login')->name('login');
+Route::redirect('/login', '/panel/login')->name('login');
 
-Route::redirect('/register', '/app/register')->name('register');
+Route::redirect('/register', '/panel/register')->name('register');
 
-Route::redirect('/dashboard', '/app')->name('dashboard');
+Route::redirect('/dashboard', '/panel')->name('dashboard');
 
 Route::get('/team-invitations/{invitation}', [TeamInvitationController::class, 'accept'])
     ->middleware(['signed', 'verified', 'auth', AuthenticateSession::class])

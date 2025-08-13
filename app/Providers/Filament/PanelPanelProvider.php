@@ -2,7 +2,7 @@
 
 namespace App\Providers\Filament;
 
-// use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
@@ -14,11 +14,9 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Hardikkhorasiya09\ChangePassword\ChangePasswordPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -87,10 +85,8 @@ class PanelPanelProvider extends PanelProvider
             ->authGuard('web')
             ->plugins([
                 FilamentShieldPlugin::make(),
-                ChangePasswordPlugin::make(),
                 FilamentApexChartsPlugin::make(),
                 BreezyCore::make()
-                    //->avatarUploadComponent(fn($fileUpload) => $fileUpload->disableLabel())
                     ->avatarUploadComponent(fn() => FileUpload::make('profile_photo_path')->hiddenLabel()->directory('avatar')->disk('public')->avatar())
                     ->enableTwoFactorAuthentication()
                     ->myProfile(true, // Sets the 'account' link in the panel User Menu (default = true)
