@@ -156,7 +156,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             })
                                             ->reactive()
                                             ->native(false)
-                                            ->afterStateUpdated(function ($state, callable $set) {
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                                 if (!$state) {
                                                     // kosongkan jika tidak ada item
                                                     $set('name', null);
@@ -169,8 +169,9 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                 $item = Item::find($state);
                                                 if ($item) {
                                                     // Set nilai berdasarkan item yang dipilih
+                                                    $qty = $get('qty') ?? 1; // Ambil qty jika ada, default 1
                                                     $set('name', $item->name);
-                                                    $set('rate', $item->rate);
+                                                    $set('rate', $item->rate * $qty); // Rate dikalikan qty
                                                     $set('description', $item->description);
                                                     $set('unit', $item->unit);
                                                 }
@@ -189,6 +190,13 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->minValue(1)
                                                     ->default(1)
                                                     ->required()
+                                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                        // Update rate jika qty berubah
+                                                        $itemId = $get('item_id');
+                                                        $item = $itemId ? Item::find($itemId) : null;
+                                                        $rate = $item ? $item->rate : 0;
+                                                        $set('rate', $rate * ($state ?: 1));
+                                                    })
                                                     ->reactive(),
 
                                                 Select::make('unit')
@@ -200,6 +208,14 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                                     ->numeric()
                                                     ->required()
                                                     ->reactive()
+                                                    ->afterStateHydrated(function (callable $set, callable $get) {
+                                                        $itemId = $get('item_id');
+                                                        $item = $itemId ? Item::find($itemId) : null;
+                                                        if ($item) {
+                                                            $qty = $get('qty') ?: 1;
+                                                            $set('rate', $item->rate * $qty);
+                                                        }
+                                                    })
                                                     ->readOnly(),
                                             ]),
 
@@ -271,12 +287,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                         Placeholder::make('total_price')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
-                                                $total = 0;
-                                                foreach ($items as $item) {
-                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                $total = array_reduce($items, function ($carry, $item) {
                                                     $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                    $total += $qty * $rate;
-                                                }
+                                                    return $carry + $rate;
+                                                }, 0);
+
                                                 return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
                                             })
                                             ->columnSpanFull(),
@@ -285,12 +300,11 @@ class InvoiceResource extends Resource implements HasShieldPermissions
                                             ->label('Total Price After Discount')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
-                                                $total = 0;
-                                                foreach ($items as $item) {
-                                                    $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                                $total = array_reduce($items, function ($carry, $item) {
                                                     $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                    $total += $qty * $rate;
-                                                }
+                                                    return $carry + $rate;
+                                                }, 0);
+
                                                 $discount = (float) ($get('discount') ?? 0);
                                                 $final = $total - ($discount / 100 * $total);
 
