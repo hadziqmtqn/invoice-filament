@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -34,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     use HasRoles;
     use InteractsWithMedia;
     use HasSlug;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
