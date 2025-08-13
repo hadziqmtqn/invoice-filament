@@ -133,7 +133,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                         })
                                         ->reactive()
                                         ->native(false)
-                                        ->afterStateUpdated(function ($state, callable $set) {
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             if (!$state) {
                                                 // kosongkan jika tidak ada item
                                                 $set('name', null);
@@ -145,8 +145,9 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
 
                                             $item = Item::find($state);
                                             if ($item) {
+                                                $qty = $get('qty') ?? 1; // Ambil qty jika ada, default 1
                                                 $set('name', $item->name);
-                                                $set('rate', $item->rate);
+                                                $set('rate', $item->rate * $qty); // Kalikan rate dengan qty
                                                 $set('description', $item->description);
                                                 $set('unit', $item->unit);
                                             }
@@ -166,7 +167,13 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                                 ->placeholder('Enter the quantity')
                                                 ->minValue(1)
                                                 ->default(1)
-                                                ->reactive(),
+                                                ->reactive()
+                                                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                    $itemId = $get('item_id');
+                                                    $item = $itemId ? Item::find($itemId) : null;
+                                                    $rate = $item ? $item->rate : 0;
+                                                    $set('rate', $rate * ($state ?: 1));
+                                                }),
 
                                             Select::make('unit')
                                                 ->options(ItemUnit::options())
@@ -180,6 +187,14 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                                 ->required()
                                                 ->placeholder('Enter the rate')
                                                 ->reactive()
+                                                ->afterStateHydrated(function (callable $set, callable $get) {
+                                                    $itemId = $get('item_id');
+                                                    $item = $itemId ? Item::find($itemId) : null;
+                                                    if ($item) {
+                                                        $qty = $get('qty') ?: 1;
+                                                        $set('rate', $item->rate * $qty);
+                                                    }
+                                                })
                                                 ->readOnly(),
                                         ]),
 
@@ -222,6 +237,7 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                             TextInput::make('repeat_every')
                                 ->required()
                                 ->integer()
+                                ->default(1)
                                 ->placeholder('Enter the number of times to repeat'),
                         ]),
 
@@ -243,12 +259,11 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                     Placeholder::make('total_price')
                                         ->content(function (Get $get) {
                                             $items = $get('lineItems') ?? [];
-                                            $total = 0;
-                                            foreach ($items as $item) {
-                                                $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                            $total = array_reduce($items, function ($carry, $item) {
                                                 $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                $total += $qty * $rate;
-                                            }
+                                                return $carry + $rate;
+                                            }, 0);
+
                                             return (new HtmlString('<div style="font-size: 15pt"><strong>Rp' . number_format($total, 0, ',', '.') . '</strong></div>'));
                                         })
                                         ->columnSpanFull(),
@@ -257,12 +272,10 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
                                         ->label('Total Price After Discount')
                                         ->content(function (Get $get) {
                                             $items = $get('lineItems') ?? [];
-                                            $total = 0;
-                                            foreach ($items as $item) {
-                                                $qty = isset($item['qty']) ? (int) $item['qty'] : 0;
+                                            $total = array_reduce($items, function ($carry, $item) {
                                                 $rate = isset($item['rate']) ? (int) $item['rate'] : 0;
-                                                $total += $qty * $rate;
-                                            }
+                                                return $carry + $rate;
+                                            }, 0);
                                             $discount = (float) ($get('discount') ?? 0);
                                             $final = $total - ($discount / 100 * $total);
 

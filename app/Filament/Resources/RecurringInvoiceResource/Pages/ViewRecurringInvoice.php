@@ -7,6 +7,7 @@ use App\Filament\Resources\RecurringInvoiceResource;
 use App\Filament\Resources\UserResource;
 use App\Models\RecurringInvoice;
 use Filament\Infolists\Components\Group;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -84,8 +85,18 @@ class ViewRecurringInvoice extends ViewRecord
                                 ->icon('heroicon-o-calendar')
                                 ->date('d M Y H:i')
                                 ->inlineLabel(),
-                        ])
+                        ]),
 
+                    Section::make('Line Items')
+                        ->schema([
+                            RepeatableEntry::make('lineItems')
+                                ->hiddenLabel()
+                                ->columns()
+                                ->schema([
+                                    TextEntry::make('item.name'),
+                                    TextEntry::make('qty')
+                                ])
+                        ]),
                 ])
                 ->columnSpan(['lg' => 2]),
 
