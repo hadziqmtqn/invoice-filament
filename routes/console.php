@@ -40,26 +40,3 @@ Artisan::command('inspire', function () {
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
     });
-
-/*return function (\Illuminate\Console\Scheduling\Schedule $schedule) {
-    $schedule->command('invoice:due')
-        ->dailyAt('01:00')
-        ->timezone('Asia/Jakarta')
-        ->withoutOverlapping()
-        ->onSuccess(fn() => Log::info('Invoice due command executed successfully.'))
-        ->onFailure(fn() => Log::error('Invoice due command failed.'));
-
-    $schedule->command('invoice:will-due')
-        ->dailyAt('02:00')
-        ->timezone('Asia/Jakarta')
-        ->withoutOverlapping()
-        ->onSuccess(fn() => Log::info('Invoice will-due command executed successfully.'))
-        ->onFailure(fn() => Log::error('Invoice will-due command failed.'));
-
-    $schedule->command('invoice:generate-recurring')
-        ->everyMinute()
-        ->timezone('Asia/Jakarta')
-        ->withoutOverlapping()
-        ->onSuccess(fn() => Log::info('Invoice generate-recurring command executed successfully.'))
-        ->onFailure(fn() => Log::error('Invoice generate-recurring command failed.'));
-};*/

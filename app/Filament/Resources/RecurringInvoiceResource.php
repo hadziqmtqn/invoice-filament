@@ -27,6 +27,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Pages\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -44,6 +46,8 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
     protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 2;
     protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getPermissionPrefixes(): array
     {
@@ -364,11 +368,22 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
             'index' => Pages\ListRecurringInvoices::route('/'),
             'create' => Pages\CreateRecurringInvoice::route('/create'),
             'edit' => Pages\EditRecurringInvoice::route('/{record}/edit'),
+            'view' => Pages\ViewRecurringInvoice::route('/{record}'),
+            'manage-invoices' => Pages\ManageInvoices::route('/{record}/manage-invoices'),
         ];
     }
 
     public static function getGloballySearchableAttributes(): array
     {
         return ['code'];
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\EditRecurringInvoice::class,
+            Pages\ViewRecurringInvoice::class,
+            Pages\ManageInvoices::class
+        ]);
     }
 }

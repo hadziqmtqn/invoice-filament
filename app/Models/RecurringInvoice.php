@@ -52,6 +52,11 @@ class RecurringInvoice extends Model
         return $this->hasMany(LineItem::class, 'recurring_invoice_id');
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'recurring_invoice_id');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
