@@ -7,7 +7,41 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-return function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+\Illuminate\Support\Facades\Schedule::command('invoice:due')
+    ->dailyAt('01:00') // Every day at midnight
+    ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Invoice due command executed successfully.');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Invoice due command failed.');
+    });
+
+\Illuminate\Support\Facades\Schedule::command('invoice:will-due')
+    ->dailyAt('02:00') // Every day at midnight
+    ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Invoice will-due command executed successfully.');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Invoice will-due command failed.');
+    });
+
+\Illuminate\Support\Facades\Schedule::command('invoice:generate-recurring')
+//    ->dailyAt('17:45') // Every day at midnight
+    ->everyMinute()
+    ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Invoice generate-recurring command executed successfully.');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
+    });
+
+/*return function (\Illuminate\Console\Scheduling\Schedule $schedule) {
     $schedule->command('invoice:due')
         ->dailyAt('01:00')
         ->timezone('Asia/Jakarta')
@@ -28,4 +62,4 @@ return function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         ->withoutOverlapping()
         ->onSuccess(fn() => Log::info('Invoice generate-recurring command executed successfully.'))
         ->onFailure(fn() => Log::error('Invoice generate-recurring command failed.'));
-};
+};*/
