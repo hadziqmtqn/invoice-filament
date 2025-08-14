@@ -16,6 +16,8 @@ use Laravel\Jetstream\Http\Controllers\TeamInvitationController;
 */
 
 Route::redirect('/', '/panel/login')->name('home');
+Route::redirect('/app', '/panel')->name('app');
+Route::redirect('/app/{any}', '/panel')->where('any', '.*');
 
 Route::redirect('/login', '/panel/login')->name('login');
 
