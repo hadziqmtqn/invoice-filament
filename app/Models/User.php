@@ -133,4 +133,9 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     {
         return true;
     }
+
+    public function getRouteKeyName(): string
+    {
+        return 'username';
+    }
 }
