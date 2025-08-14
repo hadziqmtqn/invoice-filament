@@ -96,21 +96,21 @@ class PaymentTable
                     ])
             ], layout: FiltersLayout::Modal)
             ->actions([
+                Html2MediaAction::make('print')
+                    ->icon('heroicon-o-printer')
+                    ->modalHeading('Print Payment')
+                    ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
+                    ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
+                        'application' => Application::first(),
+                        'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
+                    ]))
+                    ->content(fn($record) => view('filament.resources.payment-resource.print', [
+                        'application' => Application::first(),
+                        'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
+                    ]))
+                    ->savePdf()
+                    ->color('warning'),
                 ActionGroup::make([
-                    Html2MediaAction::make('print')
-                        ->icon('heroicon-o-printer')
-                        ->modalHeading('Print Payment')
-                        ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
-                        ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
-                            'application' => Application::first(),
-                            'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
-                        ]))
-                        ->content(fn($record) => view('filament.resources.payment-resource.print', [
-                            'application' => Application::first(),
-                            'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
-                        ]))
-                        ->savePdf()
-                        ->color('primary'),
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
                         ->modalWidth('5xl'),

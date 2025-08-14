@@ -9,6 +9,8 @@ use App\Models\Payment;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
 use Filament\Forms\Form;
+use Filament\Pages\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +23,8 @@ class PaymentResource extends Resource implements HasShieldPermissions
     protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getPermissionPrefixes(): array
     {
@@ -57,6 +61,7 @@ class PaymentResource extends Resource implements HasShieldPermissions
         return [
             'index' => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
+            'view' => Pages\ViewPayment::route('{record}'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
     }
@@ -65,11 +70,20 @@ class PaymentResource extends Resource implements HasShieldPermissions
     {
         return parent::getEloquentQuery()
             ->with([
+                'user',
                 'invoicePayments.invoice',
             ])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\ViewPayment::class,
+            Pages\EditPayment::class
+        ]);
     }
 
     public static function getGloballySearchableAttributes(): array

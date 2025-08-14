@@ -92,31 +92,26 @@ class PaymentForm
                                     ->schema([
                                         Select::make('invoice_id')
                                             ->label('Invoice')
-                                            ->options(function (Get $get) {
+                                            ->options(function (Get $get, $state) {
                                                 $userId = $get('../../user_id');
                                                 if (!$userId) return [];
 
-                                                // Semua invoice eligible
                                                 $invoices = Invoice::where('user_id', $userId)
-                                                    ->where('status', '!=', 'paid')
+                                                    ->when($state, fn($query) => $query->where('id', $state),
+                                                        fn($query) => $query->where('status', '!=', 'paid'))
                                                     ->orderByDesc('created_at')
                                                     ->pluck('title', 'id');
 
-                                                // Semua invoice_id yang sudah dipilih di semua baris
                                                 $selectedInvoiceIds = collect($get('../../invoicePayments'))
                                                     ->pluck('invoice_id')
                                                     ->filter()
                                                     ->all();
 
-                                                // Dapatkan invoice_id baris ini
                                                 $currentInvoiceId = $get('invoice_id');
 
-                                                // Filter: invoice yang belum dipilih ATAU invoice ini sendiri
-                                                $availableInvoices = $invoices->reject(function ($code, $id) use ($selectedInvoiceIds, $currentInvoiceId) {
-                                                    return in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId;
-                                                });
-
-                                                return $availableInvoices->toArray();
+                                                return $invoices->reject(fn($code, $id) =>
+                                                    in_array($id, $selectedInvoiceIds) && $id != $currentInvoiceId
+                                                )->toArray();
                                             })
                                             ->searchable()
                                             ->native(false)
@@ -130,10 +125,7 @@ class PaymentForm
                                                     $set('rest_bill', null);
                                                     return;
                                                 }
-
-                                                $invoice = Invoice::with('invoiceItems', 'invoicePayments')
-                                                    ->find($state);
-
+                                                $invoice = Invoice::with('invoiceItems', 'invoicePayments')->find($state);
                                                 if ($invoice) {
                                                     $totalBill = $invoice->invoiceItems->sum(fn($item) => $item->rate * $item->qty);
                                                     $outstanding = $totalBill - $invoice->invoicePayments->sum('amount_applied');
