@@ -10,8 +10,9 @@ class RecurringInvoiceService
     {
         return RecurringInvoice::userId($userId)
             ->when($selfId, function ($query) use ($selfId) {
-                return $query->where('id', '!=', $selfId);
+                return $query->where('id', $selfId);
             })
+            ->where('status', 'active')
             ->pluck('title', 'id')
             ->toArray();
     }
