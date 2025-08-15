@@ -210,6 +210,7 @@ class UserForm
                                                     ->label('Street')
                                                     ->maxLength(255)
                                                     ->dehydrated()
+                                                    ->placeholder('Street')
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
                                             ]),
                                     ])

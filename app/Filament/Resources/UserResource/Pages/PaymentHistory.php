@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
+use App\Models\Payment;
 use Exception;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -13,7 +15,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\QueryBuilder;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -71,8 +72,6 @@ class PaymentHistory extends ManageRelatedRecords
                 TextColumn::make('bankAccount.bank.short_name'),
             ])
             ->filters([
-                TrashedFilter::make()
-                    ->native(false),
                 SelectFilter::make('payment_method')
                     ->options([
                         'cash' => 'Cash',
@@ -104,28 +103,14 @@ class PaymentHistory extends ManageRelatedRecords
                     ])
             ], layout: Tables\Enums\FiltersLayout::Modal)
             ->headerActions([
-                /*Tables\Actions\CreateAction::make(),
-                Tables\Actions\AssociateAction::make(),*/
+                //
             ])
             ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DissociateAction::make(),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\ForceDeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
-                ])
-                    ->link()
-                    ->label('Actions'),
+                Tables\Actions\ViewAction::make()
+                    ->url(fn(Payment $record): string => PaymentResource::getUrl('view', ['record' => $record->slug]))
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DissociateBulkAction::make(),
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                ]),
+                //
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
                 SoftDeletingScope::class,
