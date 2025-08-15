@@ -11,7 +11,6 @@ use App\Models\Payment;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\SpatieMediaLibraryImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
@@ -110,8 +109,7 @@ class ViewPayment extends ViewRecord
                                             ->columnSpan(2)
                                             ->formatStateUsing(function ($state) {
                                                 $url = InvoiceResource::getUrl('view', ['record' => $state]);
-                                                $button = '<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Lihat</a>';
-                                                return new HtmlString($button);
+                                                return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Lihat</a>');
                                             }),
                                     ])
                             ]),
@@ -146,16 +144,11 @@ class ViewPayment extends ViewRecord
 
                         Section::make('Attachment')
                             ->schema([
-                                /*SpatieMediaLibraryImageEntry::make('attachment')
-                                    ->hiddenLabel()
-                                    ->disk('s3')
-                                    ->collection('payment_attachments')
-                                    ->visibility('private')*/
                                 TextEntry::make('payment_attachment')
                                     ->hiddenLabel()
                                     ->formatStateUsing(function ($state) {
                                         $data = @json_decode($state);
-                                        //dd($data->fileUri);
+                                        // dd($data->mimeType);
 
                                         if (!is_object($data) || empty($data->fileUri)) {
                                             return '-';
@@ -170,13 +163,11 @@ class ViewPayment extends ViewRecord
                                         }
 
                                         if ($mime === 'application/pdf') {
-                                            return new HtmlString('<a href="' . $url . '" target="_blank" class="inline-block bg-red-600 text-white rounded px-2 py-1 text-xs hover:bg-red-700 transition">Lihat PDF</a>');
-                                            // Jika mau preview langsung pakai <embed>, ganti kode di atas:
-                                            // return new HtmlString('<embed src="' . $url . '" type="application/pdf" width="100%" height="600px" />');
+                                            return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Lihat PDF</a>');
                                         }
 
                                         // Untuk file lain, tampilkan tombol download dengan nama file
-                                        return new HtmlString('<a href="' . $url . '" target="_blank" class="inline-block bg-gray-500 text-white rounded px-2 py-1 text-xs hover:bg-gray-600 transition">Download ' . e($originalName) . '</a>');
+                                        return new HtmlString('<a href="' . $url . '" target="_blank" class="inline-block bg-gray-500 text-white rounded px-2 py-1 text-sm hover:bg-gray-600 transition">Download ' . e($originalName) . '</a>');
                                     })
                                     ->html()
                             ])
