@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentResource\Schemas;
 
+use App\Enums\PaymentMethod;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -233,10 +234,7 @@ class PaymentForm
                             ->columns()
                             ->schema([
                                 Select::make('payment_method')
-                                    ->options([
-                                        'cash' => 'Cash',
-                                        'bank_transfer' => 'Bank Transfer',
-                                    ])
+                                    ->options(PaymentMethod::options())
                                     ->native(false)
                                     ->required(),
 

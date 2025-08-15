@@ -75,4 +75,27 @@ class Payment extends Model implements HasMedia
             });
         }));
     }
+
+    protected function paymentAttachment(): Attribute
+    {
+        $hasMedia = $this->hasMedia('payment_attachments');
+        if (! $hasMedia) {
+            $data = [
+                'fileUri' => null,
+                'mimeType' => null,
+                'originalName' => null,
+            ];
+        }else {
+            $media = $this->getFirstMedia('payment_attachments');
+            $data = [
+                'fileUri' => $media->getTemporaryUrl(now()->addDay()),
+                'mimeType' => $media->mime_type,
+                'originalName' => $media->file_name,
+            ];
+        }
+
+        return Attribute::make(
+            get: fn() => json_encode($data)
+        );
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentResource\Schemas;
 
+use App\Enums\PaymentMethod;
 use App\Models\Application;
 use Exception;
 use Filament\Forms\Components\DatePicker;
@@ -51,12 +52,8 @@ class PaymentTable
 
                 TextColumn::make('payment_method')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => str_replace('_', ' ', ucfirst($state)))
-                    ->color(fn(string $state): string => match ($state) {
-                        'cash' => 'warning',
-                        'bank_transfer' => 'primary',
-                        default => 'secondary',
-                    })
+                    ->formatStateUsing(fn(string $state): string => PaymentMethod::tryFrom($state)?->getLabel() ?? 'N/A')
+                    ->color(fn(string $state): string => PaymentMethod::tryFrom($state)?->getColor() ?? 'gray')
                     ->sortable(),
 
                 TextColumn::make('bankAccount.bank.short_name'),
@@ -66,10 +63,7 @@ class PaymentTable
                 TrashedFilter::make()
                     ->native(false),
                 SelectFilter::make('payment_method')
-                    ->options([
-                        'cash' => 'Cash',
-                        'bank_transfer' => 'Bank Transfer',
-                    ])
+                    ->options(PaymentMethod::options())
                     ->native(false),
 
                 Filter::make('date')

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PaymentResource\Pages;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
@@ -10,6 +11,7 @@ use App\Models\Payment;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\SpatieMediaLibraryImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
@@ -32,6 +34,15 @@ class ViewPayment extends ViewRecord
                             ->columns()
                             ->inlineLabel()
                             ->schema([
+                                TextEntry::make('reference_number')
+                                    ->label('Pay. Ref.')
+                                    ->weight(FontWeight::Bold),
+
+                                TextEntry::make('date')
+                                    ->label('Date Payment')
+                                    ->date()
+                                    ->weight(FontWeight::Bold),
+
                                 TextEntry::make('user.name')
                                     ->label('User Name')
                                     ->weight(FontWeight::Bold)
@@ -103,9 +114,74 @@ class ViewPayment extends ViewRecord
                                                 return new HtmlString($button);
                                             }),
                                     ])
+                            ]),
+                    ])
+                    ->columnSpan(['lg' => 2]),
+
+                Group::make()
+                    ->schema([
+                        Section::make()
+                            ->schema([
+                                TextEntry::make('payment_method')
+                                    ->label('Payment Method')
+                                    ->formatStateUsing(fn($state): string => PaymentMethod::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->weight(FontWeight::Bold),
+
+                                TextEntry::make('bankAccount.name')
+                                    ->label('Bank Account')
+                                    ->weight(FontWeight::Bold),
+
+                                TextEntry::make('amount')
+                                    ->money('idr')
+                                    ->size(TextEntry\TextEntrySize::Large)
+                                    ->weight(FontWeight::Bold)
+                                    ->color('primary')
+                            ]),
+
+                        Section::make('Note')
+                            ->schema([
+                                TextEntry::make('note')
+                                    ->hiddenLabel()
+                            ]),
+
+                        Section::make('Attachment')
+                            ->schema([
+                                /*SpatieMediaLibraryImageEntry::make('attachment')
+                                    ->hiddenLabel()
+                                    ->disk('s3')
+                                    ->collection('payment_attachments')
+                                    ->visibility('private')*/
+                                TextEntry::make('payment_attachment')
+                                    ->hiddenLabel()
+                                    ->formatStateUsing(function ($state) {
+                                        $data = @json_decode($state);
+                                        //dd($data->fileUri);
+
+                                        if (!is_object($data) || empty($data->fileUri)) {
+                                            return '-';
+                                        }
+
+                                        $url = $data->fileUri;
+                                        $mime = $data->mimeType;
+                                        $originalName = $data->originalName ?? 'Lihat File';
+
+                                        if (str_starts_with($mime, 'image/')) {
+                                            return new HtmlString('<img src="' . $url . '" alt="Attachment" class="w-24 h-24 object-cover rounded">');
+                                        }
+
+                                        if ($mime === 'application/pdf') {
+                                            return new HtmlString('<a href="' . $url . '" target="_blank" class="inline-block bg-red-600 text-white rounded px-2 py-1 text-xs hover:bg-red-700 transition">Lihat PDF</a>');
+                                            // Jika mau preview langsung pakai <embed>, ganti kode di atas:
+                                            // return new HtmlString('<embed src="' . $url . '" type="application/pdf" width="100%" height="600px" />');
+                                        }
+
+                                        // Untuk file lain, tampilkan tombol download dengan nama file
+                                        return new HtmlString('<a href="' . $url . '" target="_blank" class="inline-block bg-gray-500 text-white rounded px-2 py-1 text-xs hover:bg-gray-600 transition">Download ' . e($originalName) . '</a>');
+                                    })
+                                    ->html()
                             ])
                     ])
-                    ->columnSpan(['lg' => 2])
+                    ->columnSpan(['lg' => 1]),
             ])
                 ->columns(3);
     }
