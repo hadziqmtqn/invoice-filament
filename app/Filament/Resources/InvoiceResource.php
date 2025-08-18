@@ -15,6 +15,8 @@ use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class InvoiceResource extends Resource implements HasShieldPermissions
 {
@@ -104,7 +106,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['code'];
+        return ['code', 'user.name'];
     }
 
     public static function getWidgets(): array
@@ -112,5 +114,28 @@ class InvoiceResource extends Resource implements HasShieldPermissions
         return [
             InvoiceStatsOverview::class
         ];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->code;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'User' => $record->user?->name,
+            'Title' => Str::limit($record->title, 30),
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['user']);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return InvoiceResource::getUrl('view', ['record' => $record]);
     }
 }

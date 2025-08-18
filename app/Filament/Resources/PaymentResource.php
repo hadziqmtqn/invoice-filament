@@ -14,7 +14,9 @@ use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Carbon;
 
 class PaymentResource extends Resource implements HasShieldPermissions
 {
@@ -88,6 +90,29 @@ class PaymentResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['reference_number'];
+        return ['reference_number', 'user.name'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->reference_number;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'User' => $record->user?->name,
+            'Date' => Carbon::parse($record->date)->isoFormat('D MMM Y'),
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['user']);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return PaymentResource::getUrl('view', ['record' => $record]);
     }
 }

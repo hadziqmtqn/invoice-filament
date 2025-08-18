@@ -141,7 +141,7 @@ class ApplicationResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'email'];
+        return [];
     }
 
     public static function canCreate(): bool
