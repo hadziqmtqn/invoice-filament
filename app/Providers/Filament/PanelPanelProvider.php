@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use Filament\Livewire\Notifications;
+use Filament\Support\Enums\Alignment;
 
 class PanelPanelProvider extends PanelProvider
 {
@@ -39,6 +41,8 @@ class PanelPanelProvider extends PanelProvider
             $application = Application::first();
         }
 
+        Notifications::alignment(Alignment::Center);
+
         return $panel
             ->default()
             ->id('panel')
@@ -48,8 +52,9 @@ class PanelPanelProvider extends PanelProvider
             ->brandName($application?->name)
             ->favicon($application?->favicon)
             ->colors([
-                'primary' => Color::Green,
+                'primary' => Color::Teal,
             ])
+            ->font('poppins')
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->passwordReset()
