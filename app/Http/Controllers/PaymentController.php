@@ -19,6 +19,6 @@ class PaymentController extends Controller
 
     public function callback(Request $request, $provider)
     {
-
+        return $this->paymentCallbackService->handle($request, $provider);
     }
 }
