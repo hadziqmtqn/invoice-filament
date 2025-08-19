@@ -62,6 +62,7 @@ class InvoiceTable
                     ->toggleable()
                     ->toggledHiddenByDefault(),
             ])
+            ->defaultSort('date', 'desc')
             ->filters([
                 DateRangeFilter::make('date')
                     ->label('Date Range'),

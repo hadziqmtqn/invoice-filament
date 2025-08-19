@@ -45,4 +45,12 @@ enum ProductType: string implements HasLabel, HasColor, HasIcon
             self::GOODS->value => self::GOODS->getLabel(),
         ];
     }
+
+    public static function colors(): array
+    {
+        return [
+            self::SERVICE->value => self::SERVICE->getColor(),
+            self::GOODS->value => self::GOODS->getColor(),
+        ];
+    }
 }

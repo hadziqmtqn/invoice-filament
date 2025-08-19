@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ItemResource\Pages;
 
 use App\Enums\ProductType;
 use App\Filament\Resources\ItemResource;
+use Filament\Actions\EditAction;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -12,6 +13,14 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewItem extends ViewRecord
 {
     protected static string $resource = ItemResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            EditAction::make()
+                ->color('warning')
+        ];
+    }
 
     public function infolist(Infolist $infolist): Infolist
     {
@@ -22,10 +31,26 @@ class ViewItem extends ViewRecord
                 Section::make()
                     ->inlineLabel()
                     ->schema([
+                        TextEntry::make('name'),
+
+                        TextEntry::make('item_name'),
+
                         TextEntry::make('product_type')
                             ->badge()
                             ->color(fn($state): string => ProductType::tryFrom($state)?->getColor() ?? 'gray')
-                            ->formatStateUsing(fn($state): string => ProductType::tryFrom($state)->getLabel())
+                            ->formatStateUsing(fn($state): string => ProductType::tryFrom($state)->getLabel()),
+
+                        TextEntry::make('unit'),
+
+                        TextEntry::make('rate')
+                            ->money('idr'),
+
+                        TextEntry::make('description'),
+
+                        TextEntry::make('is_active')
+                            ->badge()
+                            ->color(fn($state): string => ($state ? 'primary' : 'danger'))
+                            ->formatStateUsing(fn($state): string => ($state ? 'Active' : 'Inactive')),
                     ])
             ]);
     }
