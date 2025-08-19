@@ -27,10 +27,11 @@ class CreatePaymentService
             if (!$invoice->invoicePaymentPending) {
                 DB::beginTransaction();
                 $payment = new Payment();
+                $payment->user_id = $invoice->user_id;
                 $payment->date = now();
                 $payment->amount = $amount;
                 $payment->save();
-    
+
                 $invoicePayment = new InvoicePayment();
                 $invoicePayment->payment_id = $payment->id;
                 $invoicePayment->invoice_id = $invoice->id;

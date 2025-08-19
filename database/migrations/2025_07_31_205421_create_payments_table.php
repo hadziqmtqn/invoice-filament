@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('reference_number');
             $table->date('date');
             $table->decimal('amount', 20, 0);
+            $table->string('payment_source')->nullable();
             $table->string('midtrans_snap_token')->nullable();
             $table->string('payment_method')->nullable();
             $table->unsignedBigInteger('bank_account_id')->nullable();

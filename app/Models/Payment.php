@@ -23,6 +23,7 @@ class Payment extends Model implements HasMedia
         'date',
         'amount',
         'midtrans_snap_token',
+        'payment_source',
         'payment_method',
         'bank_account_id',
         'payment_channel',
