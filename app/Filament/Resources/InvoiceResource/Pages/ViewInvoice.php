@@ -10,6 +10,7 @@ use App\Models\Application;
 use App\Models\Invoice;
 use App\Traits\HasMidtransSnap;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -34,68 +35,98 @@ class ViewInvoice extends ViewRecord
     {
         return [
             Action::make('pay')
-                ->label('Pay')
+                ->label('Pay Now')
                 ->icon('heroicon-o-currency-dollar')
+                ->requiresConfirmation()
+                ->modalHeading('Pay Now')
                 ->action(function (Invoice $record, $livewire) {
-                    $params = [
-                        'transaction_details' => [
-                            'order_id' => $record->id,
-                            'gross_amount' => $record->total_price,
-                        ],
-                        // customer_details, dst
-                    ];
+                    if (!$record->midtrans_snap_token) {
+                        $params = [
+                            'transaction_details' => [
+                                'order_id' => $record->id,
+                                'gross_amount' => $record->total_price,
+                            ],
+                            'customer_details' => [
+                                'first_name' => $record->user?->name,
+                                'email' => $record->user?->email,
+                                'phone' => $record->user?->userProfile?->phone,
+                            ],
+                            'item_details' => $record->invoiceItems->map(function ($detail) {
+                                return [
+                                    'id' => $detail->id,
+                                    'name' => $detail->name,
+                                    'price' => $detail->rate,
+                                    'quantity' => $detail->qty,
+                                ];
+                            })->toArray(),
+                            'callbacks' => [
+                                'finish' => InvoiceResource::getUrl('view', ['record' => $record]),
+                            ],
+                            // customer_details, dst
+                        ];
 
-                    $snapToken = $this->generateMidtransSnapToken($params);
+                        $snapToken = $this->generateMidtransSnapToken($params);
+
+                        $record->midtrans_snap_token = $snapToken;
+                        $record->save();
+                    }else {
+                        $snapToken = $record->midtrans_snap_token;
+                    }
 
                     $livewire->dispatch('midtrans-pay', $snapToken);
                 }),
 
-            Html2MediaAction::make('download')
-                ->color('info')
-                ->icon('heroicon-o-arrow-down-tray')
-                ->content(fn(Invoice $record): View => view('filament.resources.invoice-resource.print', [
-                    'invoice' => $record->loadMissing('invoiceItems'),
-                    'application' => Application::first()
-                ]))
-                ->filename(fn(Invoice $record) => $record->code . '-' . $record->invoice_number . '.pdf')
-                ->preview()
-                ->savePdf(),
+            ActionGroup::make([
+                Html2MediaAction::make('download')
+                    ->color('info')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->content(fn(Invoice $record): View => view('filament.resources.invoice-resource.print', [
+                        'invoice' => $record->loadMissing('invoiceItems'),
+                        'application' => Application::first()
+                    ]))
+                    ->filename(fn(Invoice $record) => $record->code . '-' . $record->invoice_number . '.pdf')
+                    ->preview()
+                    ->savePdf(),
 
-            Action::make('send_invoice')
-                ->label('Send Invoice')
-                ->icon('heroicon-o-paper-airplane')
-                ->color('primary')
-                ->requiresConfirmation()
-                ->action(function (Invoice $record) {
-                    Log::info('Sending invoice for record: ' . $record->code);
-                    if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
-                        UnpaidBillMessageJob::dispatch([
-                            'user_name' => $record->user?->name ?? 'Unknown User',
-                            'invoice_name' => $record->title,
-                            'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
-                            'due_date' => $record->due_date?->format('d M Y') ?? now()->format('d M Y'),
-                            'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
-                            'invoice_id' => $record->id,
-                        ]);
-
-                        Notification::make()
-                            ->success()
-                            ->title('Invoice Sent')
-                            ->body('The invoice has been sent successfully.')
-                            ->send();
-
-                        Notification::make()
-                            ->success()
-                            ->title('New Invoice Sent')
-                            ->body('You have a new bill with a billing number: ' . $record->code)
-                            ->sendToDatabase($record->user)
-                            ->actions([
-                                Actions\Action::make('View Invoice')
-                                    ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
+                Action::make('send_invoice')
+                    ->label('Send Invoice')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->action(function (Invoice $record) {
+                        Log::info('Sending invoice for record: ' . $record->code);
+                        if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
+                            UnpaidBillMessageJob::dispatch([
+                                'user_name' => $record->user?->name ?? 'Unknown User',
+                                'invoice_name' => $record->title,
+                                'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
+                                'due_date' => $record->due_date?->format('d M Y') ?? now()->format('d M Y'),
+                                'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
+                                'invoice_id' => $record->id,
                             ]);
-                    }
-                })
-                ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
+
+                            Notification::make()
+                                ->success()
+                                ->title('Invoice Sent')
+                                ->body('The invoice has been sent successfully.')
+                                ->send();
+
+                            Notification::make()
+                                ->success()
+                                ->title('New Invoice Sent')
+                                ->body('You have a new bill with a billing number: ' . $record->code)
+                                ->sendToDatabase($record->user)
+                                ->actions([
+                                    Actions\Action::make('View Invoice')
+                                        ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
+                                ]);
+                        }
+                    })
+                    ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
+            ])
+            ->label('More Actions')
+            ->button()
+            ->color('warning')
         ];
     }
 
