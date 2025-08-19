@@ -30,13 +30,13 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
     public function getLabel(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::SENT => 'Sent',
-            self::PAID => 'Paid',
-            self::OVERDUE => 'Overdue',
-            self::UNPAID => 'Unpaid',
-            self::PARTIALLY_PAID => 'Partially Paid',
-            self::PENDING => 'Pending',
+            self::DRAFT => 'DRAFT',
+            self::SENT => 'SENT',
+            self::PAID => 'PAID',
+            self::OVERDUE => 'OVERDUE',
+            self::UNPAID => 'UNPAID',
+            self::PARTIALLY_PAID => 'PARTIALLY PAID',
+            self::PENDING => 'PENDING',
         };
     }
 
@@ -52,17 +52,23 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
         };
     }
 
-    public static function color(): array
+    public static function colors(array $cases = []): array
     {
-        return [
-            self::DRAFT->value => self::DRAFT->getColor(),
-            self::SENT->value => self::SENT->getColor(),
-            self::PAID->value => self::PAID->getColor(),
-            self::OVERDUE->value => self::OVERDUE->getColor(),
-            self::UNPAID->value => self::UNPAID->getColor(),
-            self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getColor(),
-            self::PENDING->value => self::PENDING->getColor(),
-        ];
+        $allCases = self::cases();
+
+        // Jika $cases kosong, tampilkan semua
+        if (empty($cases)) {
+            $casesToShow = $allCases;
+        } else {
+            $casesToShow = array_filter($allCases, function($case) use ($cases) {
+                // Cek apakah enum atau value ada di $cases
+                return in_array($case, $cases, true) || in_array($case->value, $cases, true);
+            });
+        }
+
+        return collect($casesToShow)
+            ->mapWithKeys(fn($case) => [$case->value => $case->getColor()])
+            ->toArray();
     }
 
     public static function icon(): array
@@ -78,16 +84,22 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
         ];
     }
 
-    public static function options(): array
+    public static function options(array $cases = []): array
     {
-        return [
-            self::DRAFT->value => self::DRAFT->getLabel(),
-            self::SENT->value => self::SENT->getLabel(),
-            self::PAID->value => self::PAID->getLabel(),
-            self::OVERDUE->value => self::OVERDUE->getLabel(),
-            self::UNPAID->value => self::UNPAID->getLabel(),
-            self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getLabel(),
-            self::PENDING->value => self::PENDING->getLabel(),
-        ];
+        $allCases = self::cases();
+
+        // Jika $cases kosong, tampilkan semua
+        if (empty($cases)) {
+            $casesToShow = $allCases;
+        } else {
+            $casesToShow = array_filter($allCases, function($case) use ($cases) {
+                // Cek apakah enum atau value ada di $cases
+                return in_array($case, $cases, true) || in_array($case->value, $cases, true);
+            });
+        }
+
+        return collect($casesToShow)
+            ->mapWithKeys(fn($case) => [$case->value => $case->getLabel()])
+            ->toArray();
     }
 }

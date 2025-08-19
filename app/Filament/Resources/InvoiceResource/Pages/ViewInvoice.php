@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
+use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\RecurringInvoiceResource\Pages\ViewRecurringInvoice;
 use App\Filament\Resources\UserResource;
@@ -63,7 +65,8 @@ class ViewInvoice extends ViewRecord
                             ->danger()
                             ->send();
                     }
-                }),
+                })
+                ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::PAID->value),
 
             ActionGroup::make([
                 Html2MediaAction::make('download')
@@ -258,10 +261,23 @@ class ViewInvoice extends ViewRecord
                                     ->numeric(0, ',', '.')
                                     ->inlineLabel(),
 
+                                TextEntry::make('payment.payment_source')
+                                    ->label('Payment Source')
+                                    ->weight('bold')
+                                    ->formatStateUsing(fn($state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->inlineLabel(),
+
                                 TextEntry::make('payment.payment_method')
                                     ->label('Payment Method')
                                     ->weight('bold')
                                     ->formatStateUsing(fn(string $state): string => strtoupper(str_replace('_', ' ', $state)))
+                                    ->inlineLabel(),
+
+                                TextEntry::make('payment.status')
+                                    ->label('Status')
+                                    ->weight('bold')
+                                    ->formatStateUsing(fn($state): string => DataStatus::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->color(fn(string $state): string => DataStatus::tryFrom($state)?->getColor() ?? 'gray')
                                     ->inlineLabel(),
                             ])
                             ->columns()

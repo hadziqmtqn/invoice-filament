@@ -42,6 +42,7 @@ class PaymentTable
 
                 TextColumn::make('amount')
                     ->money('idr')
+                    ->prefix('Rp')
                     ->numeric(0, ',', '.')
                     ->searchable(),
 

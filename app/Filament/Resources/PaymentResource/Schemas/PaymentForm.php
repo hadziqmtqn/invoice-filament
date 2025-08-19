@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Illuminate\Support\HtmlString;
@@ -308,10 +309,17 @@ class PaymentForm
 
                         Section::make()
                             ->schema([
+                                ToggleButtons::make('status')
+                                    ->inline()
+                                    ->options(DataStatus::options(['paid', 'pending']))
+                                    ->colors(DataStatus::colors(['paid', 'pending']))
+                                    ->required()
+                                    ->visible(fn(?Payment $payment): bool => $payment->payment_source !== PaymentSource::PAYMENT_GATEWAY->value),
+
                                 Placeholder::make('status')
                                     ->content(fn($state): HtmlString =>  new HtmlString('<div style="font-size:15pt"><b>'. (DataStatus::tryFrom($state)?->getLabel() ?? 'N/A') .'</b></div>'))
-                            ])
-                            ->visibleOn('edit'),
+                                    ->visible(fn(?Payment $payment): bool => $payment->payment_source === PaymentSource::PAYMENT_GATEWAY->value)
+                            ]),
 
                         Section::make()
                             ->schema([
