@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\InvoiceResource\Schemas;
 
 use App\Enums\InvoiceStatus;
-use App\Models\Application;
 use App\Models\Invoice;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
 use Exception;
@@ -16,7 +15,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
 
 class InvoiceTable
 {
@@ -76,23 +74,7 @@ class InvoiceTable
             ->defaultSort('serial_number', 'desc')
             ->actions([
                 ActionGroup::make([
-                    Html2MediaAction::make('export')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->label('Export to PDF')
-                        ->modalHeading('Export Invoice to PDF')
-                        ->modalWidth('2xl')
-                        ->savePdf()
-                        ->modalContent(fn(Invoice $record) => view('filament.resources.invoice-resource.modal', [
-                            'invoice' => $record->loadMissing('invoiceItems')
-                        ]))
-                        ->content(fn(Invoice $record) => view('filament.resources.invoice-resource.print', [
-                            'invoice' => $record->loadMissing('invoiceItems'),
-                            'application' => Application::first()
-                        ]))
-                        ->filename(fn(Invoice $record) => $record->code . '-' . $record->invoice_number . '.pdf'),
-                    ViewAction::make()
-                        ->icon('heroicon-o-eye')
-                        ->modalWidth('5xl'),
+                    ViewAction::make(),
                     EditAction::make()
                         ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
                         ->icon('heroicon-o-pencil-square'),

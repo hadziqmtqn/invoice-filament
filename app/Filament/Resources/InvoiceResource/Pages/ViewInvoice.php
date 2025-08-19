@@ -6,7 +6,9 @@ use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\RecurringInvoiceResource\Pages\ViewRecurringInvoice;
 use App\Filament\Resources\UserResource;
 use App\Jobs\UnpaidBillMessageJob;
+use App\Models\Application;
 use App\Models\Invoice;
+use Filament\Actions\Action;
 use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -16,12 +18,66 @@ use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\FontWeight;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
+use Torgodly\Html2Media\Actions\Html2MediaAction;
 
 class ViewInvoice extends ViewRecord
 {
     protected static string $resource = InvoiceResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Html2MediaAction::make('download')
+                ->color('info')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->content(fn(Invoice $record): View => view('filament.resources.invoice-resource.print', [
+                    'invoice' => $record->loadMissing('invoiceItems'),
+                    'application' => Application::first()
+                ]))
+                ->filename(fn(Invoice $record) => $record->code . '-' . $record->invoice_number . '.pdf')
+                ->preview()
+                ->savePdf(),
+
+            Action::make('send_invoice')
+                ->label('Send Invoice')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('primary')
+                ->requiresConfirmation()
+                ->action(function (Invoice $record) {
+                    Log::info('Sending invoice for record: ' . $record->code);
+                    if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
+                        UnpaidBillMessageJob::dispatch([
+                            'user_name' => $record->user?->name ?? 'Unknown User',
+                            'invoice_name' => $record->title,
+                            'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
+                            'due_date' => $record->due_date?->format('d M Y') ?? now()->format('d M Y'),
+                            'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
+                            'invoice_id' => $record->id,
+                        ]);
+
+                        Notification::make()
+                            ->success()
+                            ->title('Invoice Sent')
+                            ->body('The invoice has been sent successfully.')
+                            ->send();
+
+                        Notification::make()
+                            ->success()
+                            ->title('New Invoice Sent')
+                            ->body('You have a new bill with a billing number: ' . $record->code)
+                            ->sendToDatabase($record->user)
+                            ->actions([
+                                Actions\Action::make('View Invoice')
+                                    ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
+                            ]);
+                    }
+                })
+                ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
+        ];
+    }
 
     public function infolist(Infolist $infolist): Infolist
     {
@@ -104,56 +160,19 @@ class ViewInvoice extends ViewRecord
 
                 Group::make()
                     ->schema([
-                        TextEntry::make('status')
-                            ->color(fn(string $state): string => match ($state) {
-                                'draft' => 'gray',
-                                'sent' => 'primary',
-                                'paid' => 'success',
-                                'unpaid', 'overdue' => 'danger',
-                                'partially_paid' => 'warning',
-                                default => 'secondary',
-                            })
-                            ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>')),
-
-                        Actions::make([
-                            Actions\Action::make('send_invoice')
-                                ->label('Send Invoice')
-                                ->icon('heroicon-o-paper-airplane')
-                                ->color('primary')
-                                ->action(function (Invoice $record) {
-                                    Log::info('Sending invoice for record: ' . $record->code);
-                                    if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
-                                        UnpaidBillMessageJob::dispatch([
-                                            'user_name' => $record->user?->name ?? 'Unknown User',
-                                            'invoice_name' => $record->title,
-                                            'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
-                                            'due_date' => $record->due_date?->format('d M Y') ?? now()->format('d M Y'),
-                                            'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
-                                            'invoice_id' => $record->id,
-                                        ]);
-
-                                        Notification::make()
-                                            ->success()
-                                            ->title('Invoice Sent')
-                                            ->body('The invoice has been sent successfully.')
-                                            ->send();
-
-                                        Notification::make()
-                                            ->success()
-                                            ->title('New Invoice Sent')
-                                            ->body('You have a new bill with a billing number: ' . $record->code)
-                                            ->sendToDatabase($record->user)
-                                            ->actions([
-                                                Actions\Action::make('View Invoice')
-                                                    ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
-                                            ]);
-                                    }
-                                })
-                                ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid')),
-                        ]),
-
-                        Section::make('Total')
+                        Section::make()
                             ->schema([
+                                TextEntry::make('status')
+                                    ->color(fn(string $state): string => match ($state) {
+                                        'draft' => 'gray',
+                                        'sent' => 'primary',
+                                        'paid' => 'success',
+                                        'unpaid', 'overdue' => 'danger',
+                                        'partially_paid' => 'warning',
+                                        default => 'secondary',
+                                    })
+                                    ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>')),
+
                                 TextEntry::make('total_price_before_discount')
                                     ->label('Total Price (Before Discount)')
                                     ->money('idr')
