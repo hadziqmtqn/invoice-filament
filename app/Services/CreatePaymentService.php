@@ -38,22 +38,23 @@ class CreatePaymentService
                 $invoicePayment->amount_applied = $amount;
                 $invoicePayment->save();
                 DB::commit();
+
                 $params = [
                     'transaction_details' => [
                         'order_id' => $payment->reference_number,
-                        'gross_amount' => $payment->amount,
+                        'gross_amount' => $amount,
                     ],
                     'customer_details' => [
                         'first_name' => $payment->user?->name,
                         'email' => $payment->user?->email,
                         'phone' => $payment->user?->userProfile?->phone,
                     ],
-                    'item_details' => $invoice->invoiceItems->map(function ($detail) {
+                    'item_details' => $invoice->invoiceItems->map(function ($detail) use ($invoice, $amount) {
                         return [
-                            'id' => $detail->id,
+                            'id' => $invoice->code,
                             'name' => $detail->name,
-                            'price' => $detail->rate,
-                            'quantity' => $detail->qty,
+                            'price' => $amount,
+                            'quantity' => 1,
                         ];
                     })->toArray(),
                     'callbacks' => [
@@ -62,6 +63,8 @@ class CreatePaymentService
                 ];
 
                 $snapToken = self::generateMidtransSnapToken($params);
+                $payment->midtrans_snap_token = $snapToken;
+                $payment->save();
             }else {
                 $snapToken = $invoice->invoicePaymentPending?->payment?->midtrans_snap_token;
             }

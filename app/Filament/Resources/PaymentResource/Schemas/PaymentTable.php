@@ -2,26 +2,20 @@
 
 namespace App\Filament\Resources\PaymentResource\Schemas;
 
-use App\Enums\PaymentMethod;
+use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Models\Application;
+use App\Models\Payment;
 use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\QueryBuilder;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Torgodly\Html2Media\Tables\Actions\Html2MediaAction;
@@ -47,23 +41,28 @@ class PaymentTable
                     ->sortable(),
 
                 TextColumn::make('amount')
-                    ->money('idr', true)
+                    ->money('idr')
+                    ->numeric(0, ',', '.')
                     ->searchable(),
 
-                TextColumn::make('payment_method')
+                TextColumn::make('payment_source')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => PaymentMethod::tryFrom($state)?->getLabel() ?? 'N/A')
-                    ->color(fn(string $state): string => PaymentMethod::tryFrom($state)?->getColor() ?? 'gray')
+                    ->formatStateUsing(fn(string $state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
+                    ->color(fn(string $state): string => PaymentSource::tryFrom($state)?->getColor() ?? 'gray')
                     ->sortable(),
 
-                TextColumn::make('bankAccount.bank.short_name'),
+                TextColumn::make('payment_method')
+                    ->formatStateUsing(fn(string $state): string => strtoupper($state))
+                    ->sortable(),
+
+                TextColumn::make('bankAccount.bank.short_name')
+                    ->toggleable()
+                    ->toggledHiddenByDefault(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                TrashedFilter::make()
-                    ->native(false),
-                SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::options())
+                SelectFilter::make('payment_source')
+                    ->options(PaymentSource::dropdownOptions())
                     ->native(false),
 
                 Filter::make('date')
@@ -93,12 +92,12 @@ class PaymentTable
                 Html2MediaAction::make('print')
                     ->icon('heroicon-o-printer')
                     ->modalHeading('Print Payment')
-                    ->filename(fn($record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
-                    ->modalContent(fn($record) => view('filament.resources.payment-resource.modal', [
+                    ->filename(fn(Payment $record) => 'Payment-' . $record->reference_number . '-' . now()->format('Y-m-d') . '.pdf')
+                    ->modalContent(fn(Payment $record) => view('filament.resources.payment-resource.modal', [
                         'application' => Application::first(),
                         'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
                     ]))
-                    ->content(fn($record) => view('filament.resources.payment-resource.print', [
+                    ->content(fn(Payment $record) => view('filament.resources.payment-resource.print', [
                         'application' => Application::first(),
                         'payment' => $record->loadMissing('user.userProfile', 'invoicePayments.invoice.invoiceItems', 'bankAccount.bank:id,short_name'),
                     ]))
@@ -108,20 +107,14 @@ class PaymentTable
                     ViewAction::make()
                         ->icon('heroicon-o-eye')
                         ->modalWidth('5xl'),
-                    EditAction::make(),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    EditAction::make()
+                        ->visible(fn(Payment $record): bool => $record->status === DataStatus::PENDING->value && $record->payment_source !== PaymentSource::PAYMENT_GATEWAY->value),
                 ])
                     ->link()
                     ->label('Actions')
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 }

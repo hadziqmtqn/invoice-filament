@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\PaymentResource\Pages;
 
-use App\Enums\InvoiceStatus;
-use App\Enums\PaymentMethod;
+use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
@@ -80,8 +80,8 @@ class ViewPayment extends ViewRecord
                                             ->label('Status')
                                             ->inlineLabel()
                                             ->badge()
-                                            ->color(fn($state): string => InvoiceStatus::tryFrom($state)?->getColor() ?? 'gray')
-                                            ->formatStateUsing(fn($state): string => InvoiceStatus::tryFrom($state)?->getLabel() ?? 'N/A'),
+                                            ->color(fn($state): string => DataStatus::tryFrom($state)?->getColor() ?? 'gray')
+                                            ->formatStateUsing(fn($state): string => DataStatus::tryFrom($state)?->getLabel() ?? 'N/A'),
 
                                         RepeatableEntry::make('invoice.invoiceItems')
                                             ->label('Items')
@@ -109,7 +109,7 @@ class ViewPayment extends ViewRecord
                                             ->columnSpan(2)
                                             ->formatStateUsing(function ($state) {
                                                 $url = InvoiceResource::getUrl('view', ['record' => $state]);
-                                                return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Lihat</a>');
+                                                return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Show Invoice</a>');
                                             }),
                                     ])
                             ]),
@@ -120,13 +120,19 @@ class ViewPayment extends ViewRecord
                     ->schema([
                         Section::make()
                             ->schema([
+                                TextEntry::make('payment_source')
+                                    ->label('Payment Source')
+                                    ->formatStateUsing(fn($state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->weight(FontWeight::Bold),
+
                                 TextEntry::make('payment_method')
                                     ->label('Payment Method')
-                                    ->formatStateUsing(fn($state): string => PaymentMethod::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->formatStateUsing(fn($state): string => strtoupper($state))
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('bankAccount.name')
                                     ->label('Bank Account')
+                                    ->visible(fn(Payment $record): bool => $record->payment_source === PaymentSource::BANK_TRANSFER->value)
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('amount')
@@ -163,7 +169,7 @@ class ViewPayment extends ViewRecord
                                         }
 
                                         if ($mime === 'application/pdf') {
-                                            return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Lihat PDF</a>');
+                                            return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Show PDF</a>');
                                         }
 
                                         // Untuk file lain, tampilkan tombol download dengan nama file

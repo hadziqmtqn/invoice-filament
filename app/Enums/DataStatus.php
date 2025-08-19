@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
+enum DataStatus: string implements HasColor, HasLabel, HasIcon
 {
     case DRAFT = 'draft';
     case SENT = 'sent';
@@ -14,6 +14,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
     case OVERDUE = 'overdue';
     case UNPAID = 'unpaid';
     case PARTIALLY_PAID = 'partially_paid';
+    case PENDING = 'pending';
 
     public function getColor(): string
     {
@@ -22,7 +23,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::SENT => 'info',
             self::PAID => 'primary',
             self::UNPAID, self::OVERDUE => 'danger',
-            self::PARTIALLY_PAID => 'warning',
+            self::PARTIALLY_PAID, self::PENDING => 'warning',
         };
     }
 
@@ -35,6 +36,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::OVERDUE => 'Overdue',
             self::UNPAID => 'Unpaid',
             self::PARTIALLY_PAID => 'Partially Paid',
+            self::PENDING => 'Pending',
         };
     }
 
@@ -46,7 +48,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::PAID => 'heroicon-o-check-circle',
             self::OVERDUE => 'heroicon-o-exclamation-circle',
             self::UNPAID => 'heroicon-o-x-circle',
-            self::PARTIALLY_PAID => 'heroicon-o-minus-circle',
+            self::PARTIALLY_PAID, self::PENDING => 'heroicon-o-minus-circle',
         };
     }
 
@@ -59,6 +61,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::OVERDUE->value => self::OVERDUE->getColor(),
             self::UNPAID->value => self::UNPAID->getColor(),
             self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getColor(),
+            self::PENDING->value => self::PENDING->getColor(),
         ];
     }
 
@@ -71,6 +74,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::OVERDUE->value => self::OVERDUE->getIcon(),
             self::UNPAID->value => self::UNPAID->getIcon(),
             self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getIcon(),
+            self::PENDING->value => self::PENDING->getIcon(),
         ];
     }
 
@@ -83,6 +87,7 @@ enum InvoiceStatus: string implements HasColor, HasLabel, HasIcon
             self::OVERDUE->value => self::OVERDUE->getLabel(),
             self::UNPAID->value => self::UNPAID->getLabel(),
             self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getLabel(),
+            self::PENDING->value => self::PENDING->getLabel(),
         ];
     }
 }

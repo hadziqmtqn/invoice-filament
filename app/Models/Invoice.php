@@ -72,8 +72,8 @@ class Invoice extends Model implements HasMedia
     public function invoicePaymentPending(): HasOne
     {
         return $this->hasOne(InvoicePayment::class, 'invoice_id')
-            ->whereHas('invoice', function ($query) {
-                $query->where('status', 'pending');
+            ->whereHas('payment', function ($query) {
+                $query->where('status', 'PENDING');
             });
     }
 

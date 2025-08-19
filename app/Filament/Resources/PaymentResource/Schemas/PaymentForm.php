@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\PaymentResource\Schemas;
 
-use App\Enums\PaymentMethod;
+use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -234,7 +235,7 @@ class PaymentForm
                             ->columns()
                             ->schema([
                                 Select::make('payment_method')
-                                    ->options(PaymentMethod::options())
+                                    ->options(PaymentSource::options())
                                     ->native(false)
                                     ->required(),
 
@@ -307,6 +308,13 @@ class PaymentForm
 
                         Section::make()
                             ->schema([
+                                Placeholder::make('status')
+                                    ->content(fn($state): HtmlString =>  new HtmlString('<div style="font-size:15pt"><b>'. (DataStatus::tryFrom($state)?->getLabel() ?? 'N/A') .'</b></div>'))
+                            ])
+                            ->visibleOn('edit'),
+
+                        Section::make()
+                            ->schema([
                                 SpatieMediaLibraryFileUpload::make('attachment')
                                     ->collection('payment_attachments')
                                     ->label('Attachment')
@@ -329,15 +337,14 @@ class PaymentForm
 
                 Grid::make()
                     ->columns()
+                    ->visibleOn('edit')
                     ->schema([
                         Placeholder::make('created_at')
                             ->label('Created Date')
-                            ->visible(fn(?Payment $record): bool => $record?->exists ?? false)
                             ->content(fn(?Payment $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
                         Placeholder::make('updated_at')
                             ->label('Last Modified Date')
-                            ->visible(fn(?Payment $record): bool => $record?->exists ?? false)
                             ->content(fn(?Payment $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
                     ])
             ])

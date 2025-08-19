@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\InvoiceResource\Schemas;
 
-use App\Enums\InvoiceStatus;
+use App\Enums\DataStatus;
 use App\Models\Invoice;
 use CodeWithKyrian\FilamentDateRange\Tables\Filters\DateRangeFilter;
 use Exception;
@@ -44,13 +44,15 @@ class InvoiceTable
                     ->label('Total Price')
                     ->tooltip(fn(Invoice $record): string => 'Total Due: Rp' . number_format($record->total_due, 0, ',', '.'))
                     ->money('idr')
+                    ->prefix('Rp')
+                    ->numeric(0, ',', '.')
                     ->sortable(),
 
                 TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn($state) => InvoiceStatus::tryFrom($state)?->getLabel())
-                    ->color(fn($state) => InvoiceStatus::tryFrom($state)?->getColor())
-                    ->icon(fn($state) => InvoiceStatus::tryFrom($state)?->getIcon())
+                    ->formatStateUsing(fn($state) => DataStatus::tryFrom($state)?->getLabel())
+                    ->color(fn($state) => DataStatus::tryFrom($state)?->getColor())
+                    ->icon(fn($state) => DataStatus::tryFrom($state)?->getIcon())
                     ->sortable(),
 
                 TextColumn::make('created_at')
@@ -66,7 +68,7 @@ class InvoiceTable
                     ->label('Date Range'),
                 SelectFilter::make('status')
                     ->label('Status')
-                    ->options(InvoiceStatus::options())
+                    ->options(DataStatus::options())
                     ->selectablePlaceholder(false)
                     ->native(false),
             ], layout: FiltersLayout::Modal)

@@ -47,10 +47,12 @@ class ViewInvoice extends ViewRecord
                         ->required()
                         ->minValue(10000)
                         ->maxValue(fn (Invoice $record) => $record->total_price)
-                        ->prefix('Rp'),
+                        ->prefix('Rp')
+                        ->visible(fn(Invoice $invoice): bool => !$invoice->invoicePaymentPending),
                 ])
                 ->action(function (Invoice $record, array $data, $livewire) {
-                    $snapToken = CreatePaymentService::handle($record, $data['amount']);
+                    $amount = $record->invoicePaymentPending?->payment?->amount ?: ($data['amount'] ?? null);
+                    $snapToken = CreatePaymentService::handle($record, $amount);
 
                     if ($snapToken) {
                         $livewire->dispatch('midtrans-pay', $snapToken);
@@ -184,6 +186,8 @@ class ViewInvoice extends ViewRecord
                                             ->label('Rate')
                                             ->weight('bold')
                                             ->money('idr')
+                                            ->prefix('Rp')
+                                            ->numeric(0, ',', '.')
                                             ->inlineLabel()
                                             ->color('primary'),
 
@@ -221,6 +225,8 @@ class ViewInvoice extends ViewRecord
                                 TextEntry::make('total_price')
                                     ->label(fn(Invoice $record): string => $record->discount > 0 ? 'Total Price (After Discount)' : 'Total Price')
                                     ->money('idr')
+                                    ->prefix('Rp')
+                                    ->numeric(0, ',', '.')
                                     ->size(TextEntry\TextEntrySize::Large)
                                     ->weight(FontWeight::Bold)
                                     ->color('primary'),
@@ -248,13 +254,14 @@ class ViewInvoice extends ViewRecord
                                     ->label('Amount')
                                     ->weight('bold')
                                     ->money('idr')
-                                    ->numeric(decimalPlaces: 2)
+                                    ->prefix('Rp')
+                                    ->numeric(0, ',', '.')
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.payment_method')
                                     ->label('Payment Method')
                                     ->weight('bold')
-                                    ->formatStateUsing(fn(string $state): string => ucfirst(str_replace('_', ' ', $state)))
+                                    ->formatStateUsing(fn(string $state): string => strtoupper(str_replace('_', ' ', $state)))
                                     ->inlineLabel(),
                             ])
                             ->columns()

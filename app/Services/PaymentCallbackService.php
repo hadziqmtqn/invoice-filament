@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\InvoiceStatus;
+use App\Enums\DataStatus;
 use App\Models\Payment;
 use App\Traits\ApiResponse;
 use DB;
@@ -53,9 +53,9 @@ class PaymentCallbackService
 
             // Penentuan status
             $status = match ($transactionStatus) {
-                'capture', 'settlement' => 'PAID',
-                'pending' => 'PENDING',
-                'cancel', 'expire', 'deny' => strtoupper($transactionStatus),
+                'capture', 'settlement' => 'paid',
+                'pending' => 'pending',
+                'cancel', 'expire', 'deny' => strtolower($transactionStatus),
                 default => $payment->status, // fallback ke status sebelumnya jika tidak dikenali
             };
 
@@ -160,7 +160,7 @@ class PaymentCallbackService
         DB::transaction(function () use ($payment, $data) {
             // TODO Update transaction
             $payment->payment_source = $data['payment_source'];
-            $payment->status = $payment->status != 'PAID' ? $data['status'] : $payment->status;
+            $payment->status = $payment->status != 'paid' ? $data['status'] : $payment->status;
             $payment->payment_method = array_key_exists('payment_method', $data) ? $data['payment_method'] : null;
             $payment->payment_channel = array_key_exists('payment_channel', $data) ? $data['payment_channel'] : null;
             $payment->transaction_time = $data['transaction_time'];
@@ -168,10 +168,10 @@ class PaymentCallbackService
             $payment->save();
 
             // TODO Transaksi pembayaran sekolah
-            if ($payment->invoicePayments->isNotEmpty() && ($data['status'] == 'PAID')) {
+            if ($payment->invoicePayments->isNotEmpty() && ($data['status'] == 'paid')) {
                 foreach ($payment->invoicePayments as $invoicePayment) {
                     $invoice = $invoicePayment->invoice;
-                    $invoice->status = $payment->total_bill == $invoice->total_price ? InvoiceStatus::PAID->value : InvoiceStatus::PARTIALLY_PAID->value;
+                    $invoice->status = $payment->total_bill == $invoice->total_price ? DataStatus::PAID->value : DataStatus::PARTIALLY_PAID->value;
                     $invoice->save();
                 }
             }

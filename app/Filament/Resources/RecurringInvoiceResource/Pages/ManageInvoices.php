@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\RecurringInvoiceResource\Pages;
 
-use App\Enums\InvoiceStatus;
+use App\Enums\DataStatus;
 use App\Filament\Resources\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Resources\InvoiceResource\Pages\EditInvoice;
 use App\Filament\Resources\InvoiceResource\Pages\ViewInvoice;
@@ -50,9 +50,9 @@ class ManageInvoices extends ManageRelatedRecords
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn($state) => InvoiceStatus::tryFrom($state)?->getLabel())
-                    ->color(fn($state) => InvoiceStatus::tryFrom($state)?->getColor())
-                    ->icon(fn($state) => InvoiceStatus::tryFrom($state)?->getIcon())
+                    ->formatStateUsing(fn($state) => DataStatus::tryFrom($state)?->getLabel())
+                    ->color(fn($state) => DataStatus::tryFrom($state)?->getColor())
+                    ->icon(fn($state) => DataStatus::tryFrom($state)?->getIcon())
                     ->sortable()
             ])
             ->filters([

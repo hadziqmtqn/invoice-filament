@@ -23,7 +23,7 @@ return new class extends Migration {
             $table->string('payment_validation_status')->nullable();
             $table->string('payment_validation_note')->nullable();
             $table->timestamp('transaction_time')->nullable();
-            $table->string('status')->default('PENDING');
+            $table->string('status')->default('pending');
             $table->text('note')->nullable();
             $table->timestamps();
             $table->softDeletes();
