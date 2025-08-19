@@ -8,6 +8,7 @@ use App\Filament\Resources\UserResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
 use App\Models\Invoice;
+use App\Traits\HasMidtransSnap;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\Group;
@@ -25,11 +26,30 @@ use Torgodly\Html2Media\Actions\Html2MediaAction;
 
 class ViewInvoice extends ViewRecord
 {
+    use HasMidtransSnap;
+
     protected static string $resource = InvoiceResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pay')
+                ->label('Pay')
+                ->icon('heroicon-o-currency-dollar')
+                ->action(function (Invoice $record, $livewire) {
+                    $params = [
+                        'transaction_details' => [
+                            'order_id' => $record->id,
+                            'gross_amount' => $record->total_price,
+                        ],
+                        // customer_details, dst
+                    ];
+
+                    $snapToken = $this->generateMidtransSnapToken($params);
+
+                    $livewire->dispatch('midtrans-pay', $snapToken);
+                }),
+
             Html2MediaAction::make('download')
                 ->color('info')
                 ->icon('heroicon-o-arrow-down-tray')

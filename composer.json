@@ -27,6 +27,7 @@
         "leandrocfe/filament-apex-charts": "^3.2",
         "livewire/livewire": "^3.6.4",
         "marcelweidum/filament-expiration-notice": "^1.0",
+        "midtrans/midtrans-php": "^2.6",
         "pxlrbt/filament-excel": "^2.4",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-sluggable": "^3.7",

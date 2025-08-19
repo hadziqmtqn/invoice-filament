@@ -30,6 +30,7 @@ class Invoice extends Model implements HasMedia
         'discount',
         'note',
         'status',
+        'midtrans_snap_token'
     ];
 
     protected function casts(): array
