@@ -34,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         FilamentAsset::register([
             Js::make('midtrans-scripts', 'https://app.sandbox.midtrans.com/snap/snap.js')
                 ->extraAttributes(['data-client-key' => config('midtrans.client_key')]),
+            Js::make('midtrans-payment', asset('js/midtrans-payment.js'))
         ]);
     }
 }
