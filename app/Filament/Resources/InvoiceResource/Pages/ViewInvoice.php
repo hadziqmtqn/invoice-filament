@@ -8,9 +8,10 @@ use App\Filament\Resources\UserResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
 use App\Models\Invoice;
-use App\Traits\HasMidtransSnap;
+use App\Services\CreatePaymentService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\Actions;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -27,8 +28,6 @@ use Torgodly\Html2Media\Actions\Html2MediaAction;
 
 class ViewInvoice extends ViewRecord
 {
-    use HasMidtransSnap;
-
     protected static string $resource = InvoiceResource::class;
 
     protected function getHeaderActions(): array
@@ -38,42 +37,30 @@ class ViewInvoice extends ViewRecord
                 ->label('Pay Now')
                 ->icon('heroicon-o-currency-dollar')
                 ->requiresConfirmation()
-                ->modalHeading('Pay Now')
-                ->action(function (Invoice $record, $livewire) {
-                    if (!$record->midtrans_snap_token) {
-                        $params = [
-                            'transaction_details' => [
-                                'order_id' => $record->id,
-                                'gross_amount' => $record->total_price,
-                            ],
-                            'customer_details' => [
-                                'first_name' => $record->user?->name,
-                                'email' => $record->user?->email,
-                                'phone' => $record->user?->userProfile?->phone,
-                            ],
-                            'item_details' => $record->invoiceItems->map(function ($detail) {
-                                return [
-                                    'id' => $detail->id,
-                                    'name' => $detail->name,
-                                    'price' => $detail->rate,
-                                    'quantity' => $detail->qty,
-                                ];
-                            })->toArray(),
-                            'callbacks' => [
-                                'finish' => InvoiceResource::getUrl('view', ['record' => $record]),
-                            ],
-                            // customer_details, dst
-                        ];
+                ->modalDescription('Are you sure you will pay now?')
+                ->modalIconColor('danger')
+                ->modalWidth('sm')
+                ->form([
+                    TextInput::make('amount')
+                        ->label('Nominal Pembayaran')
+                        ->numeric()
+                        ->required()
+                        ->minValue(10000)
+                        ->maxValue(fn (Invoice $record) => $record->total_price)
+                        ->prefix('Rp'),
+                ])
+                ->action(function (Invoice $record, array $data, $livewire) {
+                    $snapToken = CreatePaymentService::handle($record, $data['amount']);
 
-                        $snapToken = $this->generateMidtransSnapToken($params);
-
-                        $record->midtrans_snap_token = $snapToken;
-                        $record->save();
-                    }else {
-                        $snapToken = $record->midtrans_snap_token;
+                    if ($snapToken) {
+                        $livewire->dispatch('midtrans-pay', $snapToken);
+                    } else {
+                        Notification::make()
+                            ->title('Gagal memproses pembayaran')
+                            ->body('Terjadi kesalahan saat membuat pembayaran. Silakan coba lagi.')
+                            ->danger()
+                            ->send();
                     }
-
-                    $livewire->dispatch('midtrans-pay', $snapToken);
                 }),
 
             ActionGroup::make([

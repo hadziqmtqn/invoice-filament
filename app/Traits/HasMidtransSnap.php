@@ -11,7 +11,7 @@ trait HasMidtransSnap
     /**
      * @throws Exception
      */
-    public function generateMidtransSnapToken(array $params): string
+    public static function generateMidtransSnapToken(array $params): string
     {
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');

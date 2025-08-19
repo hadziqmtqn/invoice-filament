@@ -22,8 +22,14 @@ class Payment extends Model implements HasMedia
         'reference_number',
         'date',
         'amount',
+        'midtrans_snap_token',
         'payment_method',
         'bank_account_id',
+        'payment_channel',
+        'payment_validation_status',
+        'payment_validation_note',
+        'transaction_time',
+        'status',
         'note',
     ];
 
@@ -32,6 +38,7 @@ class Payment extends Model implements HasMedia
         return [
             'slug' => 'string',
             'date' => 'date',
+            'transaction_time' => 'timestamp'
         ];
     }
 
@@ -42,7 +49,7 @@ class Payment extends Model implements HasMedia
         static::creating(function (Payment $payment) {
             $payment->slug = Str::uuid()->toString();
             $payment->serial_number = self::max('serial_number') + 1;
-            $payment->reference_number = 'REF' . Str::padLeft($payment->serial_number, 6, '0');
+            $payment->reference_number = strtoupper('REF' . Str::random(6) . Str::padLeft($payment->serial_number, 6, '0'));
         });
     }
 
