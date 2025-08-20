@@ -277,7 +277,7 @@ class ViewInvoice extends ViewRecord
                     ])
                     ->columnSpan(['lg' => 1]),
 
-                Section::make('Invoice Payments')
+                Section::make('Payment Histories')
                     ->schema([
                         RepeatableEntry::make('invoicePayments')
                             ->hiddenLabel()

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
+use App\Enums\DataStatus;
 use App\Filament\Resources\InvoiceResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -45,11 +46,11 @@ class EditInvoice extends EditRecord
 
     protected function canEdit(): bool
     {
-        return !$this->record->status != 'paid' || !$this->record->status != 'partially_paid';
+        return !$this->record->status === DataStatus::DRAFT->value;
     }
 
     protected function canDelete(): bool
     {
-        return $this->record->status === 'draft';
+        return $this->record->status === DataStatus::DRAFT->value;
     }
 }
