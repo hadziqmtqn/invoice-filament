@@ -49,15 +49,15 @@ class ViewInvoice extends ViewRecord
                         ->numeric()
                         ->required()
                         ->minValue(10000)
-                        ->default(fn (Invoice $record) => $record->total_due)
+                        ->default(fn (Invoice $record) => $record->invoicePaymentPending?->payment?->amount ?? $record->total_due)
                         ->maxValue(fn (Invoice $record) => $record->total_due)
-                        ->prefix('Rp')
-                        ->visible(fn(Invoice $invoice): bool => !$invoice->invoicePaymentPending),
+                        ->readOnly(fn (Invoice $record): bool => $record->invoicePaymentPending?->payment?->amount ?? false)
+                        ->prefix('Rp'),
                 ])
                 ->action(function (Invoice $record, array $data, $livewire) {
-                    $record->refresh();
-                    $amount = !empty($data['amount']) ? $data['amount'] : $record->invoicePaymentPending?->payment?->amount;
-                    $snapToken = CreatePaymentService::handle($record, $amount);
+                    $snapToken = CreatePaymentService::handle($record, $data['amount']);
+
+                    session()->flash('snapToken', $snapToken);
 
                     if ($snapToken) {
                         $livewire->dispatch('midtrans-pay', $snapToken);
@@ -67,6 +67,12 @@ class ViewInvoice extends ViewRecord
                             ->body('Terjadi kesalahan saat membuat pembayaran. Silakan coba lagi.')
                             ->danger()
                             ->send();
+                    }
+                })
+                ->after(function (Invoice $record, array $data, $livewire) {
+                    // Dipanggil setelah action selesai dan modal tertutup
+                    if (session()->has('snapToken')) {
+                        $livewire->dispatch('midtrans-pay', session('snapToken'));
                     }
                 })
                 ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value),
