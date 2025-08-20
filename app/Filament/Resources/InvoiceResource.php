@@ -28,7 +28,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationBadge(): ?string
     {
-        return self::getModel()::where('status', '!=', 'paid')
+        return self::getModel()::whereNotIn('status', ['draft', 'paid'])
             ->whereBetween('due_date', [now(), now()->addDays(7)])
             ->count();
     }

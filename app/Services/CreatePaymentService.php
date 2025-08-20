@@ -30,6 +30,7 @@ class CreatePaymentService
                 $payment->user_id = $invoice->user_id;
                 $payment->date = now();
                 $payment->amount = $amount;
+                $payment->payment_source = 'payment_gateway';
                 $payment->save();
 
                 $invoicePayment = new InvoicePayment();

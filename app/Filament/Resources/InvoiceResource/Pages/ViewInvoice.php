@@ -22,9 +22,10 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Colors\Color;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Torgodly\Html2Media\Actions\Html2MediaAction;
 
@@ -54,7 +55,8 @@ class ViewInvoice extends ViewRecord
                         ->visible(fn(Invoice $invoice): bool => !$invoice->invoicePaymentPending),
                 ])
                 ->action(function (Invoice $record, array $data, $livewire) {
-                    $amount = $record->invoicePaymentPending?->payment?->amount ?: ($data['amount'] ?? null);
+                    $record->refresh();
+                    $amount = !empty($data['amount']) ? $data['amount'] : $record->invoicePaymentPending?->payment?->amount;
                     $snapToken = CreatePaymentService::handle($record, $amount);
 
                     if ($snapToken) {
@@ -67,7 +69,7 @@ class ViewInvoice extends ViewRecord
                             ->send();
                     }
                 })
-                ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::PAID->value),
+                ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value),
 
             ActionGroup::make([
                 Html2MediaAction::make('download')
@@ -87,7 +89,6 @@ class ViewInvoice extends ViewRecord
                     ->color('primary')
                     ->requiresConfirmation()
                     ->action(function (Invoice $record) {
-                        Log::info('Sending invoice for record: ' . $record->code);
                         if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
                             UnpaidBillMessageJob::dispatch([
                                 'user_name' => $record->user?->name ?? 'Unknown User',
@@ -152,6 +153,8 @@ class ViewInvoice extends ViewRecord
                                     ->label('User')
                                     ->url(fn(Invoice $record): string => UserResource::getUrl('edit', ['record' => $record->user?->username]))
                                     ->color('primary')
+                                    ->icon('heroicon-o-arrow-top-right-on-square')
+                                    ->iconPosition(IconPosition::After)
                                     ->inlineLabel(),
 
                                 TextEntry::make('date')
@@ -253,6 +256,17 @@ class ViewInvoice extends ViewRecord
                                     ->weight(FontWeight::Bold)
                                     ->color('danger'),
                             ]),
+
+                        Actions::make([
+                            Actions\Action::make('mark_as_sent')
+                                ->color(Color::Indigo)
+                                ->visible(fn(Invoice $record): bool => $record->status === DataStatus::DRAFT->value)
+                                ->requiresConfirmation()
+                                ->action(function (Invoice $record) {
+                                    $record->status = DataStatus::SENT->value;
+                                    $record->save();
+                                })
+                        ])
                     ])
                     ->columnSpan(['lg' => 1]),
 

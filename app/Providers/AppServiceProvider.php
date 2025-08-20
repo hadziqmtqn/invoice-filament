@@ -3,10 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Invoice;
-use App\Models\InvoicePayment;
 use App\Models\RecurringInvoice;
 use App\Observers\InvoiceObserver;
-use App\Observers\InvoicePaymentObserver;
 use App\Observers\RecurringInvoiceObserver;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
@@ -27,7 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        InvoicePayment::observe(InvoicePaymentObserver::class);
         Invoice::observe(InvoiceObserver::class);
         RecurringInvoice::observe(RecurringInvoiceObserver::class);
 
