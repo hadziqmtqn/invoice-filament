@@ -48,10 +48,6 @@ class UserTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('receivables')
-                    ->label('Receivables')
-                    ->money('idr'),
-
                 TextColumn::make('roles.name')
                     ->label('Role')
                     ->badge()
@@ -62,8 +58,7 @@ class UserTable
                     })
                     ->formatStateUsing(fn(string $state) => ucfirst(str_replace('_', ' ', $state)))
                     ->sortable()
-                    ->toggleable()
-                    ->toggledHiddenByDefault(),
+                    ->toggleable(),
 
                 TextColumn::make('userProfile.phone')
                     ->label('Phone')
