@@ -76,7 +76,7 @@ class ViewInvoice extends ViewRecord
                         $livewire->dispatch('midtrans-pay', session('snapToken'));
                     }
                 })
-                ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value),
+                ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value && $invoice->total_due > 0),
 
             ActionGroup::make([
                 Html2MediaAction::make('download')
