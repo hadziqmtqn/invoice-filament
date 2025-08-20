@@ -6,6 +6,7 @@ use App\Enums\DataStatus;
 use App\Observers\InvoiceObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,7 +18,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 #[ObservedBy([InvoiceObserver::class])]
 class Invoice extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, HasFactory;
 
     protected $fillable = [
         'slug',

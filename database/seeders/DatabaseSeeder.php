@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\UserProfile;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
+use Database\Seeders\Auth\UserFactorySeeder;
+use Database\Seeders\Invoice\InvoiceSeeder;
 use Database\Seeders\Reference\BankAccountSeeder;
 use Database\Seeders\Reference\BankSeeder;
 use Database\Seeders\Reference\ItemSeeder;
@@ -29,13 +30,11 @@ class DatabaseSeeder extends Seeder
             BankSeeder::class,
             BankAccountSeeder::class,
             WhatsappConfigSeeder::class,
-            MessageTemplateSeeder::class
-        ]);
+            MessageTemplateSeeder::class,
 
-        UserProfile::factory(100)
-            ->create()
-            ->each(function (UserProfile $profile) {
-                $profile->user->assignRole('user');
-            });
+            // User Factory
+            UserFactorySeeder::class,
+            InvoiceSeeder::class
+        ]);
     }
 }
