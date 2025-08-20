@@ -152,7 +152,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['title'];
+        return [];
     }
 
     public static function infolist(Infolist $infolist): Infolist

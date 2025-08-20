@@ -2,12 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Backstage\TwoFactorAuth\Enums\TwoFactorType;
 use Database\Factories\UserFactory;
-use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
-use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,38 +12,65 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
+//use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Support\Facades\Storage;
+use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Filament\Panel;
+use Filament\Models\Contracts\FilamentUser;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasMedia, HasAvatar
 {
+    use HasApiTokens;
+
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles, SoftDeletes, InteractsWithMedia, HasSlug, TwoFactorAuthenticatable;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    use HasRoles;
+    use InteractsWithMedia;
+    use HasSlug;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'username',
         'name',
         'email',
         'password',
+        'profile_photo_path'
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'profile_photo_url',
     ];
 
     /**
@@ -60,9 +84,9 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'deleted_at' => 'timestamp',
-            'two_factor_type' => TwoFactorType::class,
         ];
     }
+
 
     public function getSlugOptions(): SlugOptions
     {
@@ -90,7 +114,7 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
     // more
     protected function defaultAvatar(): Attribute
     {
-        return Attribute::make(fn() => url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128'));
+        return Attribute::make(fn() => $this->hasMedia('avatar') ? $this->getFirstTemporaryUrl(now()->addHour(), 'avatar') : ($this->profile_photo_path ? Storage::url($this->profile_photo_path) : url('https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128')));
     }
 
     protected function receivables(): Attribute
@@ -107,8 +131,7 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // TODO: Implement canAccessPanel() method.
-        return $this->hasPermissionTo('access panel');
+        return true;
     }
 
     public function getRouteKeyName(): string

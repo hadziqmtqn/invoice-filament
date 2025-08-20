@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use App\Models\InvoicePayment;
-use App\Observers\InvoicePaymentObserver;
-use Backstage\TwoFactorAuth\Listeners\SendTwoFactorCodeListener;
-use Illuminate\Support\Facades\Event;
+use App\Models\Invoice;
+use App\Models\RecurringInvoice;
+use App\Observers\InvoiceObserver;
+use App\Observers\RecurringInvoiceObserver;
+use Filament\Support\Assets\Js;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
-use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,11 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        InvoicePayment::observe(InvoicePaymentObserver::class);
+        Invoice::observe(InvoiceObserver::class);
+        RecurringInvoice::observe(RecurringInvoiceObserver::class);
 
-        Event::listen([
-            TwoFactorAuthenticationChallenged::class,
-            TwoFactorAuthenticationEnabled::class
-        ], SendTwoFactorCodeListener::class);
+        FilamentAsset::register([
+            Js::make('midtrans-scripts', 'https://app.sandbox.midtrans.com/snap/snap.js')
+                ->extraAttributes(['data-client-key' => config('midtrans.client_key')]),
+            Js::make('midtrans-payment', asset('js/midtrans-payment.js'))
+        ]);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -27,7 +29,7 @@ class PaymentPolicy
 
     public function update(User $user, Payment $payment): bool
     {
-        return $user->can('update_payment', $payment);
+        return $user->can('update_payment', $payment) && $payment->status === DataStatus::PENDING->value && $payment->payment_source !== PaymentSource::PAYMENT_GATEWAY->value;
     }
 
     public function delete(User $user, Payment $payment): bool

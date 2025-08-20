@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\DataStatus;
 use App\Observers\InvoiceObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -68,6 +70,14 @@ class Invoice extends Model implements HasMedia
         return $this->hasMany(InvoicePayment::class, 'invoice_id');
     }
 
+    public function invoicePaymentPending(): HasOne
+    {
+        return $this->hasOne(InvoicePayment::class, 'invoice_id')
+            ->whereHas('payment', function ($query) {
+                $query->where('status', DataStatus::PENDING->value);
+            });
+    }
+
     public function recurringInvoice(): BelongsTo
     {
         return $this->belongsTo(RecurringInvoice::class);
@@ -101,7 +111,7 @@ class Invoice extends Model implements HasMedia
 
     protected function totalPaid(): Attribute
     {
-        return Attribute::make(fn() => $this->invoicePayments->sum('amount_applied'));
+        return Attribute::make(fn() => $this->invoicePayments()->whereHas('payment', fn($query) => $query->where('status', DataStatus::PAID->value))->sum('amount_applied'));
     }
 
     protected function totalDue(): Attribute

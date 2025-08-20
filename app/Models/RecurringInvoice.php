@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\NextDate;
 use App\Observers\RecurringInvoiceObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 
 #[ObservedBy([RecurringInvoiceObserver::class])]
 class RecurringInvoice extends Model
@@ -64,47 +64,6 @@ class RecurringInvoice extends Model
         return 'slug';
     }
 
-    // 1. First Next Invoice Date (saat recurring baru)
-    /*public function getFirstNextInvoiceDate(): Carbon
-    {
-        $baseDate = Carbon::parse($this->date);
-        $repeatEvery = (int)($this->repeat_every ?: 1);
-
-        return match ($this->recurrence_frequency) {
-            'seconds' => $baseDate->copy()->addSeconds($repeatEvery),
-            'minutes' => $baseDate->copy()->addMinutes($repeatEvery),
-            'days' => $baseDate->copy()->addDays($repeatEvery),
-            'weeks' => $baseDate->copy()->addWeeks($repeatEvery),
-            'months' => $baseDate->copy()->addMonths($repeatEvery),
-            'years' => $baseDate->copy()->addYears($repeatEvery),
-            default => $baseDate,
-        };
-    }*/
-
-    // 2. Next Invoice Date (berjalan)
-    public function calculateNextInvoiceDate(): Carbon
-    {
-        $date = $this->date->copy(); // Carbon instance, JANGAN pakai reference!
-        $now = now();
-
-        $repeatEvery = (int)($this->repeat_every ?: 1);
-
-        // Cek jika next interval sudah lewat, tambahkan terus sampai lewat now
-        while ($date <= $now) {
-            $date = match ($this->recurrence_frequency) {
-                'seconds' => $date->addSeconds($repeatEvery),
-                'minutes' => $date->addMinutes($repeatEvery),
-                'days' => $date->addDays($repeatEvery),
-                'weeks' => $date->addWeeks($repeatEvery),
-                'months' => $date->addMonths($repeatEvery),
-                'years' => $date->addYears($repeatEvery),
-                default => $date,
-            };
-        }
-
-        return $date;
-    }
-
     // TODO Attribute
     protected function totalPrice(): Attribute
     {
@@ -127,7 +86,7 @@ class RecurringInvoice extends Model
     protected function nextInvoiceDate(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->calculateNextInvoiceDate()
+            get: fn() => NextDate::calculateNextDate($this->date, $this->recurrence_frequency, $this->repeat_every)
         );
     }
 

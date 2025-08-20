@@ -15,8 +15,15 @@ return new class extends Migration {
             $table->string('reference_number');
             $table->date('date');
             $table->decimal('amount', 20, 0);
-            $table->enum('payment_method', ['cash', 'bank_transfer']);
+            $table->string('payment_source')->default('cash');
+            $table->string('midtrans_snap_token')->nullable();
+            $table->string('payment_method')->nullable();
             $table->unsignedBigInteger('bank_account_id')->nullable();
+            $table->string('payment_channel')->nullable();
+            $table->string('payment_validation_status')->nullable();
+            $table->string('payment_validation_note')->nullable();
+            $table->timestamp('transaction_time')->nullable();
+            $table->string('status')->default('pending');
             $table->text('note')->nullable();
             $table->timestamps();
             $table->softDeletes();

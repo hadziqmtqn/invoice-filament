@@ -126,6 +126,6 @@ class BankAccountResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['bank.short_name', 'account_name', 'account_number'];
+        return [];
     }
 }

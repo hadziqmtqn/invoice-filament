@@ -2,12 +2,9 @@
 
 namespace App\Models;
 
-use App\Observers\InvoicePaymentObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[ObservedBy([InvoicePaymentObserver::class])]
 class InvoicePayment extends Model
 {
     protected $fillable = [

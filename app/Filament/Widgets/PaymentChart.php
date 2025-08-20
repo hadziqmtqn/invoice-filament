@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\DataStatus;
+use App\Enums\Months;
 use App\Models\Payment;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
@@ -39,6 +41,7 @@ class PaymentChart extends ApexChartWidget
         // Ambil data total pembayaran per bulan, 12 bulan terakhir
         $payments = Payment::selectRaw('EXTRACT(MONTH FROM "date") as month, SUM(amount) as total')
             ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [date('Y')])
+            ->filterByStatus(DataStatus::PAID->value)
             ->when($userRole, function ($query) {
                 return $query->where('user_id', auth()->id());
             })
@@ -48,27 +51,27 @@ class PaymentChart extends ApexChartWidget
             ->all();
 
         // Buat array bulan (Jan, Feb, dst)
-        $months = [
-            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
-            7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
-        ];
+        $months = Months::all();
 
         // Siapkan data untuk chart (isi 0 jika tidak ada pembayaran di bulan tsb)
         $chartData = [];
         $categories = [];
-        foreach ($months as $num => $name) {
-            $categories[] = $name;
-            $chartData[] = $payments[$num] ?? 0;
+        foreach ($months as $month) {
+            $categories[] = $month->short();
+            $chartData[] = $payments[$month->value] ?? 0;
         }
 
         return [
             'chart' => [
-                'type' => 'bar',
+                'type' => 'line',
                 'height' => 400,
+                'toolbar' => [
+                    'show' => false,
+                ]
             ],
             'series' => [
                 [
-                    'name' => 'Total Pembayaran',
+                    'name' => 'Total',
                     'data' => $chartData,
                 ],
             ],
@@ -76,14 +79,14 @@ class PaymentChart extends ApexChartWidget
                 'categories' => $categories,
                 'labels' => [
                     'style' => [
-                        'fontFamily' => 'inherit',
+                        'fontFamily' => 'poppins',
                     ],
                 ],
             ],
             'yaxis' => [
                 'labels' => [
                     'style' => [
-                        'fontFamily' => 'inherit',
+                        'fontFamily' => 'poppins',
                     ],
                 ],
             ],
