@@ -47,7 +47,6 @@ class PanelPanelProvider extends PanelProvider
             ->default()
             ->id('panel')
             ->path('panel')
-            ->spa()
             ->login() // alt: App/Filament/Pages/Login.php
             ->brandName($application?->name)
             ->favicon($application?->favicon)

@@ -55,7 +55,8 @@ class ViewInvoice extends ViewRecord
                         ->prefix('Rp'),
                 ])
                 ->action(function (Invoice $record, array $data, $livewire) {
-                    $snapToken = CreatePaymentService::handle($record, $data['amount']);
+                    $amount = $record->invoicePaymentPending?->payment?->amount && $record->invoicePaymentPending?->payment?->amount != $data['amount'] ? $record->invoicePaymentPending?->payment?->amount : $data['amount'];
+                    $snapToken = CreatePaymentService::handle($record, $amount);
 
                     session()->flash('snapToken', $snapToken);
 
