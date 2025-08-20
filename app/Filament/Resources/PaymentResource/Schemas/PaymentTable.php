@@ -56,6 +56,12 @@ class PaymentTable
                     ->formatStateUsing(fn(string $state): string => strtoupper($state))
                     ->sortable(),
 
+                TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => DataStatus::tryFrom($state)?->getLabel() ?? 'N/A')
+                    ->color(fn(string $state): string => DataStatus::tryFrom($state)?->getColor() ?? 'gray')
+                    ->sortable(),
+
                 TextColumn::make('bankAccount.bank.short_name')
                     ->toggleable()
                     ->toggledHiddenByDefault(),

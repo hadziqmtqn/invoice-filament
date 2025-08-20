@@ -8,11 +8,13 @@ use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
 use App\Models\Payment;
+use Filament\Actions\Action;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\HtmlString;
@@ -20,6 +22,33 @@ use Illuminate\Support\HtmlString;
 class ViewPayment extends ViewRecord
 {
     protected static string $resource = PaymentResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('pay')
+                ->label('Pay Now')
+                ->icon('heroicon-o-currency-dollar')
+                ->requiresConfirmation()
+                ->modalDescription('Are you sure you will pay now?')
+                ->modalIconColor('danger')
+                ->modalWidth('sm')
+                ->action(function (Payment $record, array $data, $livewire) {
+                    $snapToken = $record->midtrans_snap_token;
+
+                    if ($snapToken) {
+                        $livewire->dispatch('midtrans-pay', $snapToken);
+                    } else {
+                        Notification::make()
+                            ->title('Gagal memproses pembayaran')
+                            ->body('Terjadi kesalahan saat membuat pembayaran. Silakan coba lagi.')
+                            ->danger()
+                            ->send();
+                    }
+                })
+                ->visible(fn(Payment $payment): bool => $payment->status === DataStatus::PENDING->value && $payment->payment_source === PaymentSource::PAYMENT_GATEWAY->value),
+        ];
+    }
 
     public function infolist(Infolist $infolist): Infolist
     {
@@ -120,6 +149,12 @@ class ViewPayment extends ViewRecord
                     ->schema([
                         Section::make()
                             ->schema([
+                                TextEntry::make('status')
+                                    ->formatStateUsing(fn($state): string => DataStatus::tryFrom($state)?->getLabel() ?? 'N/A')
+                                    ->color(fn($state): string => DataStatus::tryFrom($state)?->getColor() ?? 'gray')
+                                    ->weight(FontWeight::Bold)
+                                    ->size(TextEntry\TextEntrySize::Large),
+
                                 TextEntry::make('payment_source')
                                     ->label('Payment Source')
                                     ->formatStateUsing(fn($state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')

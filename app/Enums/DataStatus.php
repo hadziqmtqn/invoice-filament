@@ -15,6 +15,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
     case UNPAID = 'unpaid';
     case PARTIALLY_PAID = 'partially_paid';
     case PENDING = 'pending';
+    case EXPIRE = 'expire';
 
     public function getColor(): string
     {
@@ -22,7 +23,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::DRAFT => 'gray',
             self::SENT => 'info',
             self::PAID => 'primary',
-            self::UNPAID, self::OVERDUE => 'danger',
+            self::UNPAID, self::OVERDUE, self::EXPIRE => 'danger',
             self::PARTIALLY_PAID, self::PENDING => 'warning',
         };
     }
@@ -37,6 +38,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::UNPAID => 'UNPAID',
             self::PARTIALLY_PAID => 'PARTIALLY PAID',
             self::PENDING => 'PENDING',
+            self::EXPIRE => 'EXPIRE',
         };
     }
 
@@ -46,7 +48,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::DRAFT => 'heroicon-o-document-text',
             self::SENT => 'heroicon-o-paper-airplane',
             self::PAID => 'heroicon-o-check-circle',
-            self::OVERDUE => 'heroicon-o-exclamation-circle',
+            self::OVERDUE, self::EXPIRE => 'heroicon-o-exclamation-circle',
             self::UNPAID => 'heroicon-o-x-circle',
             self::PARTIALLY_PAID, self::PENDING => 'heroicon-o-minus-circle',
         };
@@ -81,6 +83,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::UNPAID->value => self::UNPAID->getIcon(),
             self::PARTIALLY_PAID->value => self::PARTIALLY_PAID->getIcon(),
             self::PENDING->value => self::PENDING->getIcon(),
+            self::EXPIRE->value => self::EXPIRE->getIcon(),
         ];
     }
 

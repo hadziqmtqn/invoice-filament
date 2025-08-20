@@ -167,7 +167,7 @@ class PaymentCallbackService
 
             $payment->save();
 
-            // TODO Transaksi pembayaran sekolah
+            // TODO Update Invoice
             if ($payment->invoicePayments->isNotEmpty() && ($data['status'] == 'paid')) {
                 foreach ($payment->invoicePayments as $invoicePayment) {
                     $invoice = $invoicePayment->invoice;

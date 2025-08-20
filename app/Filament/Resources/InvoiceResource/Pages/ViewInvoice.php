@@ -48,7 +48,8 @@ class ViewInvoice extends ViewRecord
                         ->numeric()
                         ->required()
                         ->minValue(10000)
-                        ->maxValue(fn (Invoice $record) => $record->total_price)
+                        ->default(fn (Invoice $record) => $record->total_due)
+                        ->maxValue(fn (Invoice $record) => $record->total_due)
                         ->prefix('Rp')
                         ->visible(fn(Invoice $invoice): bool => !$invoice->invoicePaymentPending),
                 ])
@@ -233,6 +234,24 @@ class ViewInvoice extends ViewRecord
                                     ->size(TextEntry\TextEntrySize::Large)
                                     ->weight(FontWeight::Bold)
                                     ->color('primary'),
+
+                                TextEntry::make('total_paid')
+                                    ->label('Total Paid')
+                                    ->money('idr')
+                                    ->prefix('Rp')
+                                    ->numeric(0, ',', '.')
+                                    ->size(TextEntry\TextEntrySize::Large)
+                                    ->weight(FontWeight::Bold)
+                                    ->color('info'),
+
+                                TextEntry::make('total_due')
+                                    ->label('Total Due')
+                                    ->money('idr')
+                                    ->prefix('Rp')
+                                    ->numeric(0, ',', '.')
+                                    ->size(TextEntry\TextEntrySize::Large)
+                                    ->weight(FontWeight::Bold)
+                                    ->color('danger'),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1]),
