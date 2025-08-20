@@ -28,6 +28,15 @@ class PaymentChart extends ApexChartWidget
      */
     protected static ?string $loadingIndicator = 'Loading...';
 
+    protected function getFilters(): ?array
+    {
+        $fiveYearsAgo = now()->subYears(5)->year;
+        $years = collect(range($fiveYearsAgo, now()->year))->reverse()->values();
+
+        // Kembalikan associative array: [2025 => 2025, 2024 => 2024, ...]
+        return $years->mapWithKeys(fn ($year) => [$year => $year])->toArray();
+    }
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
@@ -37,10 +46,11 @@ class PaymentChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $userRole = auth()->user()->hasRole('user');
+        $year = $this->filter ?? now()->year;
 
         // Ambil data total pembayaran per bulan, 12 bulan terakhir
         $payments = Payment::selectRaw('EXTRACT(MONTH FROM "date") as month, SUM(amount) as total')
-            ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [date('Y')])
+            ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [$year])
             ->filterByStatus(DataStatus::PAID->value)
             ->when($userRole, function ($query) {
                 return $query->where('user_id', auth()->id());
