@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\DataStatus;
 use App\Models\Payment;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
@@ -52,6 +53,7 @@ class PaymentMethodChart extends ApexChartWidget
 
         // Ambil data jumlah transaksi per payment_method
         $payments = $query->selectRaw('payment_method, COUNT(*) as total')
+            ->filterByStatus(DataStatus::PAID->value)
             ->groupBy('payment_method')
             ->orderBy('payment_method')
             ->pluck('total', 'payment_method')

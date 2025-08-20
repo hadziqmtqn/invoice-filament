@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\DataStatus;
 use App\Enums\Months;
 use App\Models\Payment;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
@@ -40,6 +41,7 @@ class PaymentChart extends ApexChartWidget
         // Ambil data total pembayaran per bulan, 12 bulan terakhir
         $payments = Payment::selectRaw('EXTRACT(MONTH FROM "date") as month, SUM(amount) as total')
             ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [date('Y')])
+            ->filterByStatus(DataStatus::PAID->value)
             ->when($userRole, function ($query) {
                 return $query->where('user_id', auth()->id());
             })

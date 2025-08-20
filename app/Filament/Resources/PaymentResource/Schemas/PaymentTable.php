@@ -11,6 +11,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
@@ -44,7 +45,13 @@ class PaymentTable
                     ->money('idr')
                     ->prefix('Rp')
                     ->numeric(0, ',', '.')
-                    ->searchable(),
+                    ->searchable()
+                    ->summarize([
+                        Sum::make('amount')
+                            ->money('idr')
+                            ->prefix('Rp')
+                            ->numeric(0, ',', '.')
+                    ]),
 
                 TextColumn::make('payment_source')
                     ->badge()
@@ -68,6 +75,10 @@ class PaymentTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
+                SelectFilter::make('status')
+                    ->options(DataStatus::options(['paid', 'pending', 'expire']))
+                    ->native(false),
+
                 SelectFilter::make('payment_source')
                     ->options(PaymentSource::dropdownOptions())
                     ->native(false),

@@ -16,4 +16,11 @@ class ListPayments extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PaymentResource\Widgets\TotalPaymentOverview::make()
+        ];
+    }
 }

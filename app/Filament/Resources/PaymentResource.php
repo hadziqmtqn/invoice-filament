@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Filament\Resources\PaymentResource\Schemas\PaymentForm;
 use App\Filament\Resources\PaymentResource\Schemas\PaymentTable;
+use App\Filament\Resources\PaymentResource\Widgets\TotalPaymentOverview;
 use App\Models\Payment;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
@@ -114,5 +115,12 @@ class PaymentResource extends Resource implements HasShieldPermissions
     public static function getGlobalSearchResultUrl(Model $record): string
     {
         return PaymentResource::getUrl('view', ['record' => $record]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            TotalPaymentOverview::class
+        ];
     }
 }
