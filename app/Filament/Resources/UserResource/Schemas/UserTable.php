@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Spatie\Permission\Models\Role;
 
 class UserTable
 {
@@ -66,17 +65,6 @@ class UserTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                SelectFilter::make('role')
-                    ->label('Role')
-                    ->options(fn () => Role::all()->pluck('name', 'id'))
-                    ->query(function (Builder $query, array $data) {
-                        if ($data['value']) {
-                            $query->whereHas('roles', function ($q) use ($data) {
-                                $q->where('id', $data['value']);
-                            });
-                        }
-                    })
-                    ->native(false),
                 SelectFilter::make('receivables')
                     ->options([
                         'YES' => 'Have a debt',
