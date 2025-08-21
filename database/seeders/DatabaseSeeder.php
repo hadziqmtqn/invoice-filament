@@ -5,8 +5,6 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\Auth\AdminSeeder;
 use Database\Seeders\Auth\PermissionSeeder;
-use Database\Seeders\Auth\UserFactorySeeder;
-use Database\Seeders\Invoice\InvoiceSeeder;
 use Database\Seeders\Reference\BankAccountSeeder;
 use Database\Seeders\Reference\BankSeeder;
 use Database\Seeders\Reference\ItemSeeder;
@@ -33,8 +31,8 @@ class DatabaseSeeder extends Seeder
             MessageTemplateSeeder::class,
 
             // User Factory
-            UserFactorySeeder::class,
-            InvoiceSeeder::class
+            /*UserFactorySeeder::class,
+            InvoiceSeeder::class*/
         ]);
     }
 }
