@@ -30,8 +30,7 @@ Artisan::command('inspire', function () {
     });
 
 \Illuminate\Support\Facades\Schedule::command('invoice:generate-recurring')
-//    ->dailyAt('17:45') // Every day at midnight
-    ->everyMinute()
+    ->dailyAt('03:00')
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
     ->onSuccess(function () {
@@ -39,4 +38,15 @@ Artisan::command('inspire', function () {
     })
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
+    });
+
+\Illuminate\Support\Facades\Schedule::command('backup:run --only-db')
+    ->dailyAt('01:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Backup due command executed successfully.');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Backup due command failed.');
     });
