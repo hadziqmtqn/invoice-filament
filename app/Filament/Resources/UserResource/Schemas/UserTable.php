@@ -123,11 +123,9 @@ class UserTable
                                 ], $record->userProfile?->phone);
                             }
                         }),
-                    DeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin') || $record->invoices()->exists() || $record->payments()->exists()),
+                    DeleteAction::make(),
                     RestoreAction::make(),
-                    ForceDeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                    ForceDeleteAction::make(),
                 ]),
             ])
             ->bulkActions([

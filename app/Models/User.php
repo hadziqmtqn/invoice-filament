@@ -111,6 +111,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         return $this->hasMany(Payment::class, 'user_id');
     }
 
+    public function recurringInvoices(): HasMany
+    {
+        return $this->hasMany(RecurringInvoice::class, 'user_id');
+    }
+
     // more
     protected function defaultAvatar(): Attribute
     {
