@@ -49,8 +49,8 @@ class PaymentChart extends ApexChartWidget
         $year = $this->filter ?? now()->year;
 
         // Ambil data total pembayaran per bulan, 12 bulan terakhir
-        $payments = Payment::selectRaw('EXTRACT(MONTH FROM "date") as month, SUM(amount) as total')
-            ->whereRaw('EXTRACT(YEAR FROM "date") = ?', [$year])
+        $payments = Payment::selectRaw('MONTH(date) as month, SUM(amount) as total')
+            ->whereRaw('YEAR(date) = ?', [$year])
             ->filterByStatus(DataStatus::PAID->value)
             ->when($userRole, function ($query) {
                 return $query->where('user_id', auth()->id());
