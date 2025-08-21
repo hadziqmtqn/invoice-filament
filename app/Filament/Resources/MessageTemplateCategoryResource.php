@@ -42,6 +42,7 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->placeholder('Message Template Category Name')
                     ->columnSpanFull()
                     ->required(),
 
@@ -57,6 +58,7 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
                         'redo',
                         'undo',
                     ])
+                    ->placeholder('Message Template Category Placeholder')
                     ->columnSpanFull(),
 
                 Grid::make()
