@@ -95,6 +95,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+
+            'dump' => [
+                'dump_binary_path' => env('DB_DUMP_BINARY_PATH', ''), // <-- diatur lewat .env
+                'use_single_transaction' => true,
+                // opsi lain sesuai kebutuhan
+            ]
         ],
 
         'sqlsrv' => [
