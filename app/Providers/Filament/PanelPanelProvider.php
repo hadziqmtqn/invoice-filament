@@ -22,6 +22,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
@@ -37,8 +38,10 @@ class PanelPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         $application = null;
-        if (Schema::hasTable('applications')) {
-            $application = Application::first();
+        if (!App::runningInConsole() || (App::runningInConsole() && !in_array(request()->server('argv')[1] ?? null, ['migrate', 'db:seed', 'config:cache', 'config:clear', 'migrate:fresh', 'migrate:refresh', 'migrate:install']))) {
+            if (Schema::hasTable('applications')) {
+                $application = Application::first();
+            }
         }
 
         Notifications::alignment(Alignment::Center);

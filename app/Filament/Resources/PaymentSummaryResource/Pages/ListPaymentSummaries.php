@@ -20,9 +20,9 @@ class ListPaymentSummaries extends ListRecords
     protected function getTableQuery(): ?Builder
     {
         return $this->getModel()::query()
-            ->selectRaw("MIN(id) as id, TO_CHAR(date, 'YYYY-MM') as month_year, SUM(amount) as total")
+            ->selectRaw("MIN(id) as id, DATE_FORMAT(date, '%Y-%m') as month_year, SUM(amount) as total")
             ->where('status', 'paid')
-            ->groupByRaw("TO_CHAR(date, 'YYYY-MM')")
+            ->groupByRaw("DATE_FORMAT(date, '%Y-%m')")
             ->orderByRaw("MIN(date) DESC");
     }
 }

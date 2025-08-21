@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('message_templates', function (Blueprint $table) {
             $table->id();
             $table->uuid('slug');
-            $table->unsignedInteger('message_template_category_id');
+            $table->unsignedBigInteger('message_template_category_id');
             $table->string('title');
             $table->text('message');
             $table->boolean('is_active')->default(true);

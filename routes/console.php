@@ -31,10 +31,10 @@ Artisan::command('inspire', function () {
         \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
     });
 
-\Illuminate\Support\Facades\Schedule::command('backup:run --only-db')
+/*\Illuminate\Support\Facades\Schedule::command('backup:run --only-db')
     ->dailyAt('01:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Backup due command failed.');
-    });
+    });*/
