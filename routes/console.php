@@ -11,9 +11,6 @@ Artisan::command('inspire', function () {
     ->dailyAt('01:00') // Every day at midnight
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
-    ->onSuccess(function () {
-        \Illuminate\Support\Facades\Log::info('Invoice due command executed successfully.');
-    })
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice due command failed.');
     });
@@ -22,21 +19,22 @@ Artisan::command('inspire', function () {
     ->dailyAt('02:00') // Every day at midnight
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
-    ->onSuccess(function () {
-        \Illuminate\Support\Facades\Log::info('Invoice will-due command executed successfully.');
-    })
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice will-due command failed.');
     });
 
 \Illuminate\Support\Facades\Schedule::command('invoice:generate-recurring')
-//    ->dailyAt('17:45') // Every day at midnight
-    ->everyMinute()
+    ->dailyAt('03:00')
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
-    ->onSuccess(function () {
-        \Illuminate\Support\Facades\Log::info('Invoice generate-recurring command executed successfully.');
-    })
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
+    });
+
+\Illuminate\Support\Facades\Schedule::command('backup:run --only-db')
+    ->dailyAt('01:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Backup due command failed.');
     });
