@@ -12,6 +12,7 @@ use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
@@ -51,7 +52,7 @@ class UserForm
                                         Select::make('roles')
                                             ->label('Role')
                                             ->prefixIcon('heroicon-o-shield-check')
-                                            ->relationship('roles', 'name')
+                                            ->relationship('roles', 'name', fn(Builder $query) => $query->where(['guard_name' => 'web', 'name' => 'user']))
                                             ->preload()
                                             ->required()
                                             ->rules([

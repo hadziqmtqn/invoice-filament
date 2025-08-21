@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\WhatsappGatewayProvider;
 use App\Filament\Resources\WhatsappConfigResource\Pages;
 use App\Models\WhatsappConfig;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -12,12 +13,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class WhatsappConfigResource extends Resource implements HasShieldPermissions
@@ -45,11 +44,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
         return $form
             ->schema([
                 Select::make('provider')
-                    ->options([
-                        'wablas' => 'Wablas',
-                        'wanesia' => 'Wanesia',
-                        'fontee' => 'Fontee',
-                    ])
+                    ->options(WhatsappGatewayProvider::options())
                     ->searchable()
                     ->required(),
 
@@ -67,15 +62,14 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 
                 Grid::make()
                     ->columns()
+                    ->visible(fn(?WhatsappConfig $whatsappConfig): bool => $whatsappConfig?->exists ?? false)
                     ->schema([
                         Placeholder::make('created_at')
                             ->label('Created Date')
-                            ->visible(fn(?WhatsappConfig $whatsappConfig): bool => $whatsappConfig?->exists ?? false)
                             ->content(fn(?WhatsappConfig $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
                         Placeholder::make('updated_at')
                             ->label('Last Modified Date')
-                            ->visible(fn(?WhatsappConfig $whatsappConfig): bool => $whatsappConfig?->exists ?? false)
                             ->content(fn(?WhatsappConfig $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
                     ])
             ]);
@@ -94,7 +88,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 
                 TextColumn::make('api_key'),
 
-                CheckboxColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->sortable(),
             ])
             ->filters([
@@ -105,9 +99,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
                 DeleteAction::make(),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 
@@ -122,6 +114,6 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['provider'];
+        return [];
     }
 }
