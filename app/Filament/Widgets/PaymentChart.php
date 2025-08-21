@@ -21,7 +21,7 @@ class PaymentChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Payment Chart';
+    protected static ?string $heading = 'Statistik Pembayaran';
 
     /**
      * @var string|null

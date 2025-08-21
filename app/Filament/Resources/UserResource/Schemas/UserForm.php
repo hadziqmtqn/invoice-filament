@@ -2,10 +2,8 @@
 
 namespace App\Filament\Resources\UserResource\Schemas;
 
-use App\Models\User;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Tabs;
@@ -27,18 +25,18 @@ class UserForm
                     ->columnSpan('full')
                     ->tabs([
                         // TODO Personal data
-                        Tabs\Tab::make('Personal')
+                        Tabs\Tab::make('Pribadi')
                             ->icon('heroicon-o-user')
                             ->schema([
                                 Grid::make()
                                     ->schema([
                                         TextInput::make('name')
-                                            ->label('Name')
+                                            ->label('Nama')
                                             ->prefixIcon('heroicon-o-user-circle')
                                             ->minLength(3)
                                             ->required()
                                             ->maxLength(255)
-                                            ->placeholder('Enter your name'),
+                                            ->placeholder('Masukkan nama lengkap'),
 
                                         TextInput::make('email')
                                             ->label('Email')
@@ -47,10 +45,10 @@ class UserForm
                                             ->unique(ignoreRecord: true)
                                             ->required()
                                             ->maxLength(255)
-                                            ->placeholder('Enter your email'),
+                                            ->placeholder('Masukkan email valid'),
 
                                         Select::make('roles')
-                                            ->label('Role')
+                                            ->label('Peran')
                                             ->prefixIcon('heroicon-o-shield-check')
                                             ->relationship('roles', 'name', fn(Builder $query) => $query->where(['guard_name' => 'web', 'name' => 'user']))
                                             ->preload()
@@ -64,19 +62,19 @@ class UserForm
                                             ->relationship('userProfile')
                                             ->schema([
                                                 TextInput::make('company_name')
-                                                    ->label('Company Name')
+                                                    ->label('Tempat Usaha')
                                                     ->prefixIcon('heroicon-o-building-office')
                                                     ->maxLength(50)
                                                     ->dehydrated()
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state)
-                                                    ->placeholder('Enter your company name'),
+                                                    ->placeholder('Masukkan tempat usaha'),
                                             ]),
 
                                         Group::make()
                                             ->relationship('userProfile')
                                             ->schema([
                                                 TextInput::make('phone')
-                                                    ->label('Phone')
+                                                    ->label('No. Hp')
                                                     ->prefixIcon('heroicon-o-phone')
                                                     ->numeric()
                                                     ->required()
@@ -84,14 +82,14 @@ class UserForm
                                                     ->unique(ignoreRecord: true)
                                                     ->dehydrated(fn($state) => filled($state))
                                                     ->dehydrateStateUsing(fn($state) => filled($state) ? preg_replace('/[^0-9]/', '', $state) : null)
-                                                    ->placeholder('Enter your phone number'),
+                                                    ->placeholder('Masukkan No. HP/WHatsapp'),
                                             ])
                                     ]),
 
                                 Grid::make()
                                     ->schema([
                                         TextInput::make('password')
-                                            ->label(fn($livewire) => $livewire instanceof EditRecord ? 'New Password' : 'Password')
+                                            ->label(fn($livewire) => $livewire instanceof EditRecord ? 'Kata Sandi Baru' : 'Kata Sandi')
                                             ->prefixIcon('heroicon-o-lock-closed')
                                             ->password()
                                             ->confirmed()
@@ -101,12 +99,12 @@ class UserForm
                                             ->autocomplete('new-password')
                                             ->dehydrated(fn (?string $state): bool => filled($state))
                                             ->required(fn (string $operation): bool => $operation === 'create')
-                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Leave it blank if you don\'t want to change the password' : 'Enter new password')
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika Anda tidak ingin mengubah kata sandi' : 'Masukkan Kata Sandi Baru')
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
                                             ->revealable(),
 
                                         TextInput::make('password_confirmation')
-                                            ->label('Confirm Password')
+                                            ->label('Konfirmasi Kata Sandi')
                                             ->prefixIcon('heroicon-o-lock-closed')
                                             ->password()
                                             ->minLength(8)
@@ -114,14 +112,14 @@ class UserForm
                                             ->autocomplete('new-password')
                                             ->dehydrated(fn (?string $state): bool => filled($state))
                                             ->required(fn (string $operation): bool => $operation === 'create')
-                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Leave it blank if you don\'t want to change the password' : 'Confirm new password')
+                                            ->placeholder(fn($livewire) => $livewire instanceof EditRecord ? 'Biarkan kosong jika Anda tidak ingin mengubah kata sandi' : 'Konfirmasi Kata Sandi Baru')
                                             ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
                                             ->revealable(),
                                     ]),
                             ]),
 
                         // TODO Address
-                        Tabs\Tab::make('Address')
+                        Tabs\Tab::make('Alamat')
                             ->icon('heroicon-o-map-pin')
                             ->schema([
                                 Group::make()
@@ -131,7 +129,7 @@ class UserForm
                                             ->columns()
                                             ->schema([
                                                 Select::make('province')
-                                                    ->label('Province')
+                                                    ->label('Provinsi')
                                                     ->searchable()
                                                     ->getSearchResultsUsing(function (string $search) {
                                                         $response = Http::get('https://idn-location.bkn.my.id/api/v1/provinces', [
@@ -150,7 +148,7 @@ class UserForm
                                                     }),
 
                                                 Select::make('city')
-                                                    ->label('City')
+                                                    ->label('Kota/Kabupaten')
                                                     ->searchable()
                                                     ->getSearchResultsUsing(function (string $search, $get) {
                                                         $province = $get('province');
@@ -171,7 +169,7 @@ class UserForm
                                                     }),
 
                                                 Select::make('district')
-                                                    ->label('District')
+                                                    ->label('Kecamatan')
                                                     ->searchable()
                                                     ->getSearchResultsUsing(function (string $search, $get) {
                                                         $city = $get('city');
@@ -191,7 +189,7 @@ class UserForm
                                                     }),
 
                                                 Select::make('village')
-                                                    ->label('Village')
+                                                    ->label('Desa/Kelurahan')
                                                     ->searchable()
                                                     ->getSearchResultsUsing(function (string $search, $get) {
                                                         $district = $get('district');
@@ -208,21 +206,21 @@ class UserForm
                                                     ->reactive(),
 
                                                 TextInput::make('street')
-                                                    ->label('Street')
+                                                    ->label('Jalan')
                                                     ->maxLength(255)
                                                     ->dehydrated()
-                                                    ->placeholder('Street')
+                                                    ->placeholder('Nama Jalan')
                                                     ->dehydrateStateUsing(fn($state) => $state === '' ? null : $state),
                                             ]),
                                     ])
                             ]),
 
                         // TODO Avatar
-                        Tabs\Tab::make('Avatar')
+                        Tabs\Tab::make('Foto Profil')
                             ->icon('heroicon-o-photo')
                             ->schema([
                                 SpatieMediaLibraryFileUpload::make('avatar')
-                                    ->label('Avatar')
+                                    ->label('Foto Profil')
                                     ->collection('avatars')
                                     ->image()
                                     ->disk('s3')
@@ -232,16 +230,6 @@ class UserForm
                                     ->columnSpanFull(),
                             ])
                     ]),
-
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?User $record): string => $record?->created_at?->diffForHumans() ?? '-')
-                    ->visible(fn(?User $record): bool => $record?->created_at !== null),
-
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?User $record): string => $record?->updated_at?->diffForHumans() ?? '-')
-                    ->visible(fn(?User $record): bool => $record?->updated_at !== null),
             ]);
     }
 }

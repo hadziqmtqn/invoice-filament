@@ -18,15 +18,9 @@ use Filament\Tables\Table;
 class ManageInvoices extends ManageRelatedRecords
 {
     protected static string $resource = UserResource::class;
-
     protected static string $relationship = 'Invoices';
-
+    protected static ?string $title = 'Faktur';
     protected static ?string $navigationIcon = 'heroicon-o-receipt-percent';
-
-    public static function getNavigationLabel(): string
-    {
-        return 'Invoices';
-    }
 
     public function form(Form $form): Form
     {

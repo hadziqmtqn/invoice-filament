@@ -37,17 +37,17 @@ class StatsOverviewWidget extends BaseWidget
 
         return [
             Stat::make(
-                'Total Invoice',
+                'Total Faktur',
                 'Rp' . number_format($filteredInvoices->sum('total_price'),0,',','.')
             ),
 
             Stat::make(
-                'Total Paid',
+                'Total Bayar',
                 'Rp' . number_format($filteredInvoices->sum('total_paid'),0,',','.')
             ),
 
             Stat::make(
-                'Total Unpaid',
+                'Total Terhutang',
                 'Rp' . number_format($filteredInvoices->sum('total_due'),0,',','.')
             ),
         ];

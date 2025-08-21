@@ -31,6 +31,7 @@ class UserTable
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('avatar')
+                    ->label('Foto')
                     ->collection('avatars')
                     ->disk('s3')
                     ->visibility('private')
@@ -39,6 +40,7 @@ class UserTable
                     ->size(40),
 
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->description(fn(User $record): ?string => $record->userProfile?->company_name)
                     ->searchable()
                     ->sortable(),
@@ -48,7 +50,7 @@ class UserTable
                     ->sortable(),
 
                 TextColumn::make('roles.name')
-                    ->label('Role')
+                    ->label('Peran')
                     ->badge()
                     ->color(fn(string $state) => match ($state) {
                         'super_admin' => 'primary',
@@ -60,7 +62,7 @@ class UserTable
                     ->toggleable(),
 
                 TextColumn::make('userProfile.phone')
-                    ->label('Phone')
+                    ->label('No. HP')
                     ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')

@@ -23,7 +23,7 @@ class PaymentMethodChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Payment Method Chart';
+    protected static ?string $heading = 'Statistik Metode Pembayaran';
 
     /**
      * @var string|null

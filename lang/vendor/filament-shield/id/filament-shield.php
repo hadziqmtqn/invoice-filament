@@ -31,7 +31,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'nav.group' => 'Pengaturan',
+    'nav.group' => 'Settings',
     'nav.role.label' => 'Peran',
     'nav.role.icon' => 'heroicon-o-shield-check',
     'resource.label.role' => 'Peran',
