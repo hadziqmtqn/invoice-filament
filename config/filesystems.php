@@ -60,6 +60,19 @@ return [
             'report' => false,
         ],
 
+        's3_public' => [
+            'driver' => 's3',
+            'key' => env('OBJECT_STORAGE_KEY_PUBLIC'),
+            'secret' => env('OBJECT_STORAGE_SECRET_PUBLIC'),
+            'region' => env('OBJECT_STORAGE_REGION_PUBLIC'),
+            'bucket' => env('OBJECT_STORAGE_BUCKET_PUBLIC'),
+            'url' => env('OBJECT_STORAGE_URL_PUBLIC'),
+            'endpoint' => env('OBJECT_STORAGE_ENDPOINT_PUBLIC'),
+            'use_path_style_endpoint' => env('OBJECT_STORAGE_USE_PATH_STYLE_PUBLIC', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

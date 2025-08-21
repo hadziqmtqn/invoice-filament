@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('applications', function (Blueprint $table) {
             $table->id();
+            $table->uuid('slug');
             $table->string('name');
             $table->string('email');
             $table->string('whatsapp_number');

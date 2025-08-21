@@ -2,20 +2,15 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\ApplicationResource\Pages;
 use App\Models\Application;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 
 class ApplicationResource extends Resource implements HasShieldPermissions
 {
@@ -24,6 +19,11 @@ class ApplicationResource extends Resource implements HasShieldPermissions
     protected static ?string $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 2;
     protected static ?string $navigationIcon = 'heroicon-o-cog';
+
+    public static function getNavigationUrl(): string
+    {
+        return static::getUrl('edit', ['record' => Application::first()?->getRouteKey()]);
+    }
 
     public static function getPermissionPrefixes(): array
     {
@@ -38,104 +38,56 @@ class ApplicationResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required(),
-
-                TextInput::make('email')
-                    ->email()
-                    ->required(),
-
-                TextInput::make('whatsapp_number')
-                    ->required(),
-
-                Grid::make()
-                    ->columns()
+                Section::make('Base Data')
+                    ->description('Base data about this application')
+                    ->aside()
                     ->schema([
-                        Section::make('Assets')
-                            ->columnSpanFull()
-                            ->inlineLabel()
-                            ->schema([
-                                FileUpload::make('invoice_logo')
-                                    ->disk('public')
-                                    ->directory('invoices')
-                                    ->image()
-                                    ->maxSize(200),
-                                SpatieMediaLibraryFileUpload::make('logo')
-                                    ->label('Logo')
-                                    ->collection('logo')
-                                    ->image()
-                                    ->disk('s3')
-                                    ->maxSize(200)
-                                    ->visibility('public')
-                                    ->openable()
-                                    ->dehydrated(fn($state) => filled($state)),
-                                SpatieMediaLibraryFileUpload::make('favicon')
-                                    ->label('Favicon')
-                                    ->collection('favicon')
-                                    ->image()
-                                    ->disk('s3')
-                                    ->maxSize(50)
-                                    ->visibility('public')
-                                    ->openable()
-                                    ->dehydrated(fn($state) => filled($state)),
-                            ]),
+                        TextInput::make('name')
+                            ->required(),
+
+                        TextInput::make('email')
+                            ->email()
+                            ->required(),
+
+                        TextInput::make('whatsapp_number')
+                            ->required(),
                     ]),
 
-                Grid::make()
-                    ->columns()
-                    ->schema([
-                        Placeholder::make('created_at')
-                            ->label('Created At')
-                            ->content(fn(Application $record): string => $record->created_at->diffForHumans()),
+                    Section::make('Assets')
+                        ->aside()
+                        ->schema([
+                            FileUpload::make('invoice_logo')
+                                ->disk('public')
+                                ->directory('invoices')
+                                ->image()
+                                ->maxSize(200),
 
-                        Placeholder::make('updated_at')
-                            ->label('Updated At')
-                            ->content(fn(Application $record): string => $record->updated_at->diffForHumans()),
-                    ]),
-            ]);
-    }
+                            SpatieMediaLibraryFileUpload::make('logo')
+                                ->label('Logo')
+                                ->collection('logo')
+                                ->image()
+                                ->disk('s3_public')
+                                ->maxSize(200)
+                                ->openable()
+                                ->dehydrated(fn($state) => filled($state)),
 
-    public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('email')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('whatsapp_number'),
-
-                SpatieMediaLibraryImageColumn::make('logo')
-                    ->collection('logo')
-                    ->disk('s3')
-                    ->visibility('private')
-                    ->label('Logo'),
-
-                SpatieMediaLibraryImageColumn::make('favicon')
-                    ->collection('favicon')
-                    ->disk('s3')
-                    ->visibility('private')
-                    ->label('Favicon'),
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                EditAction::make(),
-            ])
-            ->bulkActions([
-                //
+                            SpatieMediaLibraryFileUpload::make('favicon')
+                                ->label('Favicon')
+                                ->collection('favicon')
+                                ->image()
+                                ->disk('s3_public')
+                                ->maxSize(50)
+                                ->openable()
+                                ->dehydrated(fn($state) => filled($state)),
+                        ]),
             ]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ApplicationResource\Pages\ListApplications::route('/'),
+            'index' => Pages\ListApplications::route('/'),
+            'edit' => Pages\EditApplication::route('/{record}'),
         ];
     }
 

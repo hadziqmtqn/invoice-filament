@@ -29,10 +29,13 @@
         "marcelweidum/filament-expiration-notice": "^1.0",
         "midtrans/midtrans-php": "^2.6",
         "pxlrbt/filament-excel": "^2.4",
+        "spatie/laravel-backup": "^9.3",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-sluggable": "^3.7",
         "stephenjude/filament-jetstream": "^0.0.16",
-        "torgodly/html2media": "^1.1"
+        "torgodly/html2media": "^1.1",
+        "ext-pdo": "*",
+        "ext-zip": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
