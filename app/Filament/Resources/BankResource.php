@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BankResource\Pages;
 use App\Models\Bank;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -42,9 +41,13 @@ class BankResource extends Resource implements HasShieldPermissions
         return $form
             ->schema([
                 TextInput::make('short_name')
-                    ->required(),
+                    ->label('Nama Singkatan')
+                    ->required()
+                    ->placeholder('Masukkan Nama Singkatan'),
 
-                TextInput::make('full_name'),
+                TextInput::make('full_name')
+                    ->label('Nama Lengkap')
+                    ->placeholder('Masukkan Nama Lengkap'),
 
                 SpatieMediaLibraryFileUpload::make('logo')
                     ->collection('logo')
@@ -54,16 +57,6 @@ class BankResource extends Resource implements HasShieldPermissions
                     ->visibility('private')
                     ->maxSize(200)
                     ->columnSpanFull(),
-
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->visible(fn(?Bank $record): bool => $record?->exists ?? false)
-                    ->content(fn(?Bank $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->visible(fn(?Bank $record): bool => $record?->exists ?? false)
-                    ->content(fn(?Bank $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
             ]);
     }
 
@@ -78,9 +71,11 @@ class BankResource extends Resource implements HasShieldPermissions
                     ->visibility('private'),
 
                 TextColumn::make('short_name')
+                    ->label('Nama Singkatan')
                     ->searchable(),
 
                 TextColumn::make('full_name')
+                    ->label('Nama Lengkap')
                     ->searchable(),
             ])
             ->filters([

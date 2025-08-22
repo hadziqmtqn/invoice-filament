@@ -31,15 +31,18 @@ class ItemTable
         return $table
             ->columns([
                 TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('product_type')
+                    ->label('Jenis')
                     ->badge()
                     ->color(fn(string $state): string => ProductType::tryFrom($state)?->getColor() ?? 'gray')
                     ->formatStateUsing(fn(string $state): string => ProductType::tryFrom($state)->getLabel()),
 
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->description(fn($record): string => $record->item_name ?? '-')
                     ->searchable()
                     ->sortable(),
@@ -47,17 +50,19 @@ class ItemTable
                 TextColumn::make('unit'),
 
                 TextColumn::make('rate')
+                    ->label('Harga Satuan')
                     ->searchable()
                     ->money('idr'),
 
                 ToggleColumn::make('is_active')
+                    ->label('Status')
                     ->sortable()
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('product_type')
+                    ->label('Jenis')
                     ->options(ProductType::options())
-                    ->label('Product Type')
                     ->query(fn(Builder $query, array $data): Builder => $data['value'] ? $query->where('product_type', $data['value']) : $query)
                     ->native(false),
 

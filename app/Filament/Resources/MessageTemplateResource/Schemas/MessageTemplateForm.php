@@ -4,7 +4,6 @@ namespace App\Filament\Resources\MessageTemplateResource\Schemas;
 
 use App\Models\MessageTemplate;
 use App\Models\MessageTemplateCategory;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -22,7 +21,7 @@ class MessageTemplateForm
         return $form
             ->schema([
                 Select::make('message_template_category_id')
-                    ->label('Category')
+                    ->label('Kategori')
                     ->options(fn() => MessageTemplateCategory::pluck('name', 'id')->toArray())
                     ->required()
                     ->native(false)
@@ -32,17 +31,20 @@ class MessageTemplateForm
                     ->afterStateHydrated(fn($state, callable $set) => $set('placeholder_category', MessageTemplateCategory::find($state)?->placeholder ?? '')),
 
                 TextInput::make('title')
+                    ->label('Judul')
                     ->required()
-                    ->placeholder('Enter title')
+                    ->placeholder('Masukkan Judul')
                     ->afterStateUpdated(fn($state, callable $set) => $set('slug', Str::slug($state))),
 
                 Textarea::make('message')
+                    ->label('Isi Pesan')
                     ->required()
                     ->autosize()
-                    ->placeholder('Enter message')
+                    ->placeholder('Masukkan Isi Pesan')
                     ->columnSpanFull(),
 
                 ToggleButtons::make('is_active')
+                    ->label('Status')
                     ->boolean()
                     ->inline()
                     ->columnSpanFull()

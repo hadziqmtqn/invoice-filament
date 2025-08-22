@@ -14,8 +14,8 @@ class PaymentSummaryResource extends Resource
 {
     protected static ?string $model = Payment::class;
     protected static ?string $slug = 'payment-summaries';
-    protected static ?string $label = 'Payment Summary';
-    protected static ?string $navigationLabel = 'Payment Summary';
+    protected static ?string $label = 'Rekap Pembayaran';
+    protected static ?string $navigationLabel = 'Rekap Pembayaran';
 
     /**
      * @throws Exception
@@ -25,10 +25,10 @@ class PaymentSummaryResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('month_year')
-                    ->label('Month')
+                    ->label('Bulan')
                     ->formatStateUsing(fn ($state) => Carbon::createFromFormat('Y-m', $state)->translatedFormat('F Y')),
                 TextColumn::make('total')
-                    ->label('Total Pay')
+                    ->label('Total Pembayaran')
                     ->money('IDR', true),
             ])
             ->filters([

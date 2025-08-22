@@ -5,9 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\MessageTemplateCategoryResource\Pages;
 use App\Models\MessageTemplateCategory;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -39,11 +37,13 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->placeholder('Message Template Category Name')
+                    ->label('Nama')
+                    ->placeholder('Masukkan Nama Kategori')
                     ->columnSpanFull()
                     ->required(),
 
                 MarkdownEditor::make('placeholder')
+                    ->label('Placeholder')
                     ->toolbarButtons([
                         'bold',
                         'italic',
@@ -55,20 +55,8 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
                         'redo',
                         'undo',
                     ])
-                    ->placeholder('Message Template Category Placeholder')
+                    ->placeholder('Masukkan Placeholder')
                     ->columnSpanFull(),
-
-                Grid::make()
-                    ->visible(fn($record): bool => $record?->exists ?? false)
-                    ->schema([
-                        Placeholder::make('created_at')
-                            ->label('Created Date')
-                            ->content(fn(?MessageTemplateCategory $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                        Placeholder::make('updated_at')
-                            ->label('Last Modified Date')
-                            ->content(fn(?MessageTemplateCategory $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
-                    ])
             ]);
     }
 
@@ -77,6 +65,7 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
 
                 TextColumn::make('placeholder')
@@ -88,7 +77,7 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
                 //
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()->slideOver(),
                 DeleteAction::make(),
             ])
             ->bulkActions([
@@ -100,13 +89,11 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
     {
         return [
             'index' => Pages\ListMessageTemplateCategories::route('/'),
-            // 'create' => Pages\CreateMessageTemplateCategory::route('/create'),
-            // 'edit' => Pages\EditMessageTemplateCategory::route('/{record}/edit'),
         ];
     }
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name'];
+        return [];
     }
 }

@@ -18,16 +18,18 @@ class MessageTemplateTable
         return $table
             ->columns([
                 TextColumn::make('messageTemplateCategory.name')
-                    ->label('Category')
+                    ->label('Kategori')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('title')
+                    ->label('Judul')
                     ->wrap()
                     ->searchable()
                     ->sortable(),
 
                 ToggleColumn::make('is_active')
+                    ->label('Status')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

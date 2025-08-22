@@ -19,6 +19,7 @@ class ViewItem extends ViewRecord
         return [
             EditAction::make()
                 ->color('warning')
+                ->slideOver()
         ];
     }
 
@@ -31,11 +32,14 @@ class ViewItem extends ViewRecord
                 Section::make()
                     ->inlineLabel()
                     ->schema([
-                        TextEntry::make('name'),
+                        TextEntry::make('name')
+                            ->label('Nama'),
 
-                        TextEntry::make('item_name'),
+                        TextEntry::make('item_name')
+                            ->label('Nama Opsional'),
 
                         TextEntry::make('product_type')
+                            ->label('Jenis')
                             ->badge()
                             ->color(fn($state): string => ProductType::tryFrom($state)?->getColor() ?? 'gray')
                             ->formatStateUsing(fn($state): string => ProductType::tryFrom($state)->getLabel()),
@@ -43,11 +47,14 @@ class ViewItem extends ViewRecord
                         TextEntry::make('unit'),
 
                         TextEntry::make('rate')
+                            ->label('Harga Satuan')
                             ->money('idr'),
 
-                        TextEntry::make('description'),
+                        TextEntry::make('description')
+                            ->label('Deskripsi'),
 
                         TextEntry::make('is_active')
+                            ->label('Status')
                             ->badge()
                             ->color(fn($state): string => ($state ? 'primary' : 'danger'))
                             ->formatStateUsing(fn($state): string => ($state ? 'Active' : 'Inactive')),

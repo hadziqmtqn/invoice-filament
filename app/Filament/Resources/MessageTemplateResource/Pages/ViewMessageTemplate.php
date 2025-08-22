@@ -28,11 +28,12 @@ class ViewMessageTemplate extends ViewRecord
         return $infolist
             ->schema([
                 TextEntry::make('messageTemplateCategory.name')
-                    ->label('Category'),
+                    ->label('Kategori'),
 
-                TextEntry::make('title'),
+                TextEntry::make('title')
+                    ->label('Judul'),
 
-                Section::make('Message')
+                Section::make('Isi Pesan')
                     ->schema([
                         TextEntry::make('message')
                             ->label('')
@@ -41,7 +42,8 @@ class ViewMessageTemplate extends ViewRecord
                     ]),
 
                 TextEntry::make('is_active')
-                    ->formatStateUsing(fn($state) => $state ? 'Yes' : 'No')
+                    ->label('Status')
+                    ->formatStateUsing(fn($state) => $state ? 'Aktif' : 'Tidak Aktif')
                     ->badge()
                     ->color(fn($state) => $state ? 'success' : 'danger')
                     ->inlineLabel(),
