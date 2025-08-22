@@ -236,11 +236,12 @@ class PaymentForm
                             ->description('Pilih metode pembayaran yang sesuai.')
                             ->columns()
                             ->schema([
-                                Select::make('payment_method')
-                                    ->label('Metode Pembayaran')
+                                Select::make('payment_source')
+                                    ->label('Sumber Pembayaran')
                                     ->options(PaymentSource::options())
                                     ->native(false)
-                                    ->required(),
+                                    ->required()
+                                    ->reactive(),
 
                                 Select::make('bank_account_id')
                                     ->label('Bank Tujuan')
@@ -252,7 +253,7 @@ class PaymentForm
                                             ->toArray();
                                     })
                                     ->native(false)
-                                    ->required(fn(Get $get) => $get('payment_method') === 'bank_transfer'),
+                                    ->required(fn(Get $get) => $get('payment_source') === 'bank_transfer'),
                             ])
                     ])
                     ->columnSpan(['lg' => 2]),

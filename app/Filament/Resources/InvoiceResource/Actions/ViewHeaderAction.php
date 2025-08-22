@@ -9,18 +9,24 @@ use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
 use App\Models\BankAccount;
 use App\Models\Invoice;
+use App\Models\InvoicePayment;
+use App\Models\Payment;
 use App\Services\CreatePaymentService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Torgodly\Html2Media\Actions\Html2MediaAction;
 
 class ViewHeaderAction
@@ -29,6 +35,7 @@ class ViewHeaderAction
     {
         return [
             ActionGroup::make([
+                // TODO Manual Payment
                 Action::make('manual_payment')
                     ->label('Bayar Manual')
                     ->icon('heroicon-o-banknotes')
@@ -75,21 +82,54 @@ class ViewHeaderAction
 
                         Section::make('Bukti Pembayaran')
                             ->schema([
-                                SpatieMediaLibraryFileUpload::make('attachment')
+                                FileUpload::make('attachment')
+                                    ->label('Bukti Pembayaran')
                                     ->hiddenLabel()
-                                    ->collection('payment_attachments')
-                                    ->disk('s3')
-                                    ->visibility('private')
-                                    ->acceptedFileTypes(['image/*', 'application/pdf'])
-                                    ->maxSize(1024)
-                                    ->openable()
+                                    ->disk('local')
+                                    ->directory('payment_file_temp')
+                                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                                    ->required(),
+                            ]),
+
+                        Section::make('Status')
+                            ->schema([
+                                ToggleButtons::make('status')
+                                    ->hiddenLabel()
+                                    ->label('Status')
                                     ->required()
-                                    ->helperText('Unggah tanda terima atau bukti pembayaran.'),
+                                    ->inline()
+                                    ->options(DataStatus::options(['pending', 'paid']))
+                                    ->colors(DataStatus::colors(['pending', 'paid'])),
                             ])
+                            ->visible(fn(): bool => Auth::user()->hasRole('super_admin'))
                     ])
+                    ->action(function (Invoice $invoice, array $data): void {
+                        DB::transaction(function () use ($invoice, $data) {
+                            $payment = new Payment();
+                            $payment->user_id = $invoice->user_id;
+                            $payment->date = $data['date'];
+                            $payment->amount = $data['amount'];
+                            $payment->payment_source = $data['payment_source'];
+                            $payment->bank_account_id = !empty($data['bank_account_id']) ? $data['bank_account_id'] : null;
+                            $payment->save();
+
+                            $localFile = Storage::disk('local')->path($data['attachment']);
+                            Log::info('File: ' . $localFile);
+
+                            $payment->addMedia($localFile)
+                                ->toMediaCollection('payment_attachments');
+
+                            $invoicePayment = new InvoicePayment();
+                            $invoicePayment->payment_id = $payment->id;
+                            $invoicePayment->invoice_id = $invoice->id;
+                            $invoicePayment->amount_applied = $data['amount'];
+                            $invoicePayment->save();
+                        });
+                    })
                     ->closeModalByClickingAway(false)
                     ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value && $invoice->total_due > 0),
 
+                // TODO Payment Gateway
                 Action::make('pay')
                     ->label('Payment Gateway')
                     ->icon('heroicon-o-currency-dollar')
