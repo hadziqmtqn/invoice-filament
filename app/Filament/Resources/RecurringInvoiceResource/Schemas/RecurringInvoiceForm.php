@@ -40,7 +40,7 @@ class RecurringInvoiceForm
                         ->columns()
                         ->schema([
                             Select::make('user_id')
-                                ->label('User')
+                                ->label('Pengguna')
                                 ->options(fn(?RecurringInvoice $invoice) => UserService::dropdownOptions($invoice?->exists ? $invoice->user_id : null))
                                 ->required()
                                 ->native(false)
@@ -49,29 +49,30 @@ class RecurringInvoiceForm
                                 ->columnSpanFull(),
 
                             TextInput::make('title')
-                                ->placeholder('Enter the title of this invoice')
+                                ->label('Judul')
+                                ->placeholder('Masukkan judul untul tagihan ini')
                                 ->required()
                                 ->columnSpanFull(),
 
                             DateTimePicker::make('date')
+                                ->label('Tanggal Mulai Berlaku')
                                 ->required()
                                 ->default(now())
-                                ->label('Invoice Date')
                                 ->prefixIcon('heroicon-o-calendar')
                                 ->native(false)
-                                ->placeholder('Select a date')
+                                ->placeholder('Pilih Tanggal')
                                 ->closeOnDateSelection(),
 
                             DatePicker::make('due_date')
+                                ->label('Tanggal Jatuh Tempo (optional)')
                                 ->minDate(fn(Get $get) => $get('date'))
-                                ->label('Due Date')
                                 ->prefixIcon('heroicon-o-calendar')
                                 ->native(false)
-                                ->placeholder('Select a due date')
+                                ->placeholder('Pilih Tanggal')
                                 ->closeOnDateSelection(),
                         ]),
 
-                    Section::make('Line Items')
+                    Section::make('Item')
                         ->schema([
                             Repeater::make('lineItems')
                                 ->hiddenLabel()
@@ -87,11 +88,11 @@ class RecurringInvoiceForm
                                         ->required()
                                         ->createOptionForm(ItemResource\Schemas\ItemForm::itemForm())
                                         ->createOptionAction(fn(Action $action) => $action
-                                            ->tooltip('Create a new item to add to this invoice')
+                                            ->tooltip('Tambah item baru untuk tagihan berulang ini.')
                                             ->icon('heroicon-o-plus')
                                             ->color('primary')
                                             ->form(ItemResource\Schemas\ItemForm::itemForm())
-                                            ->modalHeading('Create New Item')
+                                            ->modalHeading('Tambah Baru')
                                             ->modalWidth('2xl')
                                         )
                                         ->createOptionUsing(function (array $data) {
@@ -126,13 +127,14 @@ class RecurringInvoiceForm
                                         ->columns()
                                         ->schema([
                                             TextInput::make('name')
+                                                ->label('Nama')
                                                 ->required()
-                                                ->placeholder('Enter the item name'),
+                                                ->placeholder('Masukkan nama item'),
 
                                             TextInput::make('qty')
                                                 ->numeric()
                                                 ->required()
-                                                ->placeholder('Enter the quantity')
+                                                ->placeholder('Masukkan jumlah kuantitas')
                                                 ->minValue(1)
                                                 ->default(1)
                                                 ->reactive()
@@ -145,15 +147,15 @@ class RecurringInvoiceForm
 
                                             Select::make('unit')
                                                 ->options(ItemUnit::options())
-                                                ->placeholder('Enter the unit')
+                                                ->placeholder('Masukkan Jenis Unit')
                                                 ->reactive()
                                                 ->native(false),
 
                                             TextInput::make('rate')
-                                                ->label('Rate')
+                                                ->label('Harga Satuan')
                                                 ->numeric()
                                                 ->required()
-                                                ->placeholder('Enter the rate')
+                                                ->placeholder('Masukkan harga satuan')
                                                 ->reactive()
                                                 ->afterStateHydrated(function (callable $set, callable $get) {
                                                     $itemId = $get('item_id');
@@ -167,9 +169,10 @@ class RecurringInvoiceForm
                                         ]),
 
                                     Textarea::make('description')
+                                        ->label('Deskripsi')
                                         ->rows(2)
                                         ->reactive()
-                                        ->placeholder('Enter a description for this item')
+                                        ->placeholder('Masukkan deskripsi untuk item ini')
                                         ->columnSpanFull(),
                                 ])
                                 ->deletable(function (callable $get) {
@@ -179,6 +182,7 @@ class RecurringInvoiceForm
 
                                     return $itemsCount > 1;
                                 })
+                                ->addActionLabel('Tambah Baru')
                         ]),
 
                     // TODO Note
@@ -186,7 +190,7 @@ class RecurringInvoiceForm
                         ->schema([
                             Textarea::make('note')
                                 ->hiddenLabel()
-                                ->placeholder('Enter a note for this invoice')
+                                ->placeholder('Masukkan catatan khusus untuk tagihan berulang ini.')
                                 ->rows(3)
                                 ->columnSpanFull(),
                         ]),
@@ -198,15 +202,17 @@ class RecurringInvoiceForm
                     Section::make()
                         ->schema([
                             Select::make('recurrence_frequency')
+                                ->label('Frekuensi Perulangan')
                                 ->options(RecurrenceFrequency::options())
                                 ->required()
                                 ->native(false),
 
                             TextInput::make('repeat_every')
+                                ->label('Ulangi Setiap')
                                 ->required()
                                 ->integer()
                                 ->default(1)
-                                ->placeholder('Enter the number of times to repeat'),
+                                ->placeholder('Masukkan berapa kali untuk mengulangi'),
                         ]),
 
                     // TODO Summary
@@ -214,7 +220,7 @@ class RecurringInvoiceForm
                         ->description('Total harga akan dihitung berdasarkan item yang ditambahkan.')
                         ->schema([
                             TextInput::make('discount')
-                                ->label('Discount (%)')
+                                ->label('Diskon (%)')
                                 ->helperText('Masukkan diskon dalam persen, misal: 10 untuk 10%')
                                 ->required()
                                 ->numeric()
@@ -237,7 +243,7 @@ class RecurringInvoiceForm
                                         ->columnSpanFull(),
 
                                     Placeholder::make('final_price')
-                                        ->label('Total Price After Discount')
+                                        ->label('Total Tagihan (Setelah Diskon)')
                                         ->content(function (Get $get) {
                                             $items = $get('lineItems') ?? [];
                                             $total = array_reduce($items, function ($carry, $item) {
@@ -268,11 +274,11 @@ class RecurringInvoiceForm
                     Section::make()
                         ->schema([
                             Placeholder::make('created_at')
-                                ->label('Created Date')
+                                ->label('Dibuat Pada')
                                 ->content(fn(?RecurringInvoice $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
                             Placeholder::make('updated_at')
-                                ->label('Last Modified Date')
+                                ->label('Terakhir Diperbarui')
                                 ->content(fn(?RecurringInvoice $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
                         ])
                         ->visible(fn(?RecurringInvoice $record): bool => $record?->exists ?? false)

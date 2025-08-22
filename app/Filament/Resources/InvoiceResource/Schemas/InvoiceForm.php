@@ -311,12 +311,12 @@ class InvoiceForm
                                 Grid::make()
                                     ->schema([
                                         Placeholder::make('created_at')
-                                            ->label('Created Date')
+                                            ->label('Dibuat Pada')
                                             ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-')
                                             ->columnSpanFull(),
 
                                         Placeholder::make('updated_at')
-                                            ->label('Last Modified Date')
+                                            ->label('Terakhir diperbarui')
                                             ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-')
                                             ->columnSpanFull(),
                                     ])

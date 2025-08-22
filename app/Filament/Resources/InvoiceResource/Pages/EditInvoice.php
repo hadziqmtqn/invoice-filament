@@ -39,7 +39,7 @@ class EditInvoice extends EditRecord
         if (!$this->canEdit()) {
             Notification::make()
                 ->title('Tidak bisa diedit')
-                ->body('Faktur ini tidak dapat diedit karena telah dibayar.')
+                ->body('Faktur ini tidak dapat diedit karena telah terkirim/dibayar.')
                 ->warning()
                 ->send();
         }

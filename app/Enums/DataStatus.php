@@ -31,14 +31,28 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
     public function getLabel(): string
     {
         return match ($this) {
-            self::DRAFT => 'DRAFT',
-            self::SENT => 'SENT',
-            self::PAID => 'PAID',
-            self::OVERDUE => 'OVERDUE',
-            self::UNPAID => 'UNPAID',
-            self::PARTIALLY_PAID => 'PARTIALLY PAID',
-            self::PENDING => 'PENDING',
-            self::EXPIRE => 'EXPIRE',
+            self::DRAFT => __('DRAFT'),
+            self::SENT => __('SENT'),
+            self::PAID => __('PAID'),
+            self::OVERDUE => __('OVERDUE'),
+            self::UNPAID => __('UNPAID'),
+            self::PARTIALLY_PAID => __('PARTIALLY PAID'),
+            self::PENDING => __('PENDING'),
+            self::EXPIRE => __('EXPIRE'),
+        };
+    }
+
+    public function getLabelAlternative(): string
+    {
+        return match ($this) {
+            self::DRAFT => __('KONSEP'),
+            self::SENT => __('TERKIRIM'),
+            self::PAID => __('LUNAS'),
+            self::OVERDUE => __('JATUH TEMPO'),
+            self::UNPAID => __('TIDAK DIBAYAR'),
+            self::PARTIALLY_PAID => __('BAYAR SEBAGIAN'),
+            self::PENDING => __('TERTUNDA'),
+            self::EXPIRE => __('KADALUARSA'),
         };
     }
 

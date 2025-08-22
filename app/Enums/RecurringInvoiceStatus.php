@@ -32,6 +32,16 @@ enum RecurringInvoiceStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
+    public function getLabelAlternative(): ?string
+    {
+        // TODO: Implement getLabel() method.
+        return match ($this) {
+            self::DRAFT => __('Konsep'),
+            self::ACTIVE => __('Aktif'),
+            self::DISCONTINUED => __('Dihentikan'),
+        };
+    }
+
     public function getIcon(): ?string
     {
         // TODO: Implement getIcon() method.
