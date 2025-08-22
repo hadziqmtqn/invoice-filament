@@ -31,17 +31,21 @@ class PaymentTable
         return $table
             ->columns([
                 TextColumn::make('user.name')
+                    ->label('Pengguna')
                     ->description(fn($record) => $record->user?->userProfile?->phone ?? '-')
                     ->searchable(),
 
                 TextColumn::make('reference_number')
+                    ->label('No. Pembayaran')
                     ->searchable(),
 
                 TextColumn::make('date')
+                    ->label('Tanggal')
                     ->date(fn() => 'd M Y')
                     ->sortable(),
 
                 TextColumn::make('amount')
+                    ->label('Jumlah')
                     ->money('idr')
                     ->prefix('Rp')
                     ->numeric(0, ',', '.')
@@ -54,12 +58,14 @@ class PaymentTable
                     ]),
 
                 TextColumn::make('payment_source')
+                    ->label('Sumber Pembayaran')
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
                     ->color(fn(string $state): string => PaymentSource::tryFrom($state)?->getColor() ?? 'gray')
                     ->sortable(),
 
                 TextColumn::make('payment_method')
+                    ->label('Metode Pembayaran')
                     ->formatStateUsing(fn(string $state): string => strtoupper($state))
                     ->sortable(),
 
@@ -70,6 +76,7 @@ class PaymentTable
                     ->sortable(),
 
                 TextColumn::make('bankAccount.bank.short_name')
+                    ->label('Bank Tujuan')
                     ->toggleable()
                     ->toggledHiddenByDefault(),
             ])
@@ -80,19 +87,21 @@ class PaymentTable
                     ->native(false),
 
                 SelectFilter::make('payment_source')
+                    ->label('Sumber Pembayaran')
                     ->options(PaymentSource::dropdownOptions())
                     ->native(false),
 
                 Filter::make('date')
+                    ->label('Tanggal')
                     ->form([
                         DatePicker::make('start')
-                            ->label('Start Date')
+                            ->label('Dari Tanggal')
                             ->native(false)
-                            ->placeholder('Start Date'),
+                            ->placeholder('Dari Tanggal'),
                         DatePicker::make('end')
-                            ->label('End Date')
+                            ->label('Sampai Tanggal')
                             ->native(false)
-                            ->placeholder('End Date'),
+                            ->placeholder('Sampai Tanggal'),
                     ])
                     ->query(function (Builder $query, array $data) {
                         if (!empty($data['start']) && !empty($data['end'])) {

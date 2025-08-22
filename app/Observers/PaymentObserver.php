@@ -17,8 +17,18 @@ class PaymentObserver
 
     public function updating(Payment $payment): void
     {
+        $this->updateInvoice($payment);
+    }
+
+    public function created(Payment $payment): void
+    {
+        $this->updateInvoice($payment);
+    }
+
+    private function updateInvoice(Payment $payment): void
+    {
+        $payment->refresh();
         if ($payment->status === DataStatus::PAID->value) {
-            \Log::info('Cek payment pertama kali dibuat');
             $invoicePayments = $payment->invoicePayments;
 
             foreach ($invoicePayments as $invoicePayment) {

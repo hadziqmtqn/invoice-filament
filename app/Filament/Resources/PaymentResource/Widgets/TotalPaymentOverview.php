@@ -14,17 +14,17 @@ class TotalPaymentOverview extends BaseWidget
         return [
             Stat::make('Paid', 'Rp' . number_format($this->totalPayment(DataStatus::PAID->value),0,',','.'))
                 ->label('')
-                ->description('Total Paid')
+                ->description('Total Lunas')
                 ->color('success'),
 
             Stat::make('Unpaid', 'Rp' . number_format($this->totalPayment(DataStatus::PENDING->value),0,',','.'))
                 ->label('')
-                ->description('Unpaid')
+                ->description('Terhutang')
                 ->color('warning'),
 
             Stat::make('Cancelled', 'Rp' . number_format($this->totalPayment(DataStatus::EXPIRE->value),0,',','.'))
                 ->label('')
-                ->description('Cancelled')
+                ->description('Dibatalkan')
                 ->color('danger'),
         ];
     }

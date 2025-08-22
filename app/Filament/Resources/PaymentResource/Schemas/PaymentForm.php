@@ -101,7 +101,7 @@ class PaymentForm
 
                                                 $invoices = Invoice::where('user_id', $userId)
                                                     ->when($state, fn($query) => $query->where('id', $state),
-                                                        fn($query) => $query->where('status', '!=', 'paid'))
+                                                        fn($query) => $query->whereNotIn('status', [DataStatus::PAID->value, DataStatus::DRAFT->value]))
                                                     ->orderByDesc('created_at')
                                                     ->pluck('title', 'id');
 
