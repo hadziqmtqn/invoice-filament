@@ -22,6 +22,7 @@ class ItemForm
     {
         return [
             ToggleButtons::make('product_type')
+                ->label('Jenis Produk')
                 ->required()
                 ->options(ProductType::options())
                 ->colors(ProductType::colors())
@@ -30,14 +31,15 @@ class ItemForm
                 ->columnSpanFull(),
 
             TextInput::make('name')
+                ->label('Nama')
                 ->required()
-                ->placeholder('Enter name')
+                ->placeholder('Masukkan Nama Produk')
                 ->hintIcon('heroicon-o-information-circle', 'Nama item yang muncul pada faktur.'),
 
             TextInput::make('item_name')
-                ->label('Item Name Optional')
+                ->label('Nama Opsional Produk')
                 ->required()
-                ->placeholder('Item Name Optional')
+                ->placeholder('Nama opsional dari produk ini')
                 ->hintIcon('heroicon-o-information-circle', 'Nama item lain sebagai alternatif atau alias dari nama item utama.'),
 
             Select::make('unit')
@@ -45,15 +47,18 @@ class ItemForm
                 ->native(false),
 
             TextInput::make('rate')
+                ->label('Harga Satuan')
                 ->required()
                 ->numeric()
                 ->minValue(10000)
-                ->placeholder('Rate/Price'),
+                ->placeholder('Masukkan Harga Satuan'),
 
             Textarea::make('description')
+                ->label('Deskripsi')
                 ->maxLength(500)
+                ->autosize()
                 ->columnSpanFull()
-                ->placeholder('Optional, can be used to provide additional information about the item.'),
+                ->placeholder('Opsional, dapat digunakan untuk memberikan informasi tambahan tentang item tersebut.'),
         ];
     }
 }

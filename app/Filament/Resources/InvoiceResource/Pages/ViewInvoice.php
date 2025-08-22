@@ -37,15 +37,15 @@ class ViewInvoice extends ViewRecord
     {
         return [
             Action::make('pay')
-                ->label('Pay Now')
+                ->label('Bayar Sekarang')
                 ->icon('heroicon-o-currency-dollar')
                 ->requiresConfirmation()
-                ->modalDescription('Are you sure you will pay now?')
+                ->modalDescription('Apakah yakin akan bayar sekarang?')
                 ->modalIconColor('danger')
                 ->modalWidth('sm')
                 ->form([
                     TextInput::make('amount')
-                        ->label('Nominal Pembayaran')
+                        ->label('Nominal Bayar')
                         ->numeric()
                         ->required()
                         ->minValue(10000)
@@ -80,6 +80,7 @@ class ViewInvoice extends ViewRecord
 
             ActionGroup::make([
                 Html2MediaAction::make('download')
+                    ->label('Unduh')
                     ->color('info')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->content(fn(Invoice $record): View => view('filament.resources.invoice-resource.print', [
@@ -91,7 +92,7 @@ class ViewInvoice extends ViewRecord
                     ->savePdf(),
 
                 Action::make('send_invoice')
-                    ->label('Send Invoice')
+                    ->label('Kirim Faktur')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('primary')
                     ->requiresConfirmation()
@@ -108,24 +109,24 @@ class ViewInvoice extends ViewRecord
 
                             Notification::make()
                                 ->success()
-                                ->title('Invoice Sent')
-                                ->body('The invoice has been sent successfully.')
+                                ->title('Faktur Terkirim')
+                                ->body('Faktur berhasil terkirim.')
                                 ->send();
 
                             Notification::make()
                                 ->success()
-                                ->title('New Invoice Sent')
-                                ->body('You have a new bill with a billing number: ' . $record->code)
+                                ->title('Fakur Baru')
+                                ->body('Anda memiliki tagihan baru dengan nomor penagihan: ' . $record->code)
                                 ->sendToDatabase($record->user)
                                 ->actions([
-                                    Actions\Action::make('View Invoice')
+                                    Actions\Action::make('Lihat Faktur')
                                         ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
                                 ]);
                         }
                     })
                     ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
             ])
-            ->label('More Actions')
+            ->label('Opsi')
             ->button()
             ->color('warning')
         ];
@@ -142,22 +143,22 @@ class ViewInvoice extends ViewRecord
                         Section::make()
                             ->schema([
                                 TextEntry::make('recurringInvoice.code')
-                                    ->label('Recurring Invoice Code')
+                                    ->label('Faktur Berulang')
                                     ->color('primary')
                                     ->inlineLabel()
                                     ->url(fn(Invoice $record): string => $record->recurringInvoice ? ViewRecurringInvoice::getUrl(['record' => $record->recurringInvoice?->slug]) : '#'),
 
                                 TextEntry::make('code')
-                                    ->label('Invoice Code')
+                                    ->label('Kode Faktur')
                                     ->color('primary')
                                     ->inlineLabel(),
 
                                 TextEntry::make('title')
-                                    ->label('Title')
+                                    ->label('Judul')
                                     ->inlineLabel(),
 
                                 TextEntry::make('user.name')
-                                    ->label('User')
+                                    ->label('Pengguna')
                                     ->url(fn(Invoice $record): string => UserResource::getUrl('edit', ['record' => $record->user?->username]))
                                     ->color('primary')
                                     ->icon('heroicon-o-arrow-top-right-on-square')
@@ -165,29 +166,29 @@ class ViewInvoice extends ViewRecord
                                     ->inlineLabel(),
 
                                 TextEntry::make('date')
-                                    ->label('Date')
+                                    ->label('Tanggal')
                                     ->date('d M Y')
                                     ->inlineLabel(),
 
                                 TextEntry::make('due_date')
-                                    ->label('Due Date')
+                                    ->label('Tanggal Jatuh Tempo')
                                     ->date('d M Y')
                                     ->inlineLabel(),
                             ]),
 
-                        Section::make('Invoice Items')
+                        Section::make('Item Faktur')
                             ->schema([
                                 RepeatableEntry::make('invoiceItems')
                                     ->hiddenLabel()
                                     ->columns()
                                     ->schema([
                                         TextEntry::make('item.name')
-                                            ->label('Item Name')
+                                            ->label('Nama Item')
                                             ->weight('bold')
                                             ->inlineLabel(),
 
                                         TextEntry::make('qty')
-                                            ->label('Quantity')
+                                            ->label('Kuantitas')
                                             ->weight('bold')
                                             ->inlineLabel(),
 
@@ -197,7 +198,7 @@ class ViewInvoice extends ViewRecord
                                             ->inlineLabel(),
 
                                         TextEntry::make('rate')
-                                            ->label('Rate')
+                                            ->label('Harga Satuan')
                                             ->weight('bold')
                                             ->money('idr')
                                             ->prefix('Rp')
@@ -206,7 +207,7 @@ class ViewInvoice extends ViewRecord
                                             ->color('primary'),
 
                                         TextEntry::make('note')
-                                            ->label('Note')
+                                            ->label('Catatan')
                                             ->weight('bold')
                                             ->inlineLabel(),
                                     ]),
@@ -219,25 +220,18 @@ class ViewInvoice extends ViewRecord
                         Section::make()
                             ->schema([
                                 TextEntry::make('status')
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'draft' => 'gray',
-                                        'sent' => 'primary',
-                                        'paid' => 'success',
-                                        'unpaid', 'overdue' => 'danger',
-                                        'partially_paid' => 'warning',
-                                        default => 'secondary',
-                                    })
+                                    ->color(fn(string $state): string => DataStatus::tryFrom($state)?->getColor() ?? 'gray')
                                     ->formatStateUsing(fn(string $state): HtmlString => new HtmlString('<span class="text-xl font-semibold">' . str_replace('_', ' ', strtoupper($state)) . '</span>')),
 
                                 TextEntry::make('total_price_before_discount')
-                                    ->label('Total Price (Before Discount)')
+                                    ->label('Total Tagihan (Sebelum Diskon)')
                                     ->money('idr')
                                     ->size(TextEntry\TextEntrySize::Large)
                                     ->weight(FontWeight::Bold)
                                     ->visible(fn(Invoice $record): bool => $record->discount > 0),
 
                                 TextEntry::make('total_price')
-                                    ->label(fn(Invoice $record): string => $record->discount > 0 ? 'Total Price (After Discount)' : 'Total Price')
+                                    ->label(fn(Invoice $record): string => $record->discount > 0 ? 'Total Tagihan (Setelah Diskon)' : 'Total Tagihan')
                                     ->money('idr')
                                     ->prefix('Rp')
                                     ->numeric(0, ',', '.')
@@ -246,7 +240,7 @@ class ViewInvoice extends ViewRecord
                                     ->color('primary'),
 
                                 TextEntry::make('total_paid')
-                                    ->label('Total Paid')
+                                    ->label('Total Bayar')
                                     ->money('idr')
                                     ->prefix('Rp')
                                     ->numeric(0, ',', '.')
@@ -255,7 +249,7 @@ class ViewInvoice extends ViewRecord
                                     ->color('info'),
 
                                 TextEntry::make('total_due')
-                                    ->label('Total Due')
+                                    ->label('Total Jatuh Tempo')
                                     ->money('idr')
                                     ->prefix('Rp')
                                     ->numeric(0, ',', '.')
@@ -266,6 +260,7 @@ class ViewInvoice extends ViewRecord
 
                         Actions::make([
                             Actions\Action::make('mark_as_sent')
+                                ->label('Tandai Terkirim')
                                 ->color(Color::Indigo)
                                 ->visible(fn(Invoice $record): bool => $record->status === DataStatus::DRAFT->value)
                                 ->requiresConfirmation()
@@ -277,24 +272,24 @@ class ViewInvoice extends ViewRecord
                     ])
                     ->columnSpan(['lg' => 1]),
 
-                Section::make('Payment Histories')
+                Section::make('Riwayat Pembayaran')
                     ->schema([
                         RepeatableEntry::make('invoicePayments')
                             ->hiddenLabel()
                             ->schema([
                                 TextEntry::make('payment.reference_number')
-                                    ->label('Reference Number')
+                                    ->label('No. Referensi')
                                     ->weight('bold')
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.date')
-                                    ->label('Date')
+                                    ->label('Tanggal')
                                     ->date('d M Y')
                                     ->weight('bold')
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.amount')
-                                    ->label('Amount')
+                                    ->label('Jumlah')
                                     ->weight('bold')
                                     ->money('idr')
                                     ->prefix('Rp')
@@ -302,13 +297,13 @@ class ViewInvoice extends ViewRecord
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.payment_source')
-                                    ->label('Payment Source')
+                                    ->label('Sumber Pembayaran')
                                     ->weight('bold')
                                     ->formatStateUsing(fn($state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
                                     ->inlineLabel(),
 
                                 TextEntry::make('payment.payment_method')
-                                    ->label('Payment Method')
+                                    ->label('Metode Pembayaran')
                                     ->weight('bold')
                                     ->formatStateUsing(fn(string $state): string => strtoupper(str_replace('_', ' ', $state)))
                                     ->inlineLabel(),

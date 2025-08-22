@@ -9,6 +9,7 @@ use Filament\Resources\Pages\ListRecords;
 class ListInvoices extends ListRecords
 {
     protected static string $resource = InvoiceResource::class;
+    protected static ?string $title = 'Daftar Faktur';
 
     protected function getHeaderActions(): array
     {

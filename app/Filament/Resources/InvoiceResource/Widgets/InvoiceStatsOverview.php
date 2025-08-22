@@ -23,15 +23,15 @@ class InvoiceStatsOverview extends BaseWidget
     {
         return [
             Stat::make('Total Invoices', $this->getPageTableQuery()->count())
-                ->label('Total Invoices')
+                ->label('Total Faktur')
                 ->color('primary'),
 
             Stat::make('Total Paid', 'Rp' . number_format($this->getPageTableQuery()->get()->sum(fn($invoice) => $invoice->total_paid), 2,',','.'))
-                ->label('Total Paid')
+                ->label('Total Bayar')
                 ->color('success'),
 
             Stat::make('Total Unpaid', 'Rp' . number_format($this->getPageTableQuery()->get()->sum(fn($invoice) => $invoice->total_due),2,',','.'))
-                ->label('Total Unpaid')
+                ->label('Total Terhutang')
                 ->color('danger'),
         ];
     }

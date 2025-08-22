@@ -26,22 +26,26 @@ class InvoiceTable
         return $table
             ->columns([
                 TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable(),
 
                 TextColumn::make('user.name')
+                    ->label('Nama Pengguna')
                     ->description(fn(Invoice $record): string => $record->user?->userProfile?->phone)
                     ->searchable(),
 
                 TextColumn::make('title')
+                    ->label('Judul')
                     ->wrap()
                     ->searchable(),
 
                 TextColumn::make('date')
+                    ->label('Tanggal')
                     ->date(fn() => 'd M Y')
                     ->description(fn(Invoice $record): string => $record->due_date ? 'Due: ' . $record->due_date->format('d M Y') : 'No Due Date'),
 
                 TextColumn::make('total_price')
-                    ->label('Total Price')
+                    ->label('Total Tagihan')
                     ->tooltip(fn(Invoice $record): string => 'Total Due: Rp' . number_format($record->total_due, 0, ',', '.'))
                     ->money('idr')
                     ->prefix('Rp')
@@ -56,7 +60,7 @@ class InvoiceTable
                     ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label('Dibuat Pada')
                     ->date(fn() => 'd M Y H:i')
                     ->sortable()
                     ->toggleable()
@@ -65,7 +69,7 @@ class InvoiceTable
             ->defaultSort('date', 'desc')
             ->filters([
                 DateRangeFilter::make('date')
-                    ->label('Date Range'),
+                    ->label('Rentang Tanggal'),
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(DataStatus::options())
@@ -78,12 +82,10 @@ class InvoiceTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make()
-                        ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
-                        ->icon('heroicon-o-pencil-square'),
+                        ->visible(fn(Invoice $record): bool => $record->status !== 'paid'),
                     DeleteAction::make()
                         ->visible(fn(Invoice $record): bool => $record->status !== 'paid')
-                        ->disabled(fn(Invoice $record): bool => $record->status !== 'paid' || $record->status !== 'partially_paid')
-                        ->icon('heroicon-o-trash'),
+                        ->disabled(fn(Invoice $record): bool => $record->status !== 'paid' || $record->status !== 'partially_paid'),
                 ])
                     ->link()
                     ->label('Actions'),

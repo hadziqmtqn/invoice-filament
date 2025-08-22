@@ -22,6 +22,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Invoice::class;
     protected static ?string $slug = 'invoices';
+    protected static ?string $navigationLabel = 'Faktur';
     protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 1;
     protected static ?string $navigationIcon = 'heroicon-o-receipt-percent';
@@ -43,7 +44,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
      */
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Total invoices due within the next 7 days';
+        return 'Total faktur jatuh tempo dalam 7 hari';
     }
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
@@ -99,8 +100,8 @@ class InvoiceResource extends Resource implements HasShieldPermissions
     public static function getRecordSubNavigation(Page $page): array
     {
         return $page->generateNavigationItems([
-            Pages\EditInvoice::class,
             Pages\ViewInvoice::class,
+            Pages\EditInvoice::class,
         ]);
     }
 

@@ -11,6 +11,7 @@ class EditInvoice extends EditRecord
 {
     protected static string $resource = InvoiceResource::class;
     protected ?bool $hasDatabaseTransactions = true;
+    protected static ?string $title = 'Edit Faktur';
 
     protected function getHeaderActions(): array
     {
@@ -37,8 +38,8 @@ class EditInvoice extends EditRecord
         // notifying the user that they cannot edit the invoice
         if (!$this->canEdit()) {
             Notification::make()
-                ->title('Cannot Edit Invoice')
-                ->body('This invoice cannot be edited because it has already been paid.')
+                ->title('Tidak bisa diedit')
+                ->body('Faktur ini tidak dapat diedit karena telah dibayar.')
                 ->warning()
                 ->send();
         }
@@ -46,7 +47,7 @@ class EditInvoice extends EditRecord
 
     protected function canEdit(): bool
     {
-        return !$this->record->status === DataStatus::DRAFT->value;
+        return $this->record->status === DataStatus::DRAFT->value;
     }
 
     protected function canDelete(): bool
