@@ -39,7 +39,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
@@ -95,34 +97,34 @@ class PanelPanelProvider extends PanelProvider
                 return $navigationBuilder
                     ->items([
                         ...Dashboard::getNavigationItems(),
-                        ...UserResource::getNavigationItems(),
-                        ...RoleResource::getNavigationItems()
+                        ...$this->filterResourceNavigationItems(UserResource::class),
+                        ...$this->filterResourceNavigationItems(RoleResource::class),
                     ])
                     ->groups([
                         NavigationGroup::make('Finance')
                             ->label('Finance')
                             ->icon('heroicon-o-receipt-percent')
                             ->items([
-                                ...InvoiceResource::getNavigationItems(),
-                                ...RecurringInvoiceResource::getNavigationItems(),
-                                ...PaymentResource::getNavigationItems(),
-                                ...PaymentSummaryResource::getNavigationItems(),
+                                ...$this->filterResourceNavigationItems(InvoiceResource::class),
+                                ...$this->filterResourceNavigationItems(RecurringInvoiceResource::class),
+                                ...$this->filterResourceNavigationItems(PaymentResource::class),
+                                ...$this->filterResourceNavigationItems(PaymentSummaryResource::class),
                             ]),
                         NavigationGroup::make('Reference')
                             ->label('Reference')
                             ->icon('heroicon-o-cube')
                             ->items([
-                                ...ItemResource::getNavigationItems(),
-                                ...BankResource::getNavigationItems(),
-                                ...BankAccountResource::getNavigationItems(),
+                                ...$this->filterResourceNavigationItems(ItemResource::class),
+                                ...$this->filterResourceNavigationItems(BankResource::class),
+                                ...$this->filterResourceNavigationItems(BankAccountResource::class),
                             ]),
                         NavigationGroup::make('Configuration')
                             ->label('Configuration')
                             ->icon('heroicon-o-cpu-chip')
                             ->items([
-                                ...WhatsappConfigResource::getNavigationItems(),
-                                ...MessageTemplateCategoryResource::getNavigationItems(),
-                                ...MessageTemplateResource::getNavigationItems(),
+                                ...$this->filterResourceNavigationItems(WhatsappConfigResource::class),
+                                ...$this->filterResourceNavigationItems(MessageTemplateCategoryResource::class),
+                                ...$this->filterResourceNavigationItems(MessageTemplateResource::class),
                             ]),
                     ]);
             })
@@ -162,5 +164,16 @@ class PanelPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    function filterResourceNavigationItems($resource) {
+        // Buang namespace model menjadi dan pisahkan dengan ::, misal model InvoicePayment menjadi invoice::payment
+        $permission = 'view_any_' . str_replace('_', '::', Str::snake(class_basename($resource::getModel())));
+
+        if (Gate::allows($permission)) {
+            return $resource::getNavigationItems();
+        }
+
+        return [];
     }
 }

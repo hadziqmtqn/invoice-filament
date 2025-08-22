@@ -39,10 +39,10 @@ class ChangeAuthenticationMessageJob implements ShouldQueue
             '[Email]' => $this->data['email']
         ];
 
-        $messageTemplate = $this->messageTemplate('CHANGE-AUTHENTICATION');
+        $messageTemplate = $this->messageTemplate('UBAH-KATA-SANDI');
 
         if (!$messageTemplate) {
-            Log::warning('Message template for CHANGE-AUTHENTICATION not found.');
+            Log::warning('Message template for UBAH-KATA-SANDI not found.');
             return;
         }
 

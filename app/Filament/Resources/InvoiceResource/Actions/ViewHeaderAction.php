@@ -196,7 +196,7 @@ class ViewHeaderAction
                     ->color('primary')
                     ->requiresConfirmation()
                     ->action(function (Invoice $record) {
-                        if ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'unpaid') {
+                        if (in_array($record->status, [DataStatus::DRAFT->value, DataStatus::SENT->value, DataStatus::UNPAID->value])) {
                             UnpaidBillMessageJob::dispatch([
                                 'user_name' => $record->user?->name ?? 'Unknown User',
                                 'invoice_name' => $record->title,

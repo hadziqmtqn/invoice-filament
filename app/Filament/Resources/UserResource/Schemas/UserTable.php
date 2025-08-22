@@ -47,7 +47,8 @@ class UserTable
 
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->copyable(),
 
                 TextColumn::make('roles.name')
                     ->label('Peran')

@@ -41,7 +41,7 @@ class PaymentTable
 
                 TextColumn::make('date')
                     ->label('Tanggal')
-                    ->date(fn() => 'd M Y')
+                    ->date('d M Y')
                     ->sortable(),
 
                 TextColumn::make('amount')

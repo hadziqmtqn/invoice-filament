@@ -43,10 +43,10 @@ class InvoiceWillDueMessageJob implements ShouldQueue
             })->toArray()),
         ];
 
-        $messageTemplate = $this->messageTemplate('INVOICE-WILL-DUE');
+        $messageTemplate = $this->messageTemplate('TAGIHAN-AKAN-JATUH-TEMPO');
 
         if (!$messageTemplate) {
-            Log::warning('Message template for INVOICE-WILL-DUE not found.');
+            Log::warning('Message template for TAGIHAN-AKAN-JATUH-TEMPO not found.');
             return;
         }
 
