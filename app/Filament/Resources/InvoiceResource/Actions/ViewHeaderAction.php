@@ -3,16 +3,22 @@
 namespace App\Filament\Resources\InvoiceResource\Actions;
 
 use App\Enums\DataStatus;
+use App\Enums\PaymentSource;
 use App\Filament\Resources\InvoiceResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
+use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Services\CreatePaymentService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Torgodly\Html2Media\Actions\Html2MediaAction;
@@ -35,19 +41,54 @@ class ViewHeaderAction
                                     ->placeholder('Masukkan tanggal pembayaran')
                                     ->native(false)
                                     ->required()
+                                    ->default(now())
                                     ->minDate(fn(Invoice $invoice): string => $invoice->date)
-                                    ->closeOnDateSelection(),
+                                    ->closeOnDateSelection()
+                                    ->prefixIcon('heroicon-o-calendar'),
 
                                 TextInput::make('amount')
                                     ->label('Jumlah Bayar')
                                     ->placeholder('Masukkan jumlah bayar')
                                     ->required()
                                     ->numeric()
+                                    ->prefix('Rp')
                                     ->minValue(10000)
                                     ->maxValue(fn(Invoice $invoice): int => $invoice->total_due)
+                                    ->default(fn(Invoice $invoice): int => $invoice->total_due)
+                                    ->hintIcon('heroicon-o-information-circle', 'Anda dapat memasukkan nominal minimal Rp10.000'),
+
+                                ToggleButtons::make('payment_source')
+                                    ->label('Sumber Pembayaran')
+                                    ->inline()
+                                    ->options(PaymentSource::options())
+                                    ->colors(PaymentSource::colors())
+                                    ->required()
+                                    ->reactive(),
+
+                                Select::make('bank_account_id')
+                                    ->label('Bank Tujuan')
+                                    ->options(BankAccount::with('bank')->where('is_active', true)->get()->pluck('bank.short_name', 'id')->toArray())
+                                    ->native(false)
+                                    ->required(fn(Get $get): bool => $get('payment_source') === PaymentSource::BANK_TRANSFER->value)
+                                    ->visible(fn(Get $get): bool => $get('payment_source') === PaymentSource::BANK_TRANSFER->value),
+                            ]),
+
+                        Section::make('Bukti Pembayaran')
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('attachment')
+                                    ->hiddenLabel()
+                                    ->collection('payment_attachments')
+                                    ->disk('s3')
+                                    ->visibility('private')
+                                    ->acceptedFileTypes(['image/*', 'application/pdf'])
+                                    ->maxSize(1024)
+                                    ->openable()
+                                    ->required()
+                                    ->helperText('Unggah tanda terima atau bukti pembayaran.'),
                             ])
                     ])
-                    ->closeModalByClickingAway(false),
+                    ->closeModalByClickingAway(false)
+                    ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value && $invoice->total_due > 0),
 
                 Action::make('pay')
                     ->label('Payment Gateway')
