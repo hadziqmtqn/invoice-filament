@@ -25,7 +25,6 @@ use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Torgodly\Html2Media\Actions\Html2MediaAction;
 
@@ -111,13 +110,12 @@ class ViewHeaderAction
                             $payment->amount = $data['amount'];
                             $payment->payment_source = $data['payment_source'];
                             $payment->bank_account_id = !empty($data['bank_account_id']) ? $data['bank_account_id'] : null;
-                            $payment->status = $data['status'];
+                            if (!empty($data['status'])) {
+                                $payment->status = $data['status'];
+                            }
                             $payment->save();
 
-                            $localFile = Storage::disk('local')->path($data['attachment']);
-                            Log::info('File: ' . $localFile);
-
-                            $payment->addMedia($localFile)
+                            $payment->addMedia(Storage::disk('local')->path($data['attachment']))
                                 ->toMediaCollection('payment_attachments');
 
                             $invoicePayment = new InvoicePayment();

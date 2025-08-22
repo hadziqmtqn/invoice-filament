@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\DataStatus;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Schemas\InvoiceForm;
 use App\Filament\Resources\InvoiceResource\Schemas\InvoiceTable;
@@ -29,7 +30,7 @@ class InvoiceResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationBadge(): ?string
     {
-        return self::getModel()::whereNotIn('status', ['draft', 'paid'])
+        return self::getModel()::whereNotIn('status', [DataStatus::DRAFT->value, DataStatus::PAID->value])
             ->whereBetween('due_date', [now(), now()->addDays(7)])
             ->count();
     }

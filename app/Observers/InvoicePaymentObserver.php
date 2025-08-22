@@ -2,13 +2,12 @@
 
 namespace App\Observers;
 
-use App\Models\Payment;
+use App\Models\InvoicePayment;
 use App\Services\UpdateInvoiceService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Throwable;
 
-class PaymentObserver
+class InvoicePaymentObserver
 {
     protected UpdateInvoiceService $updateInvoiceService;
 
@@ -20,19 +19,13 @@ class PaymentObserver
         $this->updateInvoiceService = $updateInvoiceService;
     }
 
-    public function creating(Payment $payment): void
-    {
-        $payment->slug = Str::uuid()->toString();
-        $payment->serial_number = Payment::max('serial_number') + 1;
-        $payment->reference_number = strtoupper('REF' . Str::random(6) . Str::padLeft($payment->serial_number, 6, '0'));
-    }
-
     /**
      * @throws Throwable
      */
-    public function saved(Payment $payment): void
+    public function saved(InvoicePayment $invoicePayment): void
     {
-        $payment->refresh();
+        $invoicePayment->refresh();
+        $payment = $invoicePayment->payment;
 
         DB::transaction(function () use ($payment) {
             $this->updateInvoiceService->updateInvoice($payment);
