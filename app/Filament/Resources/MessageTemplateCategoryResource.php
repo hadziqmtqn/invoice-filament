@@ -20,7 +20,7 @@ class MessageTemplateCategoryResource extends Resource implements HasShieldPermi
 {
     protected static ?string $model = MessageTemplateCategory::class;
     protected static ?string $slug = 'message-template-categories';
-    protected static ?string $navigationLabel = 'Msg. Template Category';
+    protected static ?string $navigationLabel = 'Kategori Pesan';
 
     public static function getPermissionPrefixes(): array
     {

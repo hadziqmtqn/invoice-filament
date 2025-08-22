@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\ApplicationResource;
 use App\Filament\Resources\BankAccountResource;
 use App\Filament\Resources\BankResource;
 use App\Filament\Resources\InvoiceResource;
@@ -18,6 +19,7 @@ use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
+use BezhanSalleh\FilamentShield\Resources\RoleResource;
 use Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
@@ -25,6 +27,7 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
@@ -93,6 +96,7 @@ class PanelPanelProvider extends PanelProvider
                     ->items([
                         ...Dashboard::getNavigationItems(),
                         ...UserResource::getNavigationItems(),
+                        ...RoleResource::getNavigationItems()
                     ])
                     ->groups([
                         NavigationGroup::make('Finance')
@@ -122,6 +126,13 @@ class PanelPanelProvider extends PanelProvider
                             ]),
                     ]);
             })
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Settings')
+                    ->url(fn (): string => ApplicationResource::getUrl('edit', ['record' => $application?->slug]))
+                    ->icon('heroicon-o-cog-6-tooth'),
+                // ...
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
