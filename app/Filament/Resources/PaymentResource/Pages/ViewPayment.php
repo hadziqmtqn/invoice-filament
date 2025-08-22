@@ -65,7 +65,7 @@ class ViewPayment extends ViewRecord
                             ->inlineLabel()
                             ->schema([
                                 TextEntry::make('reference_number')
-                                    ->label('Ref. Pembayaran')
+                                    ->label('No. Ref')
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('date')

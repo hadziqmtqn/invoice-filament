@@ -111,6 +111,7 @@ class ViewHeaderAction
                             $payment->amount = $data['amount'];
                             $payment->payment_source = $data['payment_source'];
                             $payment->bank_account_id = !empty($data['bank_account_id']) ? $data['bank_account_id'] : null;
+                            $payment->status = $data['status'];
                             $payment->save();
 
                             $localFile = Storage::disk('local')->path($data['attachment']);

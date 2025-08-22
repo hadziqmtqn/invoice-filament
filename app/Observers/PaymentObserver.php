@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\DataStatus;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class PaymentObserver
@@ -15,7 +16,7 @@ class PaymentObserver
         $payment->reference_number = strtoupper('REF' . Str::random(6) . Str::padLeft($payment->serial_number, 6, '0'));
     }
 
-    public function updating(Payment $payment): void
+    public function saved(Payment $payment): void
     {
         $this->updateInvoice($payment);
     }
@@ -28,8 +29,7 @@ class PaymentObserver
     private function updateInvoice(Payment $payment): void
     {
         $payment->refresh();
-        \Log::info($payment->status);
-        if ($payment->status === DataStatus::PAID->value) {
+        if ($payment->status == DataStatus::PAID->value) {
             $invoicePayments = $payment->invoicePayments;
 
             foreach ($invoicePayments as $invoicePayment) {
@@ -42,6 +42,13 @@ class PaymentObserver
                 $totalPaid = $invoice->invoicePayments()
                     ->whereHas('payment', fn($query) => $query->filterByStatus(DataStatus::PAID->value))
                     ->sum('amount_applied');
+
+                Log::info(json_encode([
+                    'Total Invoice: ' => $totalInvoice,
+                    'Total Paid: ' => $totalPaid,
+                    'Total Paid >= Total Invoice' => $totalPaid >= $totalInvoice ? 'Yes' : 'No',
+                    'Total Invoice > 0' => $totalInvoice > 0 ? 'Yes' : 'No',
+                ]));
 
                 if ($totalPaid >= $totalInvoice && $totalInvoice > 0) {
                     // Lunas kapan pun, status "paid"
@@ -58,6 +65,7 @@ class PaymentObserver
                 }
 
                 $invoice->status = $status;
+                $invoice->save();
             }
         }
     }
