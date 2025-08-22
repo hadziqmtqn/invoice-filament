@@ -52,6 +52,7 @@ class PaymentTable
                     ->searchable()
                     ->summarize([
                         Sum::make('amount')
+                            ->query(fn(\Illuminate\Database\Query\Builder $query) => $query->where('status', DataStatus::PAID->value))
                             ->money('idr')
                             ->prefix('Rp')
                             ->numeric(0, ',', '.')
@@ -83,7 +84,7 @@ class PaymentTable
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options(DataStatus::options(['paid', 'pending', 'expire']))
+                    ->options(DataStatus::options(['paid', 'pending', 'expire', 'confirmed']))
                     ->native(false),
 
                 SelectFilter::make('payment_source')

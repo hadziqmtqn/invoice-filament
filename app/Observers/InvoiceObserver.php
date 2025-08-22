@@ -4,37 +4,25 @@ namespace App\Observers;
 
 use App\Enums\DataStatus;
 use App\Models\Invoice;
+use App\Services\UpdateInvoiceService;
 
 class InvoiceObserver
 {
+    protected UpdateInvoiceService $updateInvoiceService;
+
+    /**
+     * @param UpdateInvoiceService $updateInvoiceService
+     */
+    public function __construct(UpdateInvoiceService $updateInvoiceService)
+    {
+        $this->updateInvoiceService = $updateInvoiceService;
+    }
+
     public function saved(Invoice $invoice): void
     {
         $invoice->refresh();
         if ($invoice->status != DataStatus::DRAFT->value || $invoice->status != DataStatus::SENT->value) {
-            // Hitung total invoice dan total pembayaran
-            $totalInvoice = $invoice->invoiceItems->sum(function ($item) {
-                return $item->rate * $item->qty;
-            });
-
-            $totalPaid = $invoice->invoicePayments()
-                ->whereHas('payment', fn($query) => $query->filterByStatus(DataStatus::PAID->value))
-                ->sum('amount_applied');
-
-            if ($totalPaid >= $totalInvoice && $totalInvoice > 0) {
-                // Lunas kapan pun, status "paid"
-                $status = 'paid';
-            } elseif (now()->gt($invoice->due_date)) {
-                // Sudah jatuh tempo dan belum lunas
-                $status = 'overdue';
-            } elseif ($totalPaid > 0) {
-                // Belum jatuh tempo, sudah ada pembayaran sebagian
-                $status = 'partially_paid';
-            } else {
-                // Belum jatuh tempo, belum ada pembayaran
-                $status = 'unpaid';
-            }
-
-            $invoice->status = $status;
+            $this->updateInvoiceService->updateStatusInvoice($invoice);
         }
     }
 }

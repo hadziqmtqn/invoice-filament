@@ -111,9 +111,7 @@ class ViewHeaderAction
                             $payment->amount = $data['amount'];
                             $payment->payment_source = $data['payment_source'];
                             $payment->bank_account_id = !empty($data['bank_account_id']) ? $data['bank_account_id'] : null;
-                            if (!empty($data['status'])) {
-                                $payment->status = $data['status'];
-                            }
+                            $payment->status = !empty($data['status']) ? $data['status'] : DataStatus::CONFIRMED->value;
                             $payment->save();
 
                             $payment->addMedia(Storage::disk('local')->path($data['attachment']))
@@ -124,6 +122,10 @@ class ViewHeaderAction
                             $invoicePayment->invoice_id = $invoice->id;
                             $invoicePayment->amount_applied = $data['amount'];
                             $invoicePayment->save();
+
+                            // Update Invoice
+                            $invoice->status = DataStatus::UNPAID->value;
+                            $invoice->save();
                         });
                     })
                     ->closeModalByClickingAway(false)

@@ -16,12 +16,13 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
     case PARTIALLY_PAID = 'partially_paid';
     case PENDING = 'pending';
     case EXPIRE = 'expire';
+    case CONFIRMED = 'confirmed';
 
     public function getColor(): string
     {
         return match ($this) {
             self::DRAFT => 'gray',
-            self::SENT => 'info',
+            self::SENT, self::CONFIRMED => 'info',
             self::PAID => 'primary',
             self::UNPAID, self::OVERDUE, self::EXPIRE => 'danger',
             self::PARTIALLY_PAID, self::PENDING => 'warning',
@@ -39,6 +40,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::PARTIALLY_PAID => __('PARTIALLY PAID'),
             self::PENDING => __('PENDING'),
             self::EXPIRE => __('EXPIRE'),
+            self::CONFIRMED => __('CONFIRMED'),
         };
     }
 
@@ -53,6 +55,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
             self::PARTIALLY_PAID => __('BAYAR SEBAGIAN'),
             self::PENDING => __('TERTUNDA'),
             self::EXPIRE => __('KADALUARSA'),
+            self::CONFIRMED => __('KONFIRMASI'),
         };
     }
 
@@ -60,7 +63,7 @@ enum DataStatus: string implements HasColor, HasLabel, HasIcon
     {
         return match ($this) {
             self::DRAFT => 'heroicon-o-document-text',
-            self::SENT => 'heroicon-o-paper-airplane',
+            self::SENT, self::CONFIRMED => 'heroicon-o-paper-airplane',
             self::PAID => 'heroicon-o-check-circle',
             self::OVERDUE, self::EXPIRE => 'heroicon-o-exclamation-circle',
             self::UNPAID => 'heroicon-o-x-circle',
