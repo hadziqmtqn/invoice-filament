@@ -21,7 +21,7 @@ class InvoiceObserver
     public function saved(Invoice $invoice): void
     {
         $invoice->refresh();
-        if ($invoice->status != DataStatus::DRAFT->value || $invoice->status != DataStatus::SENT->value) {
+        if (!in_array($invoice->status, [DataStatus::DRAFT->value, DataStatus::SENT->value])) {
             $this->updateInvoiceService->updateStatusInvoice($invoice);
         }
     }
