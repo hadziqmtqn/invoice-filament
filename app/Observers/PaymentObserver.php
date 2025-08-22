@@ -28,6 +28,7 @@ class PaymentObserver
     private function updateInvoice(Payment $payment): void
     {
         $payment->refresh();
+        \Log::info($payment->status);
         if ($payment->status === DataStatus::PAID->value) {
             $invoicePayments = $payment->invoicePayments;
 
