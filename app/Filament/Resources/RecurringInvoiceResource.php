@@ -19,9 +19,6 @@ class RecurringInvoiceResource extends Resource implements HasShieldPermissions
     protected static ?string $model = RecurringInvoice::class;
     protected static ?string $slug = 'recurring-invoices';
     protected static ?string $navigationLabel = 'Faktur Berulang';
-    protected static ?string $navigationGroup = 'Finance';
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 

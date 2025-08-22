@@ -15,10 +15,10 @@ class Dashboard extends \Filament\Pages\Dashboard
 {
     use HasFiltersForm;
 
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    /*protected static ?string $navigationIcon = 'heroicon-o-home';*/
     protected static ?string $slug = 'dashboard';
     protected static ?string $navigationLabel = 'Dasbor';
-    protected static ?string $navigationGroup = 'Main';
+    /*protected static ?string $navigationGroup = 'Main';*/
 
     public function persistsFiltersInSession(): bool
     {

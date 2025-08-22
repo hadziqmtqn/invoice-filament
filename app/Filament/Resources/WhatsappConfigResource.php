@@ -23,9 +23,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = WhatsappConfig::class;
     protected static ?string $slug = 'whatsapp-configs';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationLabel = 'Whatsapp Gateway';
 
     public static function getPermissionPrefixes(): array
     {

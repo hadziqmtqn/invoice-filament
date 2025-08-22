@@ -16,9 +16,6 @@ class PaymentSummaryResource extends Resource
     protected static ?string $slug = 'payment-summaries';
     protected static ?string $label = 'Payment Summary';
     protected static ?string $navigationLabel = 'Payment Summary';
-    protected static ?string $navigationIcon = 'heroicon-o-wallet';
-    protected static ?string $navigationGroup = 'Finance';
-    protected static ?int $navigationSort = 4;
 
     /**
      * @throws Exception

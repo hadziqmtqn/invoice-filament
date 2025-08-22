@@ -109,6 +109,7 @@ class InvoiceForm
                                                 ->form(ItemResource\Schemas\ItemForm::itemForm())
                                                 ->modalHeading('Tambah Item Baru')
                                                 ->modalWidth('2xl')
+                                                ->slideOver()
                                             )
                                             ->createOptionUsing(function (array $data) {
                                                 // Pastikan ini membuat dan menyimpan Item baru

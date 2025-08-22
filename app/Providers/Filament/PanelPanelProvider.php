@@ -3,6 +3,17 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\BankAccountResource;
+use App\Filament\Resources\BankResource;
+use App\Filament\Resources\InvoiceResource;
+use App\Filament\Resources\ItemResource;
+use App\Filament\Resources\MessageTemplateCategoryResource;
+use App\Filament\Resources\MessageTemplateResource;
+use App\Filament\Resources\PaymentResource;
+use App\Filament\Resources\PaymentSummaryResource;
+use App\Filament\Resources\RecurringInvoiceResource;
+use App\Filament\Resources\UserResource;
+use App\Filament\Resources\WhatsappConfigResource;
 use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
@@ -14,6 +25,8 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationBuilder;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -75,14 +88,40 @@ class PanelPanelProvider extends PanelProvider
                 PaymentChart::class,
                 PaymentMethodChart::class
             ])
-            ->navigationGroups([
-                'Main',
-                'Finance',
-                'Payments',
-                'References',
-                'Configuration',
-                'Settings',
-            ])
+            ->navigation(function (NavigationBuilder $navigationBuilder): NavigationBuilder {
+                return $navigationBuilder
+                    ->items([
+                        ...Dashboard::getNavigationItems(),
+                        ...UserResource::getNavigationItems(),
+                    ])
+                    ->groups([
+                        NavigationGroup::make('Finance')
+                            ->label('Finance')
+                            ->icon('heroicon-o-receipt-percent')
+                            ->items([
+                                ...InvoiceResource::getNavigationItems(),
+                                ...RecurringInvoiceResource::getNavigationItems(),
+                                ...PaymentResource::getNavigationItems(),
+                                ...PaymentSummaryResource::getNavigationItems(),
+                            ]),
+                        NavigationGroup::make('Reference')
+                            ->label('Reference')
+                            ->icon('heroicon-o-cube')
+                            ->items([
+                                ...ItemResource::getNavigationItems(),
+                                ...BankResource::getNavigationItems(),
+                                ...BankAccountResource::getNavigationItems(),
+                            ]),
+                        NavigationGroup::make('Configuration')
+                            ->label('Configuration')
+                            ->icon('heroicon-o-cpu-chip')
+                            ->items([
+                                ...WhatsappConfigResource::getNavigationItems(),
+                                ...MessageTemplateCategoryResource::getNavigationItems(),
+                                ...MessageTemplateResource::getNavigationItems(),
+                            ]),
+                    ]);
+            })
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -22,6 +22,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -175,6 +176,7 @@ class ViewHeaderAction
                 ->icon('heroicon-o-currency-dollar')
                 ->button(),
 
+            // TODO More Options
             ActionGroup::make([
                 Html2MediaAction::make('download')
                     ->label('Unduh')
@@ -223,9 +225,13 @@ class ViewHeaderAction
                     })
                     ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
             ])
-                ->label('Opsi')
+                ->label('Opsi Lainnya')
                 ->button()
                 ->color('warning')
+                ->outlined()
+                ->dropdownPlacement('bottom-end')
+                ->icon('heroicon-m-chevron-down')
+                ->iconPosition(IconPosition::After)
         ];
     }
 }

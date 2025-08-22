@@ -22,9 +22,7 @@ class BankResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Bank::class;
     protected static ?string $slug = 'banks';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationLabel = 'Bank';
 
     public static function getPermissionPrefixes(): array
     {

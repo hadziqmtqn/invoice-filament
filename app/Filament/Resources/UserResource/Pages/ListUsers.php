@@ -35,7 +35,8 @@ class ListUsers extends ListRecords
                 )
                 ->icon('heroicon-o-cloud-arrow-up'),
             CreateAction::make()
-                ->icon('heroicon-o-user-plus'),
+                ->icon('heroicon-o-user-plus')
+                ->slideOver(),
         ];
     }
 }

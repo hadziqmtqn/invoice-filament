@@ -15,9 +15,7 @@ class MessageTemplateResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = MessageTemplate::class;
     protected static ?string $slug = 'message-templates';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?int $navigationSort = 5;
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationLabel = 'Templat Pesan';
 
     public static function getPermissionPrefixes(): array
     {
