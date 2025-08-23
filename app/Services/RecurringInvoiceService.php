@@ -33,7 +33,7 @@ class RecurringInvoiceService
             DB::beginTransaction();
             $recurringInvoice = new RecurringInvoice();
             $recurringInvoice->user_id = $invoice->user_id;
-            $recurringInvoice->title = $invoice->title;
+            $recurringInvoice->title = $data['title'];
             $recurringInvoice->date = $data['date'];
             $recurringInvoice->recurrence_frequency = $data['recurrence_frequency'];
             $recurringInvoice->repeat_every = $data['repeat_every'];
@@ -51,6 +51,9 @@ class RecurringInvoiceService
                 $lineItem->description = $invoiceItem->description;
                 $lineItem->save();
             }
+
+            $invoice->recurring_invoice_id = $recurringInvoice->id;
+            $invoice->save();
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();

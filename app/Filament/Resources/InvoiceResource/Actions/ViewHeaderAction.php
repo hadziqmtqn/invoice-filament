@@ -261,13 +261,21 @@ class ViewHeaderAction
                     ->modalHeading('Faktur Berulang')
                     ->modalDescription('Isi data berikut untuk mengaktifkan faktur berulang')
                     ->form([
+                        TextInput::make('title')
+                            ->label('Judul Faktur')
+                            ->required()
+                            ->placeholder('Masukkan Judul Faktur')
+                            ->default(fn(Invoice $invoice): string => $invoice->title)
+                            ->minLength(5),
+
                         DateTimePicker::make('date')
                             ->label('Tanggal Mulai Berlaku')
                             ->required()
                             ->native(false)
                             ->minDate(fn(Invoice $invoice): string => $invoice->date)
                             ->default(fn(Invoice $record) => $record->date ?? now())
-                            ->prefixIcon('heroicon-o-calendar'),
+                            ->prefixIcon('heroicon-o-calendar')
+                            ->closeOnDateSelection(),
 
                         Select::make('recurrence_frequency')
                             ->label('Frekuensi Perulangan')
@@ -290,6 +298,15 @@ class ViewHeaderAction
                             ->inline()
                     ])
                     ->action(function (Invoice $record, array $data): void {
+                        if ($record->recurringInvoice) {
+                            Notification::make()
+                                ->title('Faktur berulang sudah dibuat')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
                         try {
                             RecurringInvoiceService::generateFromInvoice($record, $data);
 
