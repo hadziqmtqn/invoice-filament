@@ -9,13 +9,11 @@ use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
 use App\Models\Invoice;
 use App\Models\Payment;
-use Filament\Actions\Action;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
@@ -27,29 +25,7 @@ class ViewPayment extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('pay')
-                ->label('Bayar Sekarang')
-                ->icon('heroicon-o-currency-dollar')
-                ->requiresConfirmation()
-                ->modalDescription('Apakah yakin akan bayar sekarang?')
-                ->modalIconColor('danger')
-                ->modalWidth('sm')
-                ->action(function (Payment $record, array $data, $livewire) {
-                    $snapToken = $record->midtrans_snap_token;
-
-                    if ($snapToken) {
-                        $livewire->dispatch('midtrans-pay', $snapToken);
-                    } else {
-                        Notification::make()
-                            ->title('Gagal memproses pembayaran')
-                            ->body('Terjadi kesalahan saat membuat pembayaran. Silakan coba lagi.')
-                            ->danger()
-                            ->send();
-                    }
-                })
-                ->visible(fn(Payment $payment): bool => $payment->status === DataStatus::PENDING->value && $payment->payment_source === PaymentSource::PAYMENT_GATEWAY->value),
-        ];
+        return PaymentResource\Actions\HeaderAction::headerAction();
     }
 
     public function infolist(Infolist $infolist): Infolist
