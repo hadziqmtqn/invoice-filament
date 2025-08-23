@@ -24,11 +24,19 @@ Artisan::command('inspire', function () {
     });
 
 \Illuminate\Support\Facades\Schedule::command('invoice:generate-recurring')
-    ->dailyAt('03:00')
+    ->dailyAt('02:30')
     ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
     ->withoutOverlapping()
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Invoice generate-recurring command failed.');
+    });
+
+\Illuminate\Support\Facades\Schedule::command('invoice:repetition-reminder')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Jakarta') // Set the timezone to Asia/Jakarta
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Invoice repetition reminder command failed.');
     });
 
 /*\Illuminate\Support\Facades\Schedule::command('backup:run --only-db')

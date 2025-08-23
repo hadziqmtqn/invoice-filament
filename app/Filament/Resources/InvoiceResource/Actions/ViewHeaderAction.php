@@ -228,7 +228,7 @@ class ViewHeaderAction
                             UnpaidBillMessageJob::dispatch([
                                 'user_name' => $record->user?->name ?? 'Unknown User',
                                 'invoice_name' => $record->title,
-                                'amount' => 'Rp' . number_format($record->total_price,0,',','.'),
+                                'amount' => number_format($record->total_price,0,',','.'),
                                 'due_date' => $record->due_date?->format('d M Y') ?? now()->format('d M Y'),
                                 'whatsapp_number' => $record->user?->userProfile?->phone ?? '',
                                 'invoice_id' => $record->id,
