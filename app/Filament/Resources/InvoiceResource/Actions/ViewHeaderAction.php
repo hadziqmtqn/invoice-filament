@@ -4,6 +4,8 @@ namespace App\Filament\Resources\InvoiceResource\Actions;
 
 use App\Enums\DataStatus;
 use App\Enums\PaymentSource;
+use App\Enums\RecurrenceFrequency;
+use App\Enums\RecurringInvoiceStatus;
 use App\Filament\Resources\InvoiceResource;
 use App\Jobs\UnpaidBillMessageJob;
 use App\Models\Application;
@@ -12,9 +14,11 @@ use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\Payment;
 use App\Services\CreatePaymentService;
+use App\Services\RecurringInvoiceService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -26,7 +30,9 @@ use Filament\Support\Enums\IconPosition;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 use Torgodly\Html2Media\Actions\Html2MediaAction;
 
 class ViewHeaderAction
@@ -242,6 +248,64 @@ class ViewHeaderAction
                         }
                     })
                     ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && $record->status !== DataStatus::PAID->value),
+
+                // TODO Conversion to Repeated Invoice
+                Action::make('conversion')
+                    ->label('Jadikan Faktur Berulang')
+                    ->icon('heroicon-s-arrow-path')
+                    ->color('warning')
+                    ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value)
+                    ->requiresConfirmation()
+                    ->slideOver()
+                    ->modalWidth('sm')
+                    ->modalHeading('Faktur Berulang')
+                    ->modalDescription('Isi data berikut untuk mengaktifkan faktur berulang')
+                    ->form([
+                        DateTimePicker::make('date')
+                            ->label('Tanggal Mulai Berlaku')
+                            ->required()
+                            ->native(false)
+                            ->minDate(fn(Invoice $invoice): string => $invoice->date)
+                            ->default(fn(Invoice $record) => $record->date ?? now())
+                            ->prefixIcon('heroicon-o-calendar'),
+
+                        Select::make('recurrence_frequency')
+                            ->label('Frekuensi Perulangan')
+                            ->options(RecurrenceFrequency::options())
+                            ->required()
+                            ->native(false),
+
+                        TextInput::make('repeat_every')
+                            ->label('Ulangi Setiap')
+                            ->required()
+                            ->integer()
+                            ->default(1)
+                            ->placeholder('Masukkan berapa kali untuk mengulangi'),
+
+                        ToggleButtons::make('status')
+                            ->label('Status')
+                            ->required()
+                            ->options(RecurringInvoiceStatus::options(['draft', 'active']))
+                            ->colors(RecurringInvoiceStatus::colors())
+                            ->inline()
+                    ])
+                    ->action(function (Invoice $record, array $data): void {
+                        try {
+                            RecurringInvoiceService::generateFromInvoice($record, $data);
+
+                            Notification::make()
+                                ->title('Faktur Berulang berhasil dibuat')
+                                ->success()
+                                ->send();
+                        } catch (Throwable $throwable) {
+                            Log::error($throwable->getMessage());
+                            Notification::make()
+                                ->title('Oops!')
+                                ->body('Gagal menambahkan faktur berulang.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
             ])
                 ->label('Opsi Lainnya')
                 ->button()
