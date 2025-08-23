@@ -96,4 +96,10 @@ class RecurringInvoice extends Model
     {
         return $query->where('user_id', $userId);
     }
+
+    #[Scope]
+    protected function filterByStatus(Builder $query, $status): Builder
+    {
+        return $query->where('status', $status);
+    }
 }

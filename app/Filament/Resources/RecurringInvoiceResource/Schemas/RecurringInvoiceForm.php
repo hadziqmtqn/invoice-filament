@@ -203,7 +203,7 @@ class RecurringInvoiceForm
                         ->schema([
                             Select::make('recurrence_frequency')
                                 ->label('Frekuensi Perulangan')
-                                ->options(RecurrenceFrequency::options(['days', 'weeks', 'months', 'years']))
+                                ->options(RecurrenceFrequency::options())
                                 ->required()
                                 ->native(false),
 

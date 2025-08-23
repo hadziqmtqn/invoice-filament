@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\BankAccount;
+use App\Models\Invoice;
 use App\Traits\SendMessageTrait;
 use App\Traits\WhatsappConfigTrait;
 use Illuminate\Bus\Queueable;
@@ -10,20 +11,21 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class InvoiceWillDueMessageJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, WhatsappConfigTrait, SendMessageTrait;
 
-    protected array $data;
+    protected Invoice $invoice;
 
     /**
-     * @param array $data
+     * @param Invoice $invoice
      */
-    public function __construct(array $data)
+    public function __construct(Invoice $invoice)
     {
-        $this->data = $data;
+        $this->invoice = $invoice;
     }
 
     public function handle(): void
@@ -34,10 +36,10 @@ class InvoiceWillDueMessageJob implements ShouldQueue
             ->get();
 
         $placeholders = [
-            '[Nama]' => $this->data['user_name'],
-            '[Jenis Tagihan]' => $this->data['invoice_name'],
-            '[Jumlah]' => $this->data['amount'],
-            '[Tanggal]' => $this->data['due_date'],
+            '[Nama]' => $this->invoice->user?->name,
+            '[Jenis Tagihan]' => $this->invoice->title,
+            '[Jumlah]' => number_format($this->invoice->total_due,0,',','.'),
+            '[Tanggal]' => Carbon::parse($this->invoice->due_date)->isoFormat('D MMMM Y'),
             '[Nomor Rekening]' => implode("\n", $bankAccounts->map(function (BankAccount $account) {
                 return $account->bank?->short_name . " - " . $account->account_number . " (" . $account->account_name . ")";
             })->toArray()),
@@ -51,7 +53,7 @@ class InvoiceWillDueMessageJob implements ShouldQueue
         }
 
         $this->sendMessage(
-            $this->data['whatsapp_number'],
+            $this->invoice->user?->userProfile?->phone,
             $this->replacePlaceholders($messageTemplate->message, $placeholders)
         );
     }
