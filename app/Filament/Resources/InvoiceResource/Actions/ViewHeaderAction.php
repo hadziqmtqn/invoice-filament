@@ -104,6 +104,16 @@ class ViewHeaderAction
                             ->visible(fn(): bool => Auth::user()->hasRole('super_admin'))
                     ])
                     ->action(function (Invoice $invoice, array $data): void {
+                        if ($invoice->status === DataStatus::CONFIRMED->value) {
+                            Notification::make()
+                                ->warning()
+                                ->title('Faktur telah dikonfirmasi')
+                                ->body('Tidak dapat mengkonfirmasi ulang pembayaran.')
+                                ->send();
+
+                            return;
+                        }
+
                         DB::transaction(function () use ($invoice, $data) {
                             $payment = new Payment();
                             $payment->user_id = $invoice->user_id;
@@ -124,12 +134,12 @@ class ViewHeaderAction
                             $invoicePayment->save();
 
                             // Update Invoice
-                            $invoice->status = DataStatus::UNPAID->value;
+                            $invoice->status = DataStatus::CONFIRMED->value;
                             $invoice->save();
                         });
                     })
                     ->closeModalByClickingAway(false)
-                    ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value && $invoice->total_due > 0),
+                    ->visible(fn(Invoice $invoice): bool => !collect([DataStatus::DRAFT->value, DataStatus::CONFIRMED->value])->contains($invoice->status) && $invoice->total_due > 0),
 
                 // TODO Payment Gateway
                 Action::make('pay')
@@ -151,6 +161,16 @@ class ViewHeaderAction
                             ->prefix('Rp'),
                     ])
                     ->action(function (Invoice $record, array $data, $livewire) {
+                        if ($record->status === DataStatus::CONFIRMED->value) {
+                            Notification::make()
+                                ->warning()
+                                ->title('Faktur telah dikonfirmasi')
+                                ->body('Tidak dapat mengkonfirmasi ulang pembayaran.')
+                                ->send();
+
+                            return;
+                        }
+
                         $amount = $record->invoicePaymentPending?->payment?->amount && $record->invoicePaymentPending?->payment?->amount != $data['amount'] ? $record->invoicePaymentPending?->payment?->amount : $data['amount'];
                         $snapToken = CreatePaymentService::handle($record, $amount);
 
@@ -172,7 +192,7 @@ class ViewHeaderAction
                             $livewire->dispatch('midtrans-pay', session('snapToken'));
                         }
                     })
-                    ->visible(fn(Invoice $invoice): bool => $invoice->status !== DataStatus::DRAFT->value && $invoice->total_due > 0),
+                    ->visible(fn(Invoice $invoice): bool => !collect([DataStatus::DRAFT->value, DataStatus::CONFIRMED->value])->contains($invoice->status) && $invoice->total_due > 0),
             ])
                 ->label('Bayar Sekarang')
                 ->icon('heroicon-o-currency-dollar')
@@ -216,16 +236,12 @@ class ViewHeaderAction
 
                             Notification::make()
                                 ->success()
-                                ->title('Fakur Baru')
-                                ->body('Anda memiliki tagihan baru dengan nomor penagihan: ' . $record->code)
-                                ->sendToDatabase($record->user)
-                                ->actions([
-                                    Action::make('Lihat Faktur')
-                                        ->url(InvoiceResource::getUrl('view', ['record' => $record->slug])),
-                                ]);
+                                ->title('Faktur Baru')
+                                ->body('Anda memiliki tagihan baru. <a href="' . InvoiceResource::getUrl('view', ['record' => $record->slug]) . '" class="text-primary underline">Lihat Faktur</a>')
+                                ->sendToDatabase($record->user);
                         }
                     })
-                    ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && ($record->status === 'draft' || $record->status === 'sent' || $record->status === 'partially_paid' || $record->status === 'unpaid'))
+                    ->visible(fn(Invoice $record): bool => !auth()->user()->hasRole('user') && $record->status !== DataStatus::PAID->value),
             ])
                 ->label('Opsi Lainnya')
                 ->button()

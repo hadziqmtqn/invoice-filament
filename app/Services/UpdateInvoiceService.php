@@ -24,6 +24,10 @@ class UpdateInvoiceService
 
     public function updateStatusInvoice(Invoice $invoice): void
     {
+        if ($invoice->status == DataStatus::CONFIRMED) {
+            return;
+        }
+
         $totalInvoice = $invoice->invoiceItems->sum(function ($item) {
             return $item->rate * $item->qty;
         });

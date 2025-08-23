@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\DataStatus;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Filament\Resources\PaymentResource\Schemas\PaymentForm;
 use App\Filament\Resources\PaymentResource\Schemas\PaymentTable;
@@ -24,6 +25,25 @@ class PaymentResource extends Resource implements HasShieldPermissions
     protected static ?string $model = Payment::class;
     protected static ?string $slug = 'payments';
     protected static ?string $navigationLabel = 'Pembayaran';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return self::getModel()::where('status', DataStatus::CONFIRMED->value)
+            ->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info';
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Total pembayaran menunggu divalidasi';
+    }
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
