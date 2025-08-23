@@ -44,18 +44,22 @@ enum RecurrenceFrequency: string implements HasColor, HasLabel
         };
     }
 
-    /**
-     * @return string[]
-     */
-    public static function options(): array
+    public static function options(array $cases = []): array
     {
-        return [
-            self::SECONDS->value => self::SECONDS->getLabel(),
-            self::MINUTES->value => self::MINUTES->getLabel(),
-            self::DAYS->value => self::DAYS->getLabel(),
-            self::WEEKS->value => self::WEEKS->getLabel(),
-            self::MONTHS->value => self::MONTHS->getLabel(),
-            self::YEARS->value => self::YEARS->getLabel(),
-        ];
+        $allCases = self::cases();
+
+        // Jika $cases kosong, tampilkan semua
+        if (empty($cases)) {
+            $casesToShow = $allCases;
+        } else {
+            $casesToShow = array_filter($allCases, function($case) use ($cases) {
+                // Cek apakah enum atau value ada di $cases
+                return in_array($case, $cases, true) || in_array($case->value, $cases, true);
+            });
+        }
+
+        return collect($casesToShow)
+            ->mapWithKeys(fn($case) => [$case->value => $case->getLabel()])
+            ->toArray();
     }
 }
