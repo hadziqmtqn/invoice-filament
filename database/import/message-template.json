@@ -1,22 +1,27 @@
 [
   {
-    "category": "change-authentication",
+    "category": "UBAH-KATA-SANDI",
     "title": "Perubahan Kata Sandi dan Email",
     "message": "Halo [Nama],\n\nBaru-baru ini Anda telah mengubah kata sandi/email akun [Nama Aplikasi] Anda. Berikut adalah detail perubahan tersebut:\n\nTanggal: [Tanggal]\nWaktu: [Waktu]\nKata Sandi Baru: [password_changed]\nEmail: [Email]\n\nJika Anda tidak melakukan perubahan ini, harap segera laporkan kepada kami untuk membantu melindungi akun Anda.\n\nKeamanan akun Anda adalah prioritas kami.\n\nSalam hangat,\nTim [Nama Aplikasi]"
   },
   {
-    "category": "unpaid-bill",
+    "category": "TAGIHAN-BELUM-DIBAYAR",
     "title": "Tagihan Belum Dibayar",
     "message": "Halo [Nama],\nIni pengingat untuk tagihan [Jenis Tagihan] sebesar Rp [Jumlah] dengan jatuh tempo [Tanggal].\n\nSilakan transfer ke [Nomor Rekening / Metode Pembayaran]\nKonfirmasi setelah pembayaran ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
   },
   {
-    "category": "partially-paid-bill",
+    "category": "TAGIHAN-DIBAYAR-SEBAGIAN",
     "title": "Tagihan dibayar Sebagian",
     "message": "Halo [Nama],\nKami informasikan bahwa pembayaran untuk [Jenis Tagihan] sebesar Rp [Jumlah Dibayar] sudah kami terima.\nSaat ini masih terdapat sisa tagihan sebesar Rp [Sisa Tagihan] dengan jatuh tempo [Tanggal].\n\nMohon dapat melakukan pelunasan ke [Nomor Rekening / Metode Pembayaran].\nKonfirmasi setelah pembayaran ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
   },
   {
-    "category": "invoice-will-due",
+    "category": "TAGIHAN-AKAN-JATUH-TEMPO",
     "title": "Tagihan Akan Jatuh Tempo",
     "message": "Halo [Nama],\nMengingatkan bahwa faktur [Nomor Faktur] sebesar Rp [Jumlah] akan jatuh tempo pada [Tanggal].\n\nSilakan melakukan pembayaran ke\n\n[Nomor Rekening]\n\nKonfirmasi setelah transfer ya \uD83D\uDE0A\n\nTerima kasih \uD83D\uDE4F"
+  },
+  {
+    "category": "PENGINGAT-FAKTUR-PERULANGAN-BARU",
+    "title": "Pesan Pengingat Akan Ada Faktur Perulangan Baru",
+    "message": "\uD83D\uDD14 Pengingat: Akan ada tagihan baru untuk [Nama Pelanggan] – [Jenis Tagihan] sebesar Rp [Jumlah] pada [Tanggal].\nPastikan sudah dibuat & dikirim."
   }
 ]

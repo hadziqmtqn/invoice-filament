@@ -19,8 +19,7 @@ class ItemResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Item::class;
     protected static ?string $slug = 'items';
-    protected static ?string $navigationGroup = 'References';
-    protected static ?string $navigationIcon = 'heroicon-o-cube';
+    protected static ?string $navigationLabel = 'Item';
 
     public static function getPermissionPrefixes(): array
     {

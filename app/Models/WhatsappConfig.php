@@ -11,6 +11,7 @@ class WhatsappConfig extends Model
 {
     protected $fillable = [
         'slug',
+        'admin_number',
         'provider',
         'api_domain',
         'secret_key',

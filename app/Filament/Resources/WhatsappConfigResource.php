@@ -6,12 +6,11 @@ use App\Enums\WhatsappGatewayProvider;
 use App\Filament\Resources\WhatsappConfigResource\Pages;
 use App\Models\WhatsappConfig;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -23,9 +22,7 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = WhatsappConfig::class;
     protected static ?string $slug = 'whatsapp-configs';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationLabel = 'Whatsapp Gateway';
 
     public static function getPermissionPrefixes(): array
     {
@@ -46,32 +43,28 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
                 Select::make('provider')
                     ->options(WhatsappGatewayProvider::options())
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->reactive(),
 
                 TextInput::make('api_domain')
-                    ->required(),
+                    ->label('API Domain')
+                    ->required()
+                    ->placeholder('Masukkan API Domain'),
 
-                TextInput::make('secret_key'),
+                TextInput::make('secret_key')
+                    ->required(fn(Get $get): bool => $get('provider') === WhatsappGatewayProvider::WABLAS->value)
+                    ->placeholder('Masukkan Secret Key'),
 
                 TextInput::make('api_key')
-                    ->required(),
+                    ->label('API Key')
+                    ->required()
+                    ->placeholder('Masukkan API Key'),
 
-                Checkbox::make('is_active')
-                    ->label('Aktifkan Konfigurasi')
-                    ->default(true),
-
-                Grid::make()
-                    ->columns()
-                    ->visible(fn(?WhatsappConfig $whatsappConfig): bool => $whatsappConfig?->exists ?? false)
-                    ->schema([
-                        Placeholder::make('created_at')
-                            ->label('Created Date')
-                            ->content(fn(?WhatsappConfig $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                        Placeholder::make('updated_at')
-                            ->label('Last Modified Date')
-                            ->content(fn(?WhatsappConfig $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
-                    ])
+                ToggleButtons::make('is_active')
+                    ->label('Status')
+                    ->default(true)
+                    ->inline()
+                    ->boolean(),
             ]);
     }
 
@@ -82,13 +75,19 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
                 TextColumn::make('provider')
                     ->searchable(),
 
-                TextColumn::make('api_domain'),
+                TextColumn::make('api_domain')
+                    ->label('API Domain')
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('secret_key'),
 
-                TextColumn::make('api_key'),
+                TextColumn::make('api_key')
+                    ->label('API Key')
+                    ->searchable(),
 
                 ToggleColumn::make('is_active')
+                    ->label('Status')
                     ->sortable(),
             ])
             ->filters([
@@ -107,8 +106,6 @@ class WhatsappConfigResource extends Resource implements HasShieldPermissions
     {
         return [
             'index' => Pages\ListWhatsappConfigs::route('/'),
-            //'create' => Pages\CreateWhatsappConfig::route('/create'),
-            //'edit' => Pages\EditWhatsappConfig::route('/{record}/edit'),
         ];
     }
 

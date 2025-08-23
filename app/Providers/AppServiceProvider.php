@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\RecurringInvoice;
 use App\Observers\InvoiceObserver;
+use App\Observers\PaymentObserver;
 use App\Observers\RecurringInvoiceObserver;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Invoice::observe(InvoiceObserver::class);
         RecurringInvoice::observe(RecurringInvoiceObserver::class);
+        Payment::observe(PaymentObserver::class);
 
         FilamentAsset::register([
             Js::make('midtrans-scripts', 'https://app.sandbox.midtrans.com/snap/snap.js')

@@ -7,16 +7,16 @@ use App\Enums\PaymentSource;
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Resources\PaymentResource;
 use App\Filament\Resources\UserResource;
+use App\Models\Invoice;
 use App\Models\Payment;
-use Filament\Actions\Action;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Support\HtmlString;
 
 class ViewPayment extends ViewRecord
@@ -25,29 +25,7 @@ class ViewPayment extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('pay')
-                ->label('Pay Now')
-                ->icon('heroicon-o-currency-dollar')
-                ->requiresConfirmation()
-                ->modalDescription('Are you sure you will pay now?')
-                ->modalIconColor('danger')
-                ->modalWidth('sm')
-                ->action(function (Payment $record, array $data, $livewire) {
-                    $snapToken = $record->midtrans_snap_token;
-
-                    if ($snapToken) {
-                        $livewire->dispatch('midtrans-pay', $snapToken);
-                    } else {
-                        Notification::make()
-                            ->title('Gagal memproses pembayaran')
-                            ->body('Terjadi kesalahan saat membuat pembayaran. Silakan coba lagi.')
-                            ->danger()
-                            ->send();
-                    }
-                })
-                ->visible(fn(Payment $payment): bool => $payment->status === DataStatus::PENDING->value && $payment->payment_source === PaymentSource::PAYMENT_GATEWAY->value),
-        ];
+        return PaymentResource\Actions\HeaderAction::headerAction();
     }
 
     public function infolist(Infolist $infolist): Infolist
@@ -63,26 +41,28 @@ class ViewPayment extends ViewRecord
                             ->inlineLabel()
                             ->schema([
                                 TextEntry::make('reference_number')
-                                    ->label('Pay. Ref.')
+                                    ->label('No. Ref')
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('date')
-                                    ->label('Date Payment')
+                                    ->label('Tanggal')
                                     ->date()
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('user.name')
-                                    ->label('User Name')
+                                    ->label('Pengguna')
                                     ->weight(FontWeight::Bold)
                                     ->url(fn(Payment $record): string => UserResource::getUrl('edit', ['record' => $record->user?->username]))
+                                    ->icon('heroicon-o-arrow-top-right-on-square')
+                                    ->iconPosition(IconPosition::After)
                                     ->color('primary'),
 
                                 TextEntry::make('user.userProfile.company_name')
-                                    ->label('Company')
+                                    ->label('Tempat Usaha')
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('user.userProfile.phone')
-                                    ->label('Phone')
+                                    ->label('No. HP')
                                     ->weight(FontWeight::Bold),
 
                                 TextEntry::make('user.email')
@@ -90,18 +70,34 @@ class ViewPayment extends ViewRecord
                                     ->weight(FontWeight::Bold),
                             ]),
 
-                        Section::make('Invoices')
+                        Section::make('Faktur')
                             ->schema([
                                 RepeatableEntry::make('invoicePayments')
                                     ->hiddenLabel()
                                     ->columns()
                                     ->schema([
-                                        TextEntry::make('invoice.code')
-                                            ->label('Code')
-                                            ->inlineLabel(),
+                                        TextEntry::make('invoice.title')
+                                            ->label('Judul')
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('invoice.slug')
+                                            ->label('Kode')
+                                            ->inlineLabel()
+                                            ->formatStateUsing(function ($state): ?HtmlString {
+                                                $invoice = Invoice::where('slug', $state)
+                                                    ->first();
+                                                if ($invoice) {
+                                                    $url = InvoiceResource::getUrl('view', ['record' => $state]);
+                                                    return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="text-primary-400">'. $invoice->code .'</a>');
+                                                }
+
+                                                return null;
+                                            })
+                                            ->icon('heroicon-o-arrow-top-right-on-square')
+                                            ->iconPosition(IconPosition::After),
 
                                         TextEntry::make('invoice.total_price')
-                                            ->label('Total Price')
+                                            ->label('Total Tagihan')
                                             ->inlineLabel()
                                             ->money('idr'),
 
@@ -113,7 +109,7 @@ class ViewPayment extends ViewRecord
                                             ->formatStateUsing(fn($state): string => DataStatus::tryFrom($state)?->getLabel() ?? 'N/A'),
 
                                         RepeatableEntry::make('invoice.invoiceItems')
-                                            ->label('Items')
+                                            ->label('Item')
                                             ->columns(3)
                                             ->columnSpan(2)
                                             ->schema([
@@ -122,24 +118,17 @@ class ViewPayment extends ViewRecord
                                                 TextEntry::make('qty'),
 
                                                 TextEntry::make('rate')
+                                                    ->label('Sub Total')
                                                     ->money('idr'),
 
                                                 TextEntry::make('description')
+                                                    ->label('Deskripsi')
                                                     ->columnSpanFull()
                                             ]),
 
                                         TextEntry::make('invoice.note')
                                             ->label('Note')
                                             ->columnSpan(2),
-
-                                        TextEntry::make('invoice.slug')
-                                            ->hiddenLabel()
-                                            ->inlineLabel()
-                                            ->columnSpan(2)
-                                            ->formatStateUsing(function ($state) {
-                                                $url = InvoiceResource::getUrl('view', ['record' => $state]);
-                                                return new HtmlString('<a href="' . $url . '" target="_blank" rel="noopener" class="inline-block bg-primary-600 text-white rounded px-3 py-1 hover:bg-primary-700 transition text-sm">Show Invoice</a>');
-                                            }),
                                     ])
                             ]),
                     ])

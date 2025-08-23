@@ -10,6 +10,11 @@ class EditPayment extends EditRecord
     protected static string $resource = PaymentResource::class;
     protected ?bool $hasDatabaseTransactions = true;
 
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('view', ['record' => $this->record]);
+    }
+
     protected function getHeaderActions(): array
     {
         return [

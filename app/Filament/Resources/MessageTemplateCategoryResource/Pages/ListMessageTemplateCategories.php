@@ -14,7 +14,9 @@ class ListMessageTemplateCategories extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Create Category'),
+                ->label('Buat Baru')
+                ->slideOver()
+                ->closeModalByClickingAway(false),
         ];
     }
 }

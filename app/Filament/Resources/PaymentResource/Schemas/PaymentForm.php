@@ -37,7 +37,7 @@ class PaymentForm
                             ->columns()
                             ->schema([
                                 Select::make('user_id')
-                                    ->label('User')
+                                    ->label('Pengguna')
                                     ->options(function () {
                                         return User::whereHas('roles', function ($query) {
                                             $query->where('name', 'user');
@@ -60,7 +60,7 @@ class PaymentForm
                                     ->required(),
 
                                 DatePicker::make('date')
-                                    ->placeholder('Select Date')
+                                    ->placeholder('Pilih Tanggal Pembayaran')
                                     ->required()
                                     ->native(false)
                                     ->prefixIcon('heroicon-o-calendar')
@@ -68,7 +68,7 @@ class PaymentForm
                                     ->closeOnDateSelection(),
 
                                 TextInput::make('amount')
-                                    ->placeholder('Total Amount')
+                                    ->placeholder('Total Bayar')
                                     ->required()
                                     ->numeric()
                                     ->prefix('Rp')
@@ -79,14 +79,14 @@ class PaymentForm
                                             $invoicePayments = $get('invoicePayments') ?? [];
                                             $totalApplied = collect($invoicePayments)->sum('amount_applied');
                                             if ($value < $totalApplied) {
-                                                $fail('Total Amount tidak boleh kurang dari jumlah Amount Applied pada invoice.');
+                                                $fail('Total Bayar tidak boleh kurang dari jumlah bayar pada faktur.');
                                             }
                                         };
                                     }),
                             ]),
 
                         // TODO Select Invoices
-                        Section::make('Invoices Payments')
+                        Section::make('Faktur')
                             ->schema([
                                 Repeater::make('invoicePayments')
                                     ->hiddenLabel()
@@ -94,14 +94,14 @@ class PaymentForm
                                     ->columnSpanFull()
                                     ->schema([
                                         Select::make('invoice_id')
-                                            ->label('Invoice')
+                                            ->label('Faktur')
                                             ->options(function (Get $get, $state) {
                                                 $userId = $get('../../user_id');
                                                 if (!$userId) return [];
 
                                                 $invoices = Invoice::where('user_id', $userId)
                                                     ->when($state, fn($query) => $query->where('id', $state),
-                                                        fn($query) => $query->where('status', '!=', 'paid'))
+                                                        fn($query) => $query->whereNotIn('status', [DataStatus::PAID->value, DataStatus::DRAFT->value]))
                                                     ->orderByDesc('created_at')
                                                     ->pluck('title', 'id');
 
@@ -146,7 +146,7 @@ class PaymentForm
                                             ->columns()
                                             ->schema([
                                                 TextInput::make('invoice_number')
-                                                    ->label('Invoice Number')
+                                                    ->label('No. Faktur')
                                                     ->disabled()
                                                     ->afterStateHydrated(function ($state, callable $set, $get) {
                                                         $invoiceId = $get('invoice_id');
@@ -157,7 +157,7 @@ class PaymentForm
                                                     }),
 
                                                 TextInput::make('outstanding')
-                                                    ->label('Outstanding')
+                                                    ->label('Total Tagihan')
                                                     ->prefix('Rp')
                                                     ->disabled()
                                                     ->afterStateHydrated(function ($state, callable $set, Get $get) {
@@ -190,7 +190,7 @@ class PaymentForm
                                                     }),
 
                                                 TextInput::make('amount_applied')
-                                                    ->label('Amount Applied')
+                                                    ->label('Jumlah Bayar')
                                                     ->prefix('Rp')
                                                     ->numeric()
                                                     ->minValue(0)
@@ -206,12 +206,13 @@ class PaymentForm
                                                         return function ($attribute, $value, $fail) use ($get) {
                                                             $outstanding = $get('outstanding') ?? 0;
                                                             if ($value > $outstanding) {
-                                                                $fail('Amount Applied tidak boleh melebihi Outstanding.');
+                                                                $fail('Jumlah bayar tidak boleh melebihi Total Tagihan.');
                                                             }
                                                         };
                                                     }),
 
                                                 TextInput::make('rest_bill')
+                                                    ->label('Sisa Tagihan')
                                                     ->prefix('Rp')
                                                     ->disabled()
                                                     ->afterStateHydrated(function ($state, callable $set, $get) {
@@ -227,21 +228,23 @@ class PaymentForm
                                     ->required()
                                     ->minItems(1)
                                     ->deletable(fn($state, $get) => count($get('invoicePayments')) > 1)
-                                    ->addActionLabel('Add Item'),
+                                    ->addActionLabel('Tambah Item'),
                             ]),
 
                         // TODO Payment Method & Bank Account
-                        Section::make('Payment Method')
+                        Section::make('Metode Pembayaran')
                             ->description('Pilih metode pembayaran yang sesuai.')
                             ->columns()
                             ->schema([
-                                Select::make('payment_method')
+                                Select::make('payment_source')
+                                    ->label('Sumber Pembayaran')
                                     ->options(PaymentSource::options())
                                     ->native(false)
-                                    ->required(),
+                                    ->required()
+                                    ->reactive(),
 
                                 Select::make('bank_account_id')
-                                    ->label('Bank Account')
+                                    ->label('Bank Tujuan')
                                     ->options(function () {
                                         return BankAccount::with('bank')
                                             ->where('is_active', true)
@@ -250,7 +253,7 @@ class PaymentForm
                                             ->toArray();
                                     })
                                     ->native(false)
-                                    ->required(fn(Get $get) => $get('payment_method') === 'bank_transfer'),
+                                    ->required(fn(Get $get) => $get('payment_source') === 'bank_transfer'),
                             ])
                     ])
                     ->columnSpan(['lg' => 2]),
@@ -258,11 +261,11 @@ class PaymentForm
                 // TODO Summary & Attachments
                 Group::make()
                     ->schema([
-                        Section::make('Summary')
+                        Section::make('Ringkasan')
                             ->columns()
                             ->schema([
                                 Placeholder::make('total_bill')
-                                    ->label('Total Bill')
+                                    ->label('Total Tagihan')
                                     ->content(function (Get $get) {
                                         $invoicePayments = $get('invoicePayments') ?? [];
                                         $totalOutstanding = 0;
@@ -277,7 +280,7 @@ class PaymentForm
                                     ->columnSpanFull(),
 
                                 Placeholder::make('total_Pay')
-                                    ->label('Total Pay')
+                                    ->label('Total Bayar')
                                     ->content(function (Get $get) {
                                         return new HtmlString('<div style="font-size:15pt; color:#00bb00"><b>Rp' . number_format(intval($get('amount') ?? 0), 0, ',', '.') . '</b></div>');
                                     })
@@ -285,7 +288,7 @@ class PaymentForm
                                     ->columnSpanFull(),
 
                                 Placeholder::make('sum_rest_bill')
-                                    ->label('Rest Bill')
+                                    ->label('Sisa Tagihan')
                                     ->content(function (Get $get) {
                                         // Ambil total_amount: hitung dari sum outstanding invoicePayments
                                         $invoicePayments = $get('invoicePayments') ?? [];
@@ -325,16 +328,16 @@ class PaymentForm
                             ->schema([
                                 SpatieMediaLibraryFileUpload::make('attachment')
                                     ->collection('payment_attachments')
-                                    ->label('Attachment')
+                                    ->label('Bukti Pembayaran')
                                     ->disk('s3')
                                     ->visibility('private')
                                     ->acceptedFileTypes(['image/*', 'application/pdf'])
                                     ->maxSize(1024)
                                     ->openable()
-                                    ->helperText('Optional, upload a receipt or proof of payment.'),
+                                    ->helperText('Opsional, unggah tanda terima atau bukti pembayaran.'),
 
                                 Textarea::make('note')
-                                    ->placeholder('Add internal notes here...')
+                                    ->placeholder('Tambah catatan khusus disini')
                                     ->rows(3)
                                     ->maxLength(500)
                                     ->autosize()

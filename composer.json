@@ -35,7 +35,8 @@
         "stephenjude/filament-jetstream": "^0.0.16",
         "torgodly/html2media": "^1.1",
         "ext-pdo": "*",
-        "ext-zip": "*"
+        "ext-zip": "*",
+        "ext-curl": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

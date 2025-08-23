@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\DataStatus;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Traits\SendMessageTrait;
@@ -43,10 +44,10 @@ class UnpaidBillMessageJob implements ShouldQueue
             })->toArray()) . "\n\n",
         ];
 
-        $messageTemplate = $this->messageTemplate('UNPAID-BILL');
+        $messageTemplate = $this->messageTemplate('TAGIHAN-BELUM-DIBAYAR');
 
         if (!$messageTemplate) {
-            Log::warning('Message template for UNPAID-BILL not found.');
+            Log::warning('Message template for TAGIHAN-BELUM-DIBAYAR not found.');
             return;
         }
 
@@ -58,7 +59,7 @@ class UnpaidBillMessageJob implements ShouldQueue
         // Update the invoice status to 'sent'
         $invoice = Invoice::find($this->data['invoice_id']);
         if ($invoice) {
-            $invoice->status = 'sent';
+            $invoice->status = DataStatus::SENT->value;
             $invoice->save();
         } else {
             Log::error('Invoice not found for ID: ' . $this->data['invoice_id']);

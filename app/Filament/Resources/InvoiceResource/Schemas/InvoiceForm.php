@@ -37,7 +37,7 @@ class InvoiceForm
                             ->columns()
                             ->schema([
                                 Select::make('user_id')
-                                    ->label('User')
+                                    ->label('Pilih Pengguna')
                                     ->options(function (?Invoice $record) {
                                         return UserService::dropdownOptions($record?->exists ? $record->user_id : null);
                                     })
@@ -51,7 +51,7 @@ class InvoiceForm
                                     }),
 
                                 Select::make('recurring_invoice_id')
-                                    ->label('Recurring Invoice')
+                                    ->label('Faktur Berulang (Optional)')
                                     ->options(function(Get $get, ?Invoice $record) {
                                         return RecurringInvoiceService::selectOptions($get('user_id'), $record?->recurring_invoice_id);
                                     })
@@ -61,30 +61,32 @@ class InvoiceForm
                                     ->reactive(),
 
                                 TextInput::make('title')
-                                    ->label('Invoice Title')
+                                    ->label('Judul Faktur')
                                     ->required()
                                     ->maxLength(100)
-                                    ->placeholder('Enter the title of the invoice')
+                                    ->placeholder('Masukkan Judul Faktur')
                                     ->columnSpanFull(),
 
                                 DatePicker::make('date')
+                                    ->label('Tanggal')
                                     ->required()
                                     ->format('d M Y')
                                     ->native(false)
                                     ->default(now())
-                                    ->placeholder('Select the invoice date')
+                                    ->placeholder('Pilih Tanggal Faktur')
                                     ->closeOnDateSelection(),
 
                                 DatePicker::make('due_date')
+                                    ->label('Tanggal Jatuh Tempo')
                                     ->required()
                                     ->format('d M Y')
                                     ->native(false)
                                     ->minDate(fn(Get $get) => $get('date'))
-                                    ->placeholder('Select the due date')
+                                    ->placeholder('Pilih Tanggal Jatuh Tempo')
                                     ->closeOnDateSelection(),
                             ]),
 
-                        Section::make('Invoice Items')
+                        Section::make('Item Faktur')
                             ->description('Tambahkan item yang akan ditagihkan dalam invoice ini.')
                             ->schema([
                                 Repeater::make('invoiceItems')
@@ -101,12 +103,13 @@ class InvoiceForm
                                             ->required()
                                             ->createOptionForm(ItemResource\Schemas\ItemForm::itemForm())
                                             ->createOptionAction(fn(Action $action) => $action
-                                                ->tooltip('Create a new item to add to this invoice')
+                                                ->tooltip('Tambah baru item faktur')
                                                 ->icon('heroicon-o-plus')
                                                 ->color('primary')
                                                 ->form(ItemResource\Schemas\ItemForm::itemForm())
-                                                ->modalHeading('Create New Item')
+                                                ->modalHeading('Tambah Item Baru')
                                                 ->modalWidth('2xl')
+                                                ->slideOver()
                                             )
                                             ->createOptionUsing(function (array $data) {
                                                 // Pastikan ini membuat dan menyimpan Item baru
@@ -141,8 +144,9 @@ class InvoiceForm
                                             ->columns()
                                             ->schema([
                                                 TextInput::make('name')
+                                                    ->label('Nama Item')
                                                     ->required()
-                                                    ->placeholder('Enter the item name'),
+                                                    ->placeholder('Masukkan Nama Item'),
 
                                                 TextInput::make('qty')
                                                     ->numeric()
@@ -164,6 +168,7 @@ class InvoiceForm
                                                     ->native(false),
 
                                                 TextInput::make('rate')
+                                                    ->label('Harga Jual')
                                                     ->numeric()
                                                     ->required()
                                                     ->reactive()
@@ -179,9 +184,10 @@ class InvoiceForm
                                             ]),
 
                                         Textarea::make('description')
+                                            ->label('Deskripsi')
                                             ->rows(2)
                                             ->reactive()
-                                            ->placeholder('Optional description for this item')
+                                            ->placeholder('Keterangan faktur')
                                             ->columnSpanFull(),
                                     ])
                                     ->minItems(1)
@@ -215,7 +221,7 @@ class InvoiceForm
                                         return true;
                                     })
                                     ->columnSpanFull()
-                                    ->addActionLabel('Add Item')
+                                    ->addActionLabel('Tambah Item')
                                     ->columns(),
                             ]),
 
@@ -223,7 +229,7 @@ class InvoiceForm
                             ->schema([
                                 Textarea::make('note')
                                     ->rows(3)
-                                    ->placeholder('Optional note for this invoice'),
+                                    ->placeholder('Catatan untuk faktur ini'),
                             ]),
                     ])
                     ->columnSpan(['lg' => 2]),
@@ -234,7 +240,7 @@ class InvoiceForm
                             ->description('Total harga akan dihitung berdasarkan item yang ditambahkan.')
                             ->schema([
                                 TextInput::make('discount')
-                                    ->label('Discount (%)')
+                                    ->label('Diskon (%)')
                                     ->helperText('Masukkan diskon dalam persen, misal: 10 untuk 10%')
                                     ->required()
                                     ->numeric()
@@ -245,6 +251,7 @@ class InvoiceForm
                                 Grid::make()
                                     ->schema([
                                         Placeholder::make('total_price')
+                                            ->label('Total Tagihan')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = array_reduce($items, function ($carry, $item) {
@@ -257,7 +264,7 @@ class InvoiceForm
                                             ->columnSpanFull(),
 
                                         Placeholder::make('final_price')
-                                            ->label('Total Price After Discount')
+                                            ->label('Total Tagihan Setelah Diskon')
                                             ->content(function (Get $get) {
                                                 $items = $get('invoiceItems') ?? [];
                                                 $total = array_reduce($items, function ($carry, $item) {
@@ -274,7 +281,7 @@ class InvoiceForm
                                     ])
                             ]),
 
-                        Section::make('Bank Accounts')
+                        Section::make('Rekening Bank')
                             ->description('Transfer pembayaran ke salah satu rekening berikut:')
                             ->schema([
                                 Placeholder::make('bank_accounts')
@@ -305,12 +312,12 @@ class InvoiceForm
                                 Grid::make()
                                     ->schema([
                                         Placeholder::make('created_at')
-                                            ->label('Created Date')
+                                            ->label('Dibuat Pada')
                                             ->content(fn(?Invoice $record): string => $record?->created_at?->diffForHumans() ?? '-')
                                             ->columnSpanFull(),
 
                                         Placeholder::make('updated_at')
-                                            ->label('Last Modified Date')
+                                            ->label('Terakhir diperbarui')
                                             ->content(fn(?Invoice $record): string => $record?->updated_at?->diffForHumans() ?? '-')
                                             ->columnSpanFull(),
                                     ])

@@ -14,8 +14,7 @@ class ListRecurringInvoices extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Add New')
-                ->icon('heroicon-o-plus'),
+                ->label('Tambah Baru'),
         ];
     }
 }

@@ -23,12 +23,8 @@ class PaymentHistory extends ManageRelatedRecords
 {
     protected static string $resource = UserResource::class;
     protected static string $relationship = 'Payments';
+    protected static ?string $title = 'Riwayat Pembayaran';
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-
-    public static function getNavigationLabel(): string
-    {
-        return 'Payments History';
-    }
 
     public function form(Form $form): Form
     {

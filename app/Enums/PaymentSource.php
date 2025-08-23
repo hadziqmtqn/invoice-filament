@@ -39,6 +39,14 @@ enum PaymentSource: string implements HasLabel, HasColor
         ];
     }
 
+    public static function colors(): array
+    {
+        return [
+            self::CASH->value => self::CASH->getColor(),
+            self::BANK_TRANSFER->value => self::BANK_TRANSFER->getColor()
+        ];
+    }
+
     public static function dropdownOptions(): array
     {
         return [

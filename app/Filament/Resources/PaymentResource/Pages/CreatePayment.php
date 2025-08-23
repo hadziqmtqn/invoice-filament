@@ -11,6 +11,7 @@ class CreatePayment extends CreateRecord
 {
     protected static string $resource = PaymentResource::class;
     protected ?bool $hasDatabaseTransactions = true;
+    protected static ?string $title = 'Buat Pembayaran';
 
     protected function getHeaderActions(): array
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\ProductType;
 use CodeWithKyrian\FilamentDateRange\Forms\Components\DateRangePicker;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Grid;
@@ -14,9 +15,10 @@ class Dashboard extends \Filament\Pages\Dashboard
 {
     use HasFiltersForm;
 
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    /*protected static ?string $navigationIcon = 'heroicon-o-home';*/
     protected static ?string $slug = 'dashboard';
-    protected static ?string $navigationGroup = 'Main';
+    protected static ?string $navigationLabel = 'Dasbor';
+    /*protected static ?string $navigationGroup = 'Main';*/
 
     public function persistsFiltersInSession(): bool
     {
@@ -27,6 +29,7 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             Action::make('resetFilters')
+                ->label('Ulangi Filter')
                 ->color('danger')
                 ->action(fn () => $this->filters = [])
                 ->icon('heroicon-o-x-circle')
@@ -45,17 +48,16 @@ class Dashboard extends \Filament\Pages\Dashboard
                         Grid::make()
                             ->schema([
                                 DateRangePicker::make('dateRange')
+                                    ->label('Rentang Tanggal')
                                     ->columnSpanFull(),
                             ])
                             ->columnSpanFull()
                             ->columnSpan(['lg' => 2]),
 
                         Select::make('productType')
+                            ->label('Jenis Produk')
                             ->native(false)
-                            ->options([
-                                'goods' => 'Goods',
-                                'service' => 'Service',
-                            ])
+                            ->options(ProductType::options())
                             ->selectablePlaceholder(false)
                             ->reactive()
                             ->columnSpan(['lg' => 1]),

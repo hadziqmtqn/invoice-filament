@@ -62,4 +62,10 @@ class MessageTemplate extends Model
     {
         return $query->where('is_active', true);
     }
+
+    // More
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 }

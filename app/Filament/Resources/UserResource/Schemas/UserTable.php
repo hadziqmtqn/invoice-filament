@@ -31,6 +31,7 @@ class UserTable
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('avatar')
+                    ->label('Foto')
                     ->collection('avatars')
                     ->disk('s3')
                     ->visibility('private')
@@ -39,16 +40,18 @@ class UserTable
                     ->size(40),
 
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->description(fn(User $record): ?string => $record->userProfile?->company_name)
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->copyable(),
 
                 TextColumn::make('roles.name')
-                    ->label('Role')
+                    ->label('Peran')
                     ->badge()
                     ->color(fn(string $state) => match ($state) {
                         'super_admin' => 'primary',
@@ -60,7 +63,7 @@ class UserTable
                     ->toggleable(),
 
                 TextColumn::make('userProfile.phone')
-                    ->label('Phone')
+                    ->label('No. HP')
                     ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')
@@ -121,11 +124,9 @@ class UserTable
                                 ], $record->userProfile?->phone);
                             }
                         }),
-                    DeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin') || $record->invoices()->exists() || $record->payments()->exists()),
+                    DeleteAction::make(),
                     RestoreAction::make(),
-                    ForceDeleteAction::make()
-                        ->disabled(fn(User $record): bool => $record->hasRole('super_admin')),
+                    ForceDeleteAction::make(),
                 ]),
             ])
             ->bulkActions([

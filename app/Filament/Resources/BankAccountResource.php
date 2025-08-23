@@ -7,28 +7,25 @@ use App\Models\Bank;
 use App\Models\BankAccount;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Exception;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class BankAccountResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = BankAccount::class;
     protected static ?string $slug = 'bank-accounts';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Rekening Bank';
 
     public static function getPermissionPrefixes(): array
     {
@@ -55,26 +52,21 @@ class BankAccountResource extends Resource implements HasShieldPermissions
                     ->preload(),
 
                 TextInput::make('account_name')
-                    ->required(),
+                    ->label('Nama Pemilik Rekening')
+                    ->required()
+                    ->placeholder('Masukkan Nama Pemilik Rekening'),
 
                 TextInput::make('account_number')
-                    ->required(),
+                    ->label('Nomor Rekening')
+                    ->required()
+                    ->placeholder('Masukkan Nomor Rekening'),
 
                 // hanya ada saat edit data
-                Checkbox::make('is_active')
-                    ->label('Aktif')
+                ToggleButtons::make('is_active')
+                    ->label('Status')
                     ->default(true)
-                    ->helperText('Apakah rekening ini aktif?'),
-
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->visible(fn(?BankAccount $record): bool => $record?->created_at !== null)
-                    ->content(fn(?BankAccount $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->visible(fn(?BankAccount $record): bool => $record?->updated_at !== null)
-                    ->content(fn(?BankAccount $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                    ->boolean()
+                    ->inline(),
             ]);
     }
 
@@ -93,12 +85,15 @@ class BankAccountResource extends Resource implements HasShieldPermissions
                     ->sortable(),
 
                 TextColumn::make('account_name')
+                    ->label('Nama Pemilik Rekening')
                     ->searchable(),
 
                 TextColumn::make('account_number')
+                    ->label('Nomor Rekening')
                     ->searchable(),
 
-                CheckboxColumn::make('is_active')
+                ToggleColumn::make('is_active')
+                    ->label('Status')
                     ->sortable(),
             ])
             ->filters([

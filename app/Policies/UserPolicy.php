@@ -35,7 +35,7 @@ class UserPolicy
 
     public function delete(User $user, User $model): bool
     {
-        return $user->can('delete_user', $model);
+        return $user->can('delete_user', $model) && $model->invoices->isEmpty() && $model->payments->isEmpty() && $model->recurringInvoices->isEmpty();
     }
 
     public function restore(User $user, User $model): bool

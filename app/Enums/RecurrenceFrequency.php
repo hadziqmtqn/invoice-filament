@@ -35,12 +35,12 @@ enum RecurrenceFrequency: string implements HasColor, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::SECONDS => __('Seconds'),
-            self::MINUTES => __('Minutes'),
-            self::DAYS => __('Days'),
-            self::WEEKS => __('Weeks'),
-            self::MONTHS => __('Months'),
-            self::YEARS => __('Years'),
+            self::SECONDS => __('Detik'),
+            self::MINUTES => __('Menit'),
+            self::DAYS => __('Hari'),
+            self::WEEKS => __('Minggu'),
+            self::MONTHS => __('Bulan'),
+            self::YEARS => __('Tahun'),
         };
     }
 

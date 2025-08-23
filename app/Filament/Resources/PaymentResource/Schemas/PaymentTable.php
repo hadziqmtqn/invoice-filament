@@ -31,35 +31,42 @@ class PaymentTable
         return $table
             ->columns([
                 TextColumn::make('user.name')
+                    ->label('Pengguna')
                     ->description(fn($record) => $record->user?->userProfile?->phone ?? '-')
                     ->searchable(),
 
                 TextColumn::make('reference_number')
+                    ->label('No. Pembayaran')
                     ->searchable(),
 
                 TextColumn::make('date')
-                    ->date(fn() => 'd M Y')
+                    ->label('Tanggal')
+                    ->date('d M Y')
                     ->sortable(),
 
                 TextColumn::make('amount')
+                    ->label('Jumlah')
                     ->money('idr')
                     ->prefix('Rp')
                     ->numeric(0, ',', '.')
                     ->searchable()
                     ->summarize([
                         Sum::make('amount')
+                            ->query(fn(\Illuminate\Database\Query\Builder $query) => $query->where('status', DataStatus::PAID->value))
                             ->money('idr')
                             ->prefix('Rp')
                             ->numeric(0, ',', '.')
                     ]),
 
                 TextColumn::make('payment_source')
+                    ->label('Sumber Pembayaran')
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => PaymentSource::tryFrom($state)?->getLabel() ?? 'N/A')
                     ->color(fn(string $state): string => PaymentSource::tryFrom($state)?->getColor() ?? 'gray')
                     ->sortable(),
 
                 TextColumn::make('payment_method')
+                    ->label('Metode Pembayaran')
                     ->formatStateUsing(fn(string $state): string => strtoupper($state))
                     ->sortable(),
 
@@ -70,29 +77,32 @@ class PaymentTable
                     ->sortable(),
 
                 TextColumn::make('bankAccount.bank.short_name')
+                    ->label('Bank Tujuan')
                     ->toggleable()
                     ->toggledHiddenByDefault(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options(DataStatus::options(['paid', 'pending', 'expire']))
+                    ->options(DataStatus::options(['paid', 'pending', 'expire', 'confirmed']))
                     ->native(false),
 
                 SelectFilter::make('payment_source')
+                    ->label('Sumber Pembayaran')
                     ->options(PaymentSource::dropdownOptions())
                     ->native(false),
 
                 Filter::make('date')
+                    ->label('Tanggal')
                     ->form([
                         DatePicker::make('start')
-                            ->label('Start Date')
+                            ->label('Dari Tanggal')
                             ->native(false)
-                            ->placeholder('Start Date'),
+                            ->placeholder('Dari Tanggal'),
                         DatePicker::make('end')
-                            ->label('End Date')
+                            ->label('Sampai Tanggal')
                             ->native(false)
-                            ->placeholder('End Date'),
+                            ->placeholder('Sampai Tanggal'),
                     ])
                     ->query(function (Builder $query, array $data) {
                         if (!empty($data['start']) && !empty($data['end'])) {

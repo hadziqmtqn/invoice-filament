@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\RecurringInvoiceResource\Pages;
 
 use App\Filament\Resources\RecurringInvoiceResource;
-use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditRecurringInvoice extends EditRecord
@@ -15,7 +14,7 @@ class EditRecurringInvoice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            //
         ];
     }
 }

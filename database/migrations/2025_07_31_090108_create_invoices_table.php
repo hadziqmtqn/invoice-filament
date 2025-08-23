@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->date('due_date');
             $table->float('discount')->default(0);
             $table->text('note')->nullable();
-            $table->enum('status', ['draft', 'sent', 'paid', 'overdue', 'unpaid', 'partially_paid'])->default('draft');
+            $table->enum('status', ['draft', 'sent', 'paid', 'overdue', 'unpaid', 'partially_paid', 'confirmed'])->default('draft');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->restrictOnDelete();

@@ -3,10 +3,23 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\ApplicationResource;
+use App\Filament\Resources\BankAccountResource;
+use App\Filament\Resources\BankResource;
+use App\Filament\Resources\InvoiceResource;
+use App\Filament\Resources\ItemResource;
+use App\Filament\Resources\MessageTemplateCategoryResource;
+use App\Filament\Resources\MessageTemplateResource;
+use App\Filament\Resources\PaymentResource;
+use App\Filament\Resources\PaymentSummaryResource;
+use App\Filament\Resources\RecurringInvoiceResource;
+use App\Filament\Resources\UserResource;
+use App\Filament\Resources\WhatsappConfigResource;
 use App\Filament\Widgets\PaymentChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Models\Application;
+use BezhanSalleh\FilamentShield\Resources\RoleResource;
 use Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
@@ -14,6 +27,9 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
+use Filament\Navigation\NavigationBuilder;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -23,7 +39,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
@@ -75,13 +93,47 @@ class PanelPanelProvider extends PanelProvider
                 PaymentChart::class,
                 PaymentMethodChart::class
             ])
-            ->navigationGroups([
-                'Main',
-                'Finance',
-                'Payments',
-                'References',
-                'Configuration',
-                'Settings',
+            ->navigation(function (NavigationBuilder $navigationBuilder): NavigationBuilder {
+                return $navigationBuilder
+                    ->items([
+                        ...Dashboard::getNavigationItems(),
+                        ...$this->filterResourceNavigationItems(UserResource::class),
+                        ...$this->filterResourceNavigationItems(RoleResource::class),
+                    ])
+                    ->groups([
+                        NavigationGroup::make('Finance')
+                            ->label('Finance')
+                            ->icon('heroicon-o-receipt-percent')
+                            ->items([
+                                ...$this->filterResourceNavigationItems(InvoiceResource::class),
+                                ...$this->filterResourceNavigationItems(RecurringInvoiceResource::class),
+                                ...$this->filterResourceNavigationItems(PaymentResource::class),
+                                ...$this->filterResourceNavigationItems(PaymentSummaryResource::class),
+                            ]),
+                        NavigationGroup::make('Reference')
+                            ->label('Reference')
+                            ->icon('heroicon-o-cube')
+                            ->items([
+                                ...$this->filterResourceNavigationItems(ItemResource::class),
+                                ...$this->filterResourceNavigationItems(BankResource::class),
+                                ...$this->filterResourceNavigationItems(BankAccountResource::class),
+                            ]),
+                        NavigationGroup::make('Configuration')
+                            ->label('Configuration')
+                            ->icon('heroicon-o-cpu-chip')
+                            ->items([
+                                ...$this->filterResourceNavigationItems(WhatsappConfigResource::class),
+                                ...$this->filterResourceNavigationItems(MessageTemplateCategoryResource::class),
+                                ...$this->filterResourceNavigationItems(MessageTemplateResource::class),
+                            ]),
+                    ]);
+            })
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Settings')
+                    ->url(fn (): string => ApplicationResource::getUrl('edit', ['record' => $application?->slug]))
+                    ->icon('heroicon-o-cog-6-tooth'),
+                // ...
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -112,5 +164,16 @@ class PanelPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    function filterResourceNavigationItems($resource) {
+        // Buang namespace model menjadi dan pisahkan dengan ::, misal model InvoicePayment menjadi invoice::payment
+        $permission = 'view_any_' . str_replace('_', '::', Str::snake(class_basename($resource::getModel())));
+
+        if (Gate::allows($permission)) {
+            return $resource::getNavigationItems();
+        }
+
+        return [];
     }
 }
